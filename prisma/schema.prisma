@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      UserRole @default(SECRETARY)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  reference   String
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  details     String
+  cost        Decimal
+  salePrice   Decimal
+  stock       Int      @default(0)
+  visible     Boolean  @default(true)
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  fullName  String
+  document  String?
+  phone     String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+  credits   Credit[]
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  customer   Customer?   @relation(fields: [customerId], references: [id])
+  customerId String?
+  status     OrderStatus @default(PENDING)
+  notes      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Credit {
+  id         String       @id @default(cuid())
+  customer   Customer     @relation(fields: [customerId], references: [id])
+  customerId String
+  total      Decimal
+  months     Int
+  status     CreditStatus @default(ACTIVE)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  SECRETARY
+}
+
+enum OrderStatus {
+  PENDING
+  CONTACTED
+  CONFIRMED
+  CANCELLED
+}
+
+enum CreditStatus {
+  ACTIVE
+  PAID
+  OVERDUE
+  CANCELLED
+}
