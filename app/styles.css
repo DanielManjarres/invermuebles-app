@@ -589,7 +589,7 @@ th {
 .loginPage {
   align-items: center;
   background:
-    linear-gradient(90deg, rgba(248, 250, 247, 0.94), rgba(238, 245, 237, 0.88)),
+    linear-gradient(90deg, rgba(248, 250, 247, 0.94), rgba(238, 245, 237, 0.9)),
     var(--hero-image);
   background-position: center;
   background-size: cover;
@@ -599,15 +599,74 @@ th {
   padding: 48px 5vw;
 }
 
-.loginCard {
+.loginShell {
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 24px 70px rgba(4, 63, 30, 0.16);
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 0.72fr);
+  max-width: 1040px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.loginIntro {
+  background:
+    linear-gradient(135deg, rgba(4, 63, 30, 0.92), rgba(7, 85, 42, 0.72)),
+    url("/logo-invermuebles.png") right -58px bottom -84px / 330px auto no-repeat;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 560px;
+  padding: 42px;
+}
+
+.loginIntro .eyebrow {
+  color: #d8b47a;
+}
+
+.loginIntro h1 {
+  font-size: clamp(2rem, 4vw, 3.45rem);
+  line-height: 1.02;
+  margin-bottom: 18px;
+}
+
+.loginIntro p {
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.75;
+  max-width: 540px;
+}
+
+.loginTrust {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  max-width: 470px;
+  padding: 13px 14px;
+}
+
+.loginTrust svg {
+  color: #d8b47a;
+  flex: 0 0 auto;
+}
+
+.loginTrust span {
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.loginCard {
   display: grid;
   gap: 18px;
-  max-width: 440px;
-  padding: 28px;
+  padding: 42px;
   width: 100%;
 }
 
@@ -615,15 +674,22 @@ th {
   border-radius: 50%;
 }
 
-.loginCard h1 {
-  font-size: 2rem;
-  line-height: 1.08;
-  margin-bottom: 10px;
+.loginLogoRow {
+  align-items: center;
+  display: flex;
+  gap: 16px;
 }
 
-.loginCard p {
+.loginLogoRow h2 {
+  font-size: 1.85rem;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.loginHelp {
   color: var(--muted);
   line-height: 1.6;
+  margin: -4px 0 4px;
 }
 
 .loginCard label {
@@ -633,18 +699,55 @@ th {
   gap: 8px;
 }
 
-.loginCard input {
+.fieldControl {
+  align-items: center;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
-  color: var(--text);
-  min-height: 46px;
+  display: flex;
+  gap: 10px;
+  min-height: 50px;
   padding: 0 12px;
 }
 
-.loginCard input:focus {
+.fieldControl svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.fieldControl:focus-within {
   border-color: var(--primary);
   outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.loginCard input {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  flex: 1;
+  min-height: 48px;
+  min-width: 0;
+  padding: 0;
+}
+
+.loginCard input:focus {
+  outline: 0;
+}
+
+.passwordToggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+}
+
+.passwordToggle:hover {
+  color: var(--primary);
 }
 
 .formError {
@@ -654,6 +757,20 @@ th {
   font-weight: 800;
   margin: 0;
   padding: 10px 12px;
+}
+
+.loginBackLink {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 800;
+  gap: 7px;
+  justify-content: center;
+}
+
+.loginBackLink:hover {
+  color: var(--primary);
 }
 
 .siteFooter {
@@ -755,6 +872,15 @@ th {
     flex-direction: column;
   }
 
+  .loginShell {
+    grid-template-columns: 1fr;
+  }
+
+  .loginIntro {
+    min-height: auto;
+    padding: 30px;
+  }
+
   .footerAccess {
     text-align: left;
   }
@@ -791,6 +917,19 @@ th {
 
   .hero {
     min-height: 72vh;
+  }
+
+  .loginPage {
+    padding: 26px 5vw;
+  }
+
+  .loginCard {
+    padding: 24px;
+  }
+
+  .loginLogoRow {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .sectionHeader {
