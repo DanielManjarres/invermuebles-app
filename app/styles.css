@@ -424,6 +424,18 @@ p {
   max-width: 850px;
 }
 
+.pageHeaderRow {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  max-width: 1180px;
+}
+
+.pageHeaderRow > div {
+  max-width: 850px;
+}
+
 .catalogTools {
   align-items: center;
   display: flex;
@@ -574,6 +586,76 @@ th {
   text-align: center;
 }
 
+.loginPage {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(248, 250, 247, 0.94), rgba(238, 245, 237, 0.88)),
+    var(--hero-image);
+  background-position: center;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  min-height: calc(100vh - 84px);
+  padding: 48px 5vw;
+}
+
+.loginCard {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 18px;
+  max-width: 440px;
+  padding: 28px;
+  width: 100%;
+}
+
+.loginCard img {
+  border-radius: 50%;
+}
+
+.loginCard h1 {
+  font-size: 2rem;
+  line-height: 1.08;
+  margin-bottom: 10px;
+}
+
+.loginCard p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.loginCard label {
+  color: var(--text);
+  display: grid;
+  font-weight: 800;
+  gap: 8px;
+}
+
+.loginCard input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 46px;
+  padding: 0 12px;
+}
+
+.loginCard input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.formError {
+  background: #fae4df;
+  border-radius: 8px;
+  color: #9b2924;
+  font-weight: 800;
+  margin: 0;
+  padding: 10px 12px;
+}
+
 .siteFooter {
   background: #17201a;
   color: #fff;
@@ -651,6 +733,9 @@ th {
     white-space: normal;
   }
 
+  .pageHeaderRow {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 620px) {

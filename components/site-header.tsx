@@ -30,9 +30,6 @@ export function SiteHeader({ active }: SiteHeaderProps) {
         <Link className={active === "carrito" ? "active" : ""} href="/carrito">
           Carrito
         </Link>
-        <Link className={active === "admin" ? "active" : ""} href="/admin">
-          Panel
-        </Link>
       </nav>
     </header>
   );

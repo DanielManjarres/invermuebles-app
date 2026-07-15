@@ -1,7 +1,7 @@
 import { Boxes, PackageCheck, PackageX } from "lucide-react";
 import { products } from "@/lib/products";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { LogoutButton } from "@/components/logout-button";
 
 export default function AdminPage() {
   const totalProducts = products.length;
@@ -13,12 +13,17 @@ export default function AdminPage() {
       <SiteHeader active="admin" />
 
       <section className="pageHeader">
-        <p className="eyebrow">Panel administrativo</p>
-        <h1>Inventario básico</h1>
-        <p>
-          Primera versión para organizar productos, cantidades y visibilidad en
-          la web.
-        </p>
+        <div className="pageHeaderRow">
+          <div>
+            <p className="eyebrow">Panel administrativo</p>
+            <h1>Inventario básico</h1>
+            <p>
+              Primera versión para organizar productos, cantidades y visibilidad
+              en la web.
+            </p>
+          </div>
+          <LogoutButton />
+        </div>
       </section>
 
       <section className="statsGrid">
@@ -75,7 +80,6 @@ export default function AdminPage() {
           </table>
         </div>
       </section>
-      <SiteFooter />
     </main>
   );
 }
