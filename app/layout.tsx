@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Invermuebles del Quindio",
-  description: "Aplicacion web de ventas para muebles y electrodomesticos.",
+  title: "Invermuebles del Quindío",
+  description: "Aplicación web de ventas para muebles y electrodomésticos.",
 };
 
 export default function RootLayout({

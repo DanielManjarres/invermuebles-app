@@ -1,37 +1,26 @@
-import Link from "next/link";
 import { products } from "@/lib/products";
-import { ProductCard } from "@/components/product-card";
+import { CatalogBrowser } from "@/components/catalog-browser";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 export default function CatalogPage() {
   const visibleProducts = products.filter((product) => product.visible);
 
   return (
     <main>
-      <header className="topbar">
-        <Link className="brand" href="/">
-          Invermuebles
-        </Link>
-        <nav className="nav">
-          <Link href="/carrito">Carrito</Link>
-          <Link href="/admin">Panel</Link>
-        </nav>
-      </header>
+      <SiteHeader active="catalogo" />
 
       <section className="pageHeader">
-        <p className="eyebrow">Catalogo web</p>
-        <h1>Productos disponibles</h1>
+        <p className="eyebrow">Catálogo web</p>
+        <h1>Elige productos y continúa por WhatsApp</h1>
         <p>
-          Los precios se confirman directamente con el almacen por WhatsApp.
+          Los precios se confirman directamente con el almacén. Puedes filtrar
+          por categoría y agregar productos al carrito para enviar la solicitud.
         </p>
       </section>
 
-      <section className="section">
-        <div className="productGrid">
-          {visibleProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      <CatalogBrowser products={visibleProducts} />
+      <SiteFooter />
     </main>
   );
 }

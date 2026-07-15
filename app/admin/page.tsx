@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { Boxes, PackageCheck, PackageX } from "lucide-react";
 import { products } from "@/lib/products";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 export default function AdminPage() {
   const totalProducts = products.length;
@@ -9,21 +10,13 @@ export default function AdminPage() {
 
   return (
     <main>
-      <header className="topbar">
-        <Link className="brand" href="/">
-          Invermuebles
-        </Link>
-        <nav className="nav">
-          <Link href="/catalogo">Catalogo</Link>
-          <Link href="/carrito">Carrito</Link>
-        </nav>
-      </header>
+      <SiteHeader active="admin" />
 
       <section className="pageHeader">
         <p className="eyebrow">Panel administrativo</p>
-        <h1>Inventario basico</h1>
+        <h1>Inventario básico</h1>
         <p>
-          Primera version para organizar productos, cantidades y visibilidad en
+          Primera versión para organizar productos, cantidades y visibilidad en
           la web.
         </p>
       </section>
@@ -58,7 +51,7 @@ export default function AdminPage() {
             <thead>
               <tr>
                 <th>Producto</th>
-                <th>Categoria</th>
+                <th>Categoría</th>
                 <th>Referencia</th>
                 <th>Cantidad</th>
                 <th>Costo</th>
@@ -75,13 +68,14 @@ export default function AdminPage() {
                   <td>{product.stock}</td>
                   <td>{product.cost.toLocaleString("es-CO")}</td>
                   <td>{product.salePrice.toLocaleString("es-CO")}</td>
-                  <td>{product.visible ? "Si" : "No"}</td>
+                  <td>{product.visible ? "Sí" : "No"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

@@ -16,12 +16,18 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="productCard">
       <div className="productImage">
-        <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 33vw" />
+        <Image
+          src={product.image}
+          alt={product.name}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
       </div>
       <div className="productInfo">
         <div>
           <span className="tag">{product.category}</span>
           <h2>{product.name}</h2>
+          <span className="reference">{product.reference}</span>
           <p>{product.details}</p>
         </div>
         <div className="productFooter">
