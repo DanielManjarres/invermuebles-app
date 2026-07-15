@@ -122,9 +122,9 @@ export default function LoginPage() {
               Ingresar
             </button>
 
-            <Link className="loginBackLink" href="/catalogo">
+            <Link className="loginBackLink" href="/">
               <ArrowLeft size={17} />
-              Volver al catálogo
+              Volver a página principal
             </Link>
           </form>
         </div>

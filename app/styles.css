@@ -613,8 +613,8 @@ th {
 
 .loginIntro {
   background:
-    linear-gradient(135deg, rgba(4, 63, 30, 0.92), rgba(7, 85, 42, 0.72)),
-    url("/logo-invermuebles.png") right -58px bottom -84px / 330px auto no-repeat;
+    linear-gradient(135deg, rgba(4, 63, 30, 0.94), rgba(7, 85, 42, 0.82)),
+    url("/logo-invermuebles.png") right -34px bottom -42px / 250px auto no-repeat;
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -732,6 +732,14 @@ th {
 
 .loginCard input:focus {
   outline: 0;
+}
+
+.loginCard input:-webkit-autofill,
+.loginCard input:-webkit-autofill:hover,
+.loginCard input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  box-shadow: 0 0 0 1000px #fff inset;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .passwordToggle {
