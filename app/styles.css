@@ -66,12 +66,36 @@ button:disabled {
 .brand {
   align-items: center;
   display: inline-flex;
-  height: 70px;
+  gap: 12px;
+  height: 74px;
 }
 
 .brand img {
-  height: 58px;
-  width: auto;
+  border-radius: 50%;
+  height: 64px;
+  width: 64px;
+}
+
+.brand span {
+  display: grid;
+  gap: 2px;
+  line-height: 1;
+}
+
+.brand strong {
+  color: var(--primary);
+  font-size: 1.12rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.brand small {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .nav {
@@ -105,7 +129,7 @@ button:disabled {
 }
 
 .hero::after {
-  background: url("/logo-invermuebles.svg") center / contain no-repeat;
+  background: url("/logo-invermuebles.png") center / contain no-repeat;
   content: "";
   height: min(44vw, 420px);
   opacity: 0.16;
@@ -353,7 +377,7 @@ p {
 .pageHeader {
   background:
     linear-gradient(90deg, rgba(238, 245, 237, 0.96), rgba(244, 240, 232, 0.9)),
-    url("/logo-invermuebles.svg") right 5vw center / 260px auto no-repeat;
+    url("/logo-invermuebles.png") right 5vw center / 220px auto no-repeat;
   border-bottom: 1px solid var(--line);
   padding: 44px 5vw;
 }
@@ -548,7 +572,16 @@ th {
   }
 
   .brand img {
-    height: 50px;
+    height: 52px;
+    width: 52px;
+  }
+
+  .brand strong {
+    font-size: 0.92rem;
+  }
+
+  .brand small {
+    font-size: 0.65rem;
   }
 
   .nav {

@@ -12,12 +12,16 @@ export function SiteHeader({ active }: SiteHeaderProps) {
     <header className="topbar">
       <Link className="brand" href="/" aria-label="Ir al inicio">
         <Image
-          src="/logo-invermuebles.svg"
+          src="/logo-invermuebles.png"
           alt="Invermuebles del Quindío"
-          width={184}
+          width={72}
           height={72}
           priority
         />
+        <span>
+          <strong>Invermuebles</strong>
+          <small>Del Quindío</small>
+        </span>
       </Link>
       <nav className="nav" aria-label="Navegación principal">
         <Link className={active === "catalogo" ? "active" : ""} href="/catalogo">
