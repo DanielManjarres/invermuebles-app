@@ -2,7 +2,7 @@ export type Product = {
   id: string;
   name: string;
   reference: string;
-  category: "Muebles" | "Electrodomésticos" | "Colchones";
+  category: "Muebles" | "Electrodomésticos" | "Colchones" | "Audio y video";
   details: string;
   cost: number;
   salePrice: number;
@@ -89,5 +89,83 @@ export const products: Product[] = [
     visible: true,
     image:
       "https://images.unsplash.com/photo-1616627561839-074385245ff6?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    id: "televisor-smart-55",
+    name: "Televisor Smart TV 55 pulgadas",
+    reference: "REF-TV-055",
+    category: "Electrodomésticos",
+    details: "Televisor Smart TV de 55 pulgadas con imagen 4K y conexión WiFi.",
+    cost: 1450000,
+    salePrice: 2150000,
+    stock: 2,
+    visible: true,
+    image:
+      "https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    id: "sala-estar-verde",
+    name: "Sala de estar verde",
+    reference: "MUE-045",
+    category: "Muebles",
+    details: "Juego de sala para estar con sofá principal, poltrona y mesa auxiliar.",
+    cost: 1900000,
+    salePrice: 2750000,
+    stock: 1,
+    visible: true,
+    image:
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    id: "bafle-bluetooth",
+    name: "Bafle Bluetooth portátil",
+    reference: "AUD-018",
+    category: "Audio y video",
+    details: "Bafle recargable con conexión Bluetooth, puerto USB y micrófono.",
+    cost: 280000,
+    salePrice: 430000,
+    stock: 6,
+    visible: true,
+    image:
+      "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    id: "equipo-sonido-hogar",
+    name: "Equipo de sonido para hogar",
+    reference: "AUD-026",
+    category: "Audio y video",
+    details: "Sistema de sonido para sala con parlantes y conectividad inalámbrica.",
+    cost: 620000,
+    salePrice: 890000,
+    stock: 3,
+    visible: true,
+    image:
+      "https://images.unsplash.com/photo-1558089687-f282ffcbc126?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    id: "estufa-horno",
+    name: "Estufa con horno",
+    reference: "REF-EST-030",
+    category: "Electrodomésticos",
+    details: "Estufa de piso con horno integrado, ideal para uso familiar.",
+    cost: 780000,
+    salePrice: 1120000,
+    stock: 2,
+    visible: true,
+    image:
+      "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    id: "poltrona-reclinable",
+    name: "Poltrona reclinable",
+    reference: "MUE-052",
+    category: "Muebles",
+    details: "Poltrona cómoda para sala de estar con sistema reclinable.",
+    cost: 520000,
+    salePrice: 820000,
+    stock: 4,
+    visible: true,
+    image:
+      "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&w=900&q=80",
   },
 ];
