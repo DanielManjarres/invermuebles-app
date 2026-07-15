@@ -1,6 +1,7 @@
 import { products } from "@/lib/products";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 export default function CatalogPage() {
   const visibleProducts = products.filter((product) => product.visible);
@@ -19,6 +20,7 @@ export default function CatalogPage() {
       </section>
 
       <CatalogBrowser products={visibleProducts} />
+      <SiteFooter />
     </main>
   );
 }

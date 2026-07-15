@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Send, Trash2 } from "lucide-react";
 import { useCart } from "@/components/use-cart";
 import { SiteHeader } from "@/components/site-header";
-
-const whatsappNumber = "573000000000";
+import { SiteFooter } from "@/components/site-footer";
+import { whatsappUrl } from "@/lib/company";
 
 export default function CartPage() {
   const { items, removeItem, clearCart } = useCart();
@@ -15,7 +15,7 @@ export default function CartPage() {
       .map((item) => `- ${item.name} (${item.reference})`)
       .join("\n")}`
   );
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+  const cartWhatsappUrl = `${whatsappUrl}?text=${message}`;
 
   return (
     <main>
@@ -60,7 +60,7 @@ export default function CartPage() {
             <aside className="summaryPanel">
               <h2>Resumen</h2>
               <p>{items.length} producto(s) seleccionados.</p>
-              <a className="primaryButton fullWidth" href={whatsappUrl}>
+              <a className="primaryButton fullWidth" href={cartWhatsappUrl}>
                 <Send size={18} />
                 Enviar a WhatsApp
               </a>
@@ -71,6 +71,7 @@ export default function CartPage() {
           </>
         )}
       </section>
+      <SiteFooter />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import { Boxes, PackageCheck, PackageX } from "lucide-react";
 import { products } from "@/lib/products";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 
 export default function AdminPage() {
   const totalProducts = products.length;
@@ -74,6 +75,7 @@ export default function AdminPage() {
           </table>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

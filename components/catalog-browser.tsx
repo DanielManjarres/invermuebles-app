@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
+import { whatsappUrl } from "@/lib/company";
 
 type CatalogBrowserProps = {
   products: Product[];
@@ -46,7 +47,7 @@ export function CatalogBrowser({ products }: CatalogBrowserProps) {
         </div>
         <a
           className="whatsappHint"
-          href="https://wa.me/573000000000"
+          href={whatsappUrl}
           target="_blank"
           rel="noreferrer"
         >
