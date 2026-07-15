@@ -710,6 +710,24 @@ th {
   color: #fff;
 }
 
+.footerAccess {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 32px auto 0;
+  max-width: 1180px;
+  padding-top: 16px;
+  text-align: right;
+}
+
+.footerAccess a {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.footerAccess a:hover {
+  color: #d8b47a;
+}
+
 @media (max-width: 900px) {
   .productGrid,
   .statsGrid,
@@ -735,6 +753,10 @@ th {
 
   .pageHeaderRow {
     flex-direction: column;
+  }
+
+  .footerAccess {
+    text-align: left;
   }
 }
 
