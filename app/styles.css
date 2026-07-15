@@ -118,7 +118,7 @@ button:disabled {
 .hero {
   align-items: center;
   background:
-    linear-gradient(90deg, rgba(4, 40, 21, 0.9), rgba(4, 63, 30, 0.58), rgba(32, 32, 39, 0.12)),
+    linear-gradient(90deg, rgba(20, 20, 20, 0.72), rgba(20, 20, 20, 0.36), rgba(20, 20, 20, 0.04)),
     var(--hero-image);
   background-position: center right;
   background-size: cover;
