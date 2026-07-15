@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Send, Trash2 } from "lucide-react";
 import { useCart } from "@/components/use-cart";
+import { SiteHeader } from "@/components/site-header";
 
 const whatsappNumber = "573000000000";
 
@@ -18,15 +19,7 @@ export default function CartPage() {
 
   return (
     <main>
-      <header className="topbar">
-        <Link className="brand" href="/">
-          Invermuebles
-        </Link>
-        <nav className="nav">
-          <Link href="/catalogo">Catálogo</Link>
-          <Link href="/admin">Panel</Link>
-        </nav>
-      </header>
+      <SiteHeader active="carrito" />
 
       <section className="pageHeader">
         <p className="eyebrow">Pedido por WhatsApp</p>

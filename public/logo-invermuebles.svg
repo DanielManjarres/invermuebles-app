@@ -1,0 +1,20 @@
+<svg width="460" height="180" viewBox="0 0 460 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Invermuebles del Quindío</title>
+  <desc id="desc">Logo de Invermuebles del Quindío con casa, montañas, muebles y electrodomésticos.</desc>
+  <rect width="460" height="180" rx="20" fill="white"/>
+  <path d="M93 88V62L229 18L365 62V88" stroke="#064d25" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M154 67C187 58 199 39 221 46C238 51 244 69 265 62C283 56 289 46 305 54C321 62 330 72 350 76" stroke="#4b8727" stroke-width="11" stroke-linecap="round"/>
+  <rect x="144" y="84" width="36" height="36" rx="4" fill="#9a6a32"/>
+  <path d="M162 84V120" stroke="#6b431e" stroke-width="3"/>
+  <rect x="196" y="91" width="66" height="28" rx="10" fill="#e7ddca" stroke="#bca98b" stroke-width="3"/>
+  <rect x="275" y="78" width="35" height="48" rx="4" fill="#d7d9da" stroke="#7b8185" stroke-width="3"/>
+  <path d="M292.5 80V124" stroke="#7b8185" stroke-width="2"/>
+  <rect x="318" y="91" width="36" height="35" rx="4" fill="#f1f2f2" stroke="#7b8185" stroke-width="3"/>
+  <circle cx="336" cy="111" r="12" stroke="#24242a" stroke-width="4"/>
+  <text x="230" y="149" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="42" font-weight="900" letter-spacing="2">
+    <tspan fill="#07552a">INVER</tspan><tspan fill="#24242a">MUEBLES</tspan>
+  </text>
+  <path d="M132 163H206" stroke="#07552a" stroke-width="4" stroke-linecap="round"/>
+  <text x="230" y="169" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="17" font-weight="800" letter-spacing="7" fill="#07552a">DEL QUINDÍO</text>
+  <path d="M254 163H328" stroke="#07552a" stroke-width="4" stroke-linecap="round"/>
+</svg>

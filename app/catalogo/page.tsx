@@ -1,21 +1,13 @@
-import Link from "next/link";
 import { products } from "@/lib/products";
 import { CatalogBrowser } from "@/components/catalog-browser";
+import { SiteHeader } from "@/components/site-header";
 
 export default function CatalogPage() {
   const visibleProducts = products.filter((product) => product.visible);
 
   return (
     <main>
-      <header className="topbar">
-        <Link className="brand" href="/">
-          Invermuebles
-        </Link>
-        <nav className="nav">
-          <Link href="/carrito">Carrito</Link>
-          <Link href="/admin">Panel</Link>
-        </nav>
-      </header>
+      <SiteHeader active="catalogo" />
 
       <section className="pageHeader">
         <p className="eyebrow">Catálogo web</p>
