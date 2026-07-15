@@ -117,7 +117,7 @@ button:disabled {
 .hero {
   align-items: center;
   background:
-    linear-gradient(90deg, rgba(4, 40, 21, 0.9), rgba(4, 63, 30, 0.55), rgba(32, 32, 39, 0.16)),
+    linear-gradient(90deg, rgba(4, 40, 21, 0.88), rgba(4, 63, 30, 0.5), rgba(32, 32, 39, 0.08)),
     url("https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1800&q=80");
   background-position: center;
   background-size: cover;
@@ -126,18 +126,6 @@ button:disabled {
   min-height: min(690px, calc(100vh - 84px));
   padding: 6vh 5vw 10vh;
   position: relative;
-}
-
-.hero::after {
-  background: url("/logo-invermuebles.png") center / contain no-repeat;
-  content: "";
-  height: min(44vw, 420px);
-  opacity: 0.16;
-  position: absolute;
-  right: 4vw;
-  top: 50%;
-  transform: translateY(-48%);
-  width: min(48vw, 520px);
 }
 
 .heroContent {
@@ -166,7 +154,7 @@ p {
 }
 
 .hero h1 {
-  font-size: clamp(2.3rem, 5vw, 4.25rem);
+  font-size: clamp(2.25rem, 4.55vw, 3.95rem);
   font-weight: 900;
   line-height: 1.02;
   margin-bottom: 20px;
@@ -224,13 +212,14 @@ p {
 }
 
 .ghostButton {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(37, 211, 102, 0.18);
+  border-color: rgba(37, 211, 102, 0.62);
   color: #fff;
 }
 
 .ghostButton:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(37, 211, 102, 0.28);
+  border-color: rgba(37, 211, 102, 0.82);
 }
 
 .iconTextButton {
@@ -545,10 +534,6 @@ th {
 
   .hero {
     min-height: 78vh;
-  }
-
-  .hero::after {
-    display: none;
   }
 
   .catalogTools {
