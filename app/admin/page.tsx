@@ -10,7 +10,7 @@ export default function AdminPage() {
 
   return (
     <main>
-      <SiteHeader active="admin" />
+      <SiteHeader active="admin" variant="admin" />
 
       <section className="pageHeader">
         <div className="pageHeaderRow">

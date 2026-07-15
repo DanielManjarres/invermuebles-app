@@ -5,12 +5,19 @@ import Link from "next/link";
 
 type SiteHeaderProps = {
   active?: "catalogo" | "carrito" | "admin";
+  variant?: "public" | "admin";
 };
 
-export function SiteHeader({ active }: SiteHeaderProps) {
+export function SiteHeader({ active, variant = "public" }: SiteHeaderProps) {
+  const isAdmin = variant === "admin";
+
   return (
     <header className="topbar">
-      <Link className="brand" href="/" aria-label="Ir al inicio">
+      <Link
+        className="brand"
+        href={isAdmin ? "/admin" : "/"}
+        aria-label={isAdmin ? "Ir al panel administrativo" : "Ir al inicio"}
+      >
         <Image
           src="/logo-invermuebles.png"
           alt="Invermuebles del Quindío"
@@ -23,13 +30,31 @@ export function SiteHeader({ active }: SiteHeaderProps) {
           <small>Del Quindío</small>
         </span>
       </Link>
-      <nav className="nav" aria-label="Navegación principal">
-        <Link className={active === "catalogo" ? "active" : ""} href="/catalogo">
-          Catálogo
-        </Link>
-        <Link className={active === "carrito" ? "active" : ""} href="/carrito">
-          Carrito
-        </Link>
+
+      <nav
+        className="nav"
+        aria-label={isAdmin ? "Navegación administrativa" : "Navegación principal"}
+      >
+        {isAdmin ? (
+          <Link className={active === "admin" ? "active" : ""} href="/admin">
+            Inventario
+          </Link>
+        ) : (
+          <>
+            <Link
+              className={active === "catalogo" ? "active" : ""}
+              href="/catalogo"
+            >
+              Catálogo
+            </Link>
+            <Link
+              className={active === "carrito" ? "active" : ""}
+              href="/carrito"
+            >
+              Carrito
+            </Link>
+          </>
+        )}
       </nav>
     </header>
   );
