@@ -613,8 +613,8 @@ th {
 
 .loginIntro {
   background:
-    linear-gradient(135deg, rgba(4, 63, 30, 0.94), rgba(7, 85, 42, 0.82)),
-    url("/logo-invermuebles.png") right -34px bottom -42px / 250px auto no-repeat;
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(4, 63, 30, 0.96), rgba(7, 85, 42, 0.84));
   color: #fff;
   display: flex;
   flex-direction: column;
