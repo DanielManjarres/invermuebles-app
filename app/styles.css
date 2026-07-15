@@ -523,7 +523,7 @@ p {
 
 table {
   border-collapse: collapse;
-  min-width: 880px;
+  min-width: 1120px;
   width: 100%;
 }
 
@@ -538,6 +538,31 @@ th {
   background: var(--surface-strong);
   font-size: 0.82rem;
   text-transform: uppercase;
+}
+
+.actionsCell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tableAction {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.tableAction:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .cartLayout {

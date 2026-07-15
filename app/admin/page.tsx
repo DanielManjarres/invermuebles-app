@@ -1,4 +1,12 @@
-import { Boxes, PackageCheck, PackageX } from "lucide-react";
+import {
+  Boxes,
+  Eye,
+  EyeOff,
+  PackageCheck,
+  PackageX,
+  Pencil,
+  RotateCcw,
+} from "lucide-react";
 import { products } from "@/lib/products";
 import { SiteHeader } from "@/components/site-header";
 import { LogoutButton } from "@/components/logout-button";
@@ -6,7 +14,9 @@ import { LogoutButton } from "@/components/logout-button";
 export default function AdminPage() {
   const totalProducts = products.length;
   const outOfStock = products.filter((product) => product.stock === 0).length;
-  const visibleProducts = products.filter((product) => product.visible).length;
+  const visibleProducts = products.filter(
+    (product) => product.visible && product.stock > 0
+  ).length;
 
   return (
     <main>
@@ -61,7 +71,9 @@ export default function AdminPage() {
                 <th>Cantidad</th>
                 <th>Costo</th>
                 <th>Precio venta</th>
+                <th>Estado</th>
                 <th>Web</th>
+                <th>Gestión</th>
               </tr>
             </thead>
             <tbody>
@@ -73,7 +85,28 @@ export default function AdminPage() {
                   <td>{product.stock}</td>
                   <td>{product.cost.toLocaleString("es-CO")}</td>
                   <td>{product.salePrice.toLocaleString("es-CO")}</td>
+                  <td>
+                    <span className={product.stock > 0 ? "available" : "unavailable"}>
+                      {product.stock > 0 ? "Disponible" : "Agotado"}
+                    </span>
+                  </td>
                   <td>{product.visible ? "Sí" : "No"}</td>
+                  <td>
+                    <div className="actionsCell">
+                      <button className="tableAction" type="button">
+                        <Pencil size={15} />
+                        Editar
+                      </button>
+                      <button className="tableAction" type="button">
+                        {product.visible ? <EyeOff size={15} /> : <Eye size={15} />}
+                        {product.visible ? "Ocultar" : "Publicar"}
+                      </button>
+                      <button className="tableAction" type="button">
+                        <RotateCcw size={15} />
+                        Stock
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
