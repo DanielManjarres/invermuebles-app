@@ -2,7 +2,7 @@ export type Product = {
   id: string;
   name: string;
   reference: string;
-  category: "Muebles" | "Electrodomesticos" | "Colchones";
+  category: "Muebles" | "Electrodomésticos" | "Colchones";
   details: string;
   cost: number;
   salePrice: number;
@@ -29,7 +29,7 @@ export const products: Product[] = [
     id: "nevera-dos-puertas",
     name: "Nevera dos puertas",
     reference: "REF-NEV-220",
-    category: "Electrodomesticos",
+    category: "Electrodomésticos",
     details: "Nevera familiar con congelador superior y bajo consumo.",
     cost: 1800000,
     salePrice: 2450000,
@@ -53,10 +53,10 @@ export const products: Product[] = [
   },
   {
     id: "lavadora-automatica",
-    name: "Lavadora automatica",
+    name: "Lavadora automática",
     reference: "REF-LAV-016",
-    category: "Electrodomesticos",
-    details: "Lavadora automatica de carga superior para uso familiar.",
+    category: "Electrodomésticos",
+    details: "Lavadora automática de carga superior para uso familiar.",
     cost: 1350000,
     salePrice: 1880000,
     stock: 0,
@@ -66,10 +66,10 @@ export const products: Product[] = [
   },
   {
     id: "colchon-doble",
-    name: "Colchon doble",
+    name: "Colchón doble",
     reference: "COL-120",
     category: "Colchones",
-    details: "Colchon doble con soporte medio y tela acolchada.",
+    details: "Colchón doble con soporte medio y tela acolchada.",
     cost: 430000,
     salePrice: 690000,
     stock: 5,

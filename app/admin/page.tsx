@@ -21,9 +21,9 @@ export default function AdminPage() {
 
       <section className="pageHeader">
         <p className="eyebrow">Panel administrativo</p>
-        <h1>Inventario basico</h1>
+        <h1>Inventario básico</h1>
         <p>
-          Primera version para organizar productos, cantidades y visibilidad en
+          Primera versión para organizar productos, cantidades y visibilidad en
           la web.
         </p>
       </section>

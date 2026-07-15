@@ -9,7 +9,7 @@
   --primary-dark: #155632;
   --accent: #b8342f;
   --warning: #a56717;
-  --shadow: 0 16px 40px rgba(23, 32, 26, 0.08);
+  --shadow: 0 12px 30px rgba(23, 32, 26, 0.08);
 }
 
 * {
@@ -88,12 +88,12 @@ button:disabled {
   background-size: cover;
   color: #fff;
   display: flex;
-  min-height: calc(100vh - 68px);
-  padding: 7vh 5vw 12vh;
+  min-height: min(720px, calc(100vh - 68px));
+  padding: 6vh 5vw 10vh;
 }
 
 .heroContent {
-  max-width: 720px;
+  max-width: 680px;
 }
 
 .eyebrow {
@@ -116,10 +116,10 @@ p {
 }
 
 .hero h1 {
-  font-size: clamp(2.4rem, 7vw, 5.8rem);
-  line-height: 0.95;
-  margin-bottom: 22px;
-  max-width: 900px;
+  font-size: clamp(2.35rem, 5.6vw, 4.7rem);
+  line-height: 1;
+  margin-bottom: 20px;
+  max-width: 760px;
 }
 
 .hero p {
@@ -138,6 +138,7 @@ p {
 
 .primaryButton,
 .secondaryButton,
+.ghostButton,
 .iconTextButton,
 .iconButton {
   align-items: center;
@@ -166,6 +167,16 @@ p {
   color: var(--text);
 }
 
+.ghostButton {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.ghostButton:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
 .iconTextButton {
   background: var(--primary);
   color: #fff;
@@ -188,10 +199,15 @@ p {
 .section,
 .tableSection,
 .statsGrid,
-.cartLayout {
+.cartLayout,
+.catalogSection {
   margin: 0 auto;
   max-width: 1180px;
   padding: 48px 5vw;
+}
+
+.catalogSection {
+  padding-top: 34px;
 }
 
 .sectionHeader {
@@ -216,7 +232,7 @@ p {
 
 .productGrid {
   display: grid;
-  gap: 18px;
+  gap: 22px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -226,6 +242,16 @@ p {
   border-radius: 8px;
   box-shadow: var(--shadow);
   overflow: hidden;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.productCard:hover {
+  border-color: rgba(29, 111, 66, 0.32);
+  box-shadow: 0 18px 34px rgba(23, 32, 26, 0.12);
+  transform: translateY(-2px);
 }
 
 .productImage {
@@ -240,14 +266,22 @@ p {
 
 .productInfo {
   display: grid;
-  gap: 22px;
-  min-height: 220px;
-  padding: 18px;
+  gap: 20px;
+  min-height: 236px;
+  padding: 20px;
 }
 
 .productInfo h2 {
-  font-size: 1.2rem;
-  margin: 10px 0 8px;
+  font-size: 1.18rem;
+  margin: 10px 0 4px;
+}
+
+.reference {
+  color: var(--muted);
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  margin-bottom: 10px;
 }
 
 .productInfo p,
@@ -287,11 +321,56 @@ p {
 .pageHeader {
   background: var(--surface-strong);
   border-bottom: 1px solid var(--line);
-  padding: 52px 5vw;
+  padding: 44px 5vw;
 }
 
 .pageHeader > * {
   max-width: 850px;
+}
+
+.catalogTools {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filterButton {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 800;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.filterButton.active,
+.filterButton:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.whatsappHint {
+  align-items: center;
+  background: #e3f4e8;
+  border: 1px solid #bfe5c8;
+  border-radius: 8px;
+  color: var(--primary-dark);
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  white-space: nowrap;
 }
 
 .statsGrid {
@@ -409,6 +488,16 @@ th {
   .hero {
     min-height: 78vh;
   }
+
+  .catalogTools {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .whatsappHint {
+    justify-content: center;
+    white-space: normal;
+  }
 }
 
 @media (max-width: 620px) {
@@ -430,7 +519,7 @@ th {
   }
 
   .sectionHeader {
-    align-items: start;
+    align-items: flex-start;
     flex-direction: column;
   }
 }

@@ -1,4 +1,4 @@
-import { ArrowRight, ShoppingCart } from "lucide-react";
+import { ArrowRight, MessageCircle, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { products } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
@@ -13,28 +13,37 @@ export default function HomePage() {
           Invermuebles
         </Link>
         <nav className="nav">
-          <Link href="/catalogo">Catalogo</Link>
+          <Link href="/catalogo">Catálogo</Link>
           <Link href="/admin">Panel</Link>
         </nav>
       </header>
 
       <section className="hero">
         <div className="heroContent">
-          <p className="eyebrow">Muebles y electrodomesticos</p>
-          <h1>Productos para el hogar en Invermuebles del Quindio</h1>
+          <p className="eyebrow">Muebles y electrodomésticos</p>
+          <h1>Compra para tu hogar con atención por WhatsApp</h1>
           <p>
-            Consulta productos disponibles, arma tu pedido y continua la venta
-            por WhatsApp con el almacen.
+            Explora el catálogo, selecciona los productos que te interesan y
+            continúa la venta directamente con el almacén.
           </p>
           <div className="heroActions">
             <Link className="primaryButton" href="/catalogo">
-              Ver catalogo
+              Ver catálogo
               <ArrowRight size={18} />
             </Link>
             <Link className="secondaryButton" href="/carrito">
               <ShoppingCart size={18} />
               Carrito
             </Link>
+            <a
+              className="ghostButton"
+              href="https://wa.me/573000000000"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MessageCircle size={18} />
+              WhatsApp
+            </a>
           </div>
         </div>
       </section>
@@ -42,7 +51,7 @@ export default function HomePage() {
       <section className="section">
         <div className="sectionHeader">
           <div>
-            <p className="eyebrow">Catalogo inicial</p>
+            <p className="eyebrow">Catálogo inicial</p>
             <h2>Productos destacados</h2>
           </div>
           <Link className="textLink" href="/catalogo">

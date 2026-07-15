@@ -10,7 +10,7 @@ export default function CartPage() {
   const { items, removeItem, clearCart } = useCart();
 
   const message = encodeURIComponent(
-    `Hola, quiero recibir informacion sobre estos productos:\n\n${items
+    `Hola, quiero recibir información sobre estos productos:\n\n${items
       .map((item) => `- ${item.name} (${item.reference})`)
       .join("\n")}`
   );
@@ -23,7 +23,7 @@ export default function CartPage() {
           Invermuebles
         </Link>
         <nav className="nav">
-          <Link href="/catalogo">Catalogo</Link>
+          <Link href="/catalogo">Catálogo</Link>
           <Link href="/admin">Panel</Link>
         </nav>
       </header>
@@ -31,16 +31,16 @@ export default function CartPage() {
       <section className="pageHeader">
         <p className="eyebrow">Pedido por WhatsApp</p>
         <h1>Carrito</h1>
-        <p>Selecciona productos y continua la venta con el almacen.</p>
+        <p>Selecciona productos y continúa la venta con el almacén.</p>
       </section>
 
       <section className="cartLayout">
         {items.length === 0 ? (
           <div className="emptyState">
             <h2>No hay productos seleccionados</h2>
-            <p>Agrega productos desde el catalogo para crear una solicitud.</p>
+            <p>Agrega productos desde el catálogo para crear una solicitud.</p>
             <Link className="primaryButton" href="/catalogo">
-              Ir al catalogo
+              Ir al catálogo
             </Link>
           </div>
         ) : (
