@@ -3,6 +3,7 @@ export type Product = {
   name: string;
   reference: string;
   category: "Muebles" | "Electrodomésticos" | "Colchones" | "Audio y video";
+  productClass: string;
   details: string;
   cost: number;
   salePrice: number;
@@ -17,6 +18,7 @@ export const products: Product[] = [
     name: "Sala modular gris",
     reference: "MUE-001",
     category: "Muebles",
+    productClass: "Sala",
     details: "Sala modular para espacios familiares, tapizada en tela gris.",
     cost: 1500000,
     salePrice: 2100000,
@@ -30,6 +32,7 @@ export const products: Product[] = [
     name: "Nevera dos puertas",
     reference: "REF-NEV-220",
     category: "Electrodomésticos",
+    productClass: "Nevera",
     details: "Nevera familiar con congelador superior y bajo consumo.",
     cost: 1800000,
     salePrice: 2450000,
@@ -43,6 +46,7 @@ export const products: Product[] = [
     name: "Comedor seis puestos",
     reference: "MUE-014",
     category: "Muebles",
+    productClass: "Comedor",
     details: "Comedor en madera con seis sillas tapizadas.",
     cost: 1200000,
     salePrice: 1750000,
@@ -56,6 +60,7 @@ export const products: Product[] = [
     name: "Lavadora automática",
     reference: "REF-LAV-016",
     category: "Electrodomésticos",
+    productClass: "Lavadora",
     details: "Lavadora automática de carga superior para uso familiar.",
     cost: 1350000,
     salePrice: 1880000,
@@ -69,6 +74,7 @@ export const products: Product[] = [
     name: "Colchón doble",
     reference: "COL-120",
     category: "Colchones",
+    productClass: "Colchón",
     details: "Colchón doble con soporte medio y tela acolchada.",
     cost: 430000,
     salePrice: 690000,
@@ -82,6 +88,7 @@ export const products: Product[] = [
     name: "Mueble para TV",
     reference: "MUE-032",
     category: "Muebles",
+    productClass: "Mueble para TV",
     details: "Centro de entretenimiento compacto con espacio de almacenamiento.",
     cost: 320000,
     salePrice: 520000,
@@ -95,6 +102,7 @@ export const products: Product[] = [
     name: "Televisor Smart TV 55 pulgadas",
     reference: "REF-TV-055",
     category: "Electrodomésticos",
+    productClass: "Televisor",
     details: "Televisor Smart TV de 55 pulgadas con imagen 4K y conexión WiFi.",
     cost: 1450000,
     salePrice: 2150000,
@@ -108,6 +116,7 @@ export const products: Product[] = [
     name: "Sala de estar verde",
     reference: "MUE-045",
     category: "Muebles",
+    productClass: "Sala",
     details: "Juego de sala para estar con sofá principal, poltrona y mesa auxiliar.",
     cost: 1900000,
     salePrice: 2750000,
@@ -121,6 +130,7 @@ export const products: Product[] = [
     name: "Bafle Bluetooth portátil",
     reference: "AUD-018",
     category: "Audio y video",
+    productClass: "Bafle",
     details: "Bafle recargable con conexión Bluetooth, puerto USB y micrófono.",
     cost: 280000,
     salePrice: 430000,
@@ -134,6 +144,7 @@ export const products: Product[] = [
     name: "Equipo de sonido para hogar",
     reference: "AUD-026",
     category: "Audio y video",
+    productClass: "Equipo de sonido",
     details: "Sistema de sonido para sala con parlantes y conectividad inalámbrica.",
     cost: 620000,
     salePrice: 890000,
@@ -147,6 +158,7 @@ export const products: Product[] = [
     name: "Estufa con horno",
     reference: "REF-EST-030",
     category: "Electrodomésticos",
+    productClass: "Estufa",
     details: "Estufa de piso con horno integrado, ideal para uso familiar.",
     cost: 780000,
     salePrice: 1120000,
@@ -160,6 +172,7 @@ export const products: Product[] = [
     name: "Poltrona reclinable",
     reference: "MUE-052",
     category: "Muebles",
+    productClass: "Poltrona",
     details: "Poltrona cómoda para sala de estar con sistema reclinable.",
     cost: 520000,
     salePrice: 820000,
