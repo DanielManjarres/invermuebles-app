@@ -553,12 +553,7 @@ th {
   position: relative;
 }
 
-.manageMenu {
-  position: relative;
-  width: max-content;
-}
-
-.manageMenu summary {
+.manageButton {
   align-items: center;
   background: #fff;
   border: 1px solid var(--line);
@@ -574,12 +569,8 @@ th {
   padding: 0 12px;
 }
 
-.manageMenu summary::-webkit-details-marker {
-  display: none;
-}
-
-.manageMenu[open] summary,
-.manageMenu summary:hover {
+.manageButton.active,
+.manageButton:hover {
   border-color: var(--primary);
   color: var(--primary);
 }
@@ -594,6 +585,20 @@ th {
   margin-top: 6px;
   min-width: 214px;
   padding: 6px;
+}
+
+.floatingMenuBackdrop {
+  background: transparent;
+  border: 0;
+  inset: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 14;
+}
+
+.floatingManageMenu {
+  position: fixed;
+  z-index: 15;
 }
 
 .manageMenuItem {

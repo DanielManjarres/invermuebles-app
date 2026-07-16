@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, MouseEvent, useMemo, useState } from "react";
 import {
   Boxes,
   ChevronDown,
@@ -33,6 +33,12 @@ type ProductFormState = {
   stock: string;
   visible: boolean;
   image: string;
+};
+
+type ActionMenuState = {
+  product: Product;
+  top: number;
+  left: number;
 };
 
 const filters: Array<{ label: string; value: InventoryFilter }> = [
@@ -163,6 +169,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [stockProduct, setStockProduct] = useState<Product | null>(null);
   const [stockValue, setStockValue] = useState("0");
+  const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
   const [notice, setNotice] = useState("");
 
   const totalProducts = inventory.length;
@@ -224,6 +231,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   }
 
   function openEditForm(product: Product) {
+    setActionMenu(null);
     setEditingProductId(product.id);
     setProductForm(productToForm(product));
     setIsProductFormOpen(true);
@@ -237,12 +245,14 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   }
 
   function openStockForm(product: Product) {
+    setActionMenu(null);
     setStockProduct(product);
     setStockValue(String(product.stock));
     setNotice("");
   }
 
   function toggleVisibility(product: Product) {
+    setActionMenu(null);
     setInventory((currentProducts) =>
       currentProducts.map((item) =>
         item.id === product.id ? { ...item, visible: !item.visible } : item
@@ -252,6 +262,27 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       product.visible
         ? `${product.name} quedó oculto del catálogo.`
         : `${product.name} quedó visible en el catálogo.`
+    );
+  }
+
+  function toggleActionMenu(
+    event: MouseEvent<HTMLButtonElement>,
+    product: Product
+  ) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const menuWidth = 224;
+
+    setActionMenu((currentMenu) =>
+      currentMenu?.product.id === product.id
+        ? null
+        : {
+            product,
+            top: rect.bottom + 8,
+            left: Math.max(
+              12,
+              Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12)
+            ),
+          }
     );
   }
 
@@ -464,44 +495,18 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                           </td>
                           <td>{product.visible ? "Sí" : "No"}</td>
                           <td className="actionsCell">
-                            <details className="manageMenu">
-                              <summary>
-                                Gestionar
-                                <ChevronDown size={15} />
-                              </summary>
-                              <div className="manageMenuContent">
-                                <button
-                                  className="manageMenuItem"
-                                  type="button"
-                                  onClick={() => openEditForm(product)}
-                                >
-                                  <Pencil size={16} />
-                                  Editar producto
-                                </button>
-                                <button
-                                  className="manageMenuItem"
-                                  type="button"
-                                  onClick={() => toggleVisibility(product)}
-                                >
-                                  {product.visible ? (
-                                    <EyeOff size={16} />
-                                  ) : (
-                                    <Eye size={16} />
-                                  )}
-                                  {product.visible
-                                    ? "Ocultar de la web"
-                                    : "Publicar en la web"}
-                                </button>
-                                <button
-                                  className="manageMenuItem"
-                                  type="button"
-                                  onClick={() => openStockForm(product)}
-                                >
-                                  <RotateCcw size={16} />
-                                  Actualizar stock
-                                </button>
-                              </div>
-                            </details>
+                            <button
+                              className={
+                                actionMenu?.product.id === product.id
+                                  ? "manageButton active"
+                                  : "manageButton"
+                              }
+                              type="button"
+                              onClick={(event) => toggleActionMenu(event, product)}
+                            >
+                              Gestionar
+                              <ChevronDown size={15} />
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -513,6 +518,46 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
           </div>
         )}
       </section>
+
+      {actionMenu ? (
+        <>
+          <button
+            className="floatingMenuBackdrop"
+            type="button"
+            aria-label="Cerrar menú de gestión"
+            onClick={() => setActionMenu(null)}
+          />
+          <div
+            className="manageMenuContent floatingManageMenu"
+            style={{ left: actionMenu.left, top: actionMenu.top }}
+          >
+            <button
+              className="manageMenuItem"
+              type="button"
+              onClick={() => openEditForm(actionMenu.product)}
+            >
+              <Pencil size={16} />
+              Editar producto
+            </button>
+            <button
+              className="manageMenuItem"
+              type="button"
+              onClick={() => toggleVisibility(actionMenu.product)}
+            >
+              {actionMenu.product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
+              {actionMenu.product.visible ? "Ocultar de la web" : "Publicar en la web"}
+            </button>
+            <button
+              className="manageMenuItem"
+              type="button"
+              onClick={() => openStockForm(actionMenu.product)}
+            >
+              <RotateCcw size={16} />
+              Actualizar stock
+            </button>
+          </div>
+        </>
+      ) : null}
 
       {isProductFormOpen ? (
         <div className="modalOverlay" role="dialog" aria-modal="true">
