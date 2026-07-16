@@ -1,16 +1,9 @@
-import { Boxes, PackageCheck, PackageX } from "lucide-react";
 import { products } from "@/lib/products";
 import { AdminInventoryManager } from "@/components/admin-inventory-manager";
 import { SiteHeader } from "@/components/site-header";
 import { LogoutButton } from "@/components/logout-button";
 
 export default function AdminPage() {
-  const totalProducts = products.length;
-  const outOfStock = products.filter((product) => product.stock === 0).length;
-  const visibleProducts = products.filter(
-    (product) => product.visible && product.stock > 0
-  ).length;
-
   return (
     <main>
       <SiteHeader active="admin" variant="admin" />
@@ -26,24 +19,6 @@ export default function AdminPage() {
             </p>
           </div>
           <LogoutButton />
-        </div>
-      </section>
-
-      <section className="statsGrid">
-        <div className="stat">
-          <Boxes size={22} />
-          <span>Total productos</span>
-          <strong>{totalProducts}</strong>
-        </div>
-        <div className="stat">
-          <PackageCheck size={22} />
-          <span>Visibles en web</span>
-          <strong>{visibleProducts}</strong>
-        </div>
-        <div className="stat">
-          <PackageX size={22} />
-          <span>Agotados</span>
-          <strong>{outOfStock}</strong>
         </div>
       </section>
 

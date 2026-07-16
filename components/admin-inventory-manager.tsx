@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import {
+  Boxes,
   ChevronDown,
   Eye,
   EyeOff,
+  PackageCheck,
+  PackageX,
   Pencil,
   Plus,
   RotateCcw,
   Search,
+  X,
 } from "lucide-react";
 import type { Product } from "@/lib/products";
 
@@ -18,6 +22,19 @@ type AdminInventoryManagerProps = {
 
 type InventoryFilter = "all" | "available" | "outOfStock" | "web" | "hidden";
 
+type ProductFormState = {
+  name: string;
+  reference: string;
+  category: Product["category"];
+  productClass: string;
+  details: string;
+  cost: string;
+  salePrice: string;
+  stock: string;
+  visible: boolean;
+  image: string;
+};
+
 const filters: Array<{ label: string; value: InventoryFilter }> = [
   { label: "Todos", value: "all" },
   { label: "Disponibles", value: "available" },
@@ -26,6 +43,46 @@ const filters: Array<{ label: string; value: InventoryFilter }> = [
   { label: "Ocultos", value: "hidden" },
 ];
 
+const categoryOptions: Product["category"][] = [
+  "Muebles",
+  "Electrodomésticos",
+  "Colchones",
+  "Audio y video",
+];
+
+const fallbackImage =
+  "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80";
+
+function createEmptyForm(): ProductFormState {
+  return {
+    name: "",
+    reference: "",
+    category: "Muebles",
+    productClass: "",
+    details: "",
+    cost: "",
+    salePrice: "",
+    stock: "1",
+    visible: true,
+    image: "",
+  };
+}
+
+function productToForm(product: Product): ProductFormState {
+  return {
+    name: product.name,
+    reference: product.reference,
+    category: product.category,
+    productClass: product.productClass,
+    details: product.details,
+    cost: String(product.cost),
+    salePrice: String(product.salePrice),
+    stock: String(product.stock),
+    visible: product.visible,
+    image: product.image,
+  };
+}
+
 function createCategoryId(category: string) {
   return `inventario-${category
     .normalize("NFD")
@@ -33,6 +90,26 @@ function createCategoryId(category: string) {
     .replace(/[^a-z0-9]+/gi, "-")
     .replace(/(^-|-$)/g, "")
     .toLowerCase()}`;
+}
+
+function createProductId(name: string, existingProducts: Product[]) {
+  const baseId =
+    name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/(^-|-$)/g, "")
+      .toLowerCase() || "producto";
+
+  let id = baseId;
+  let counter = 2;
+
+  while (existingProducts.some((product) => product.id === id)) {
+    id = `${baseId}-${counter}`;
+    counter += 1;
+  }
+
+  return id;
 }
 
 function matchesFilter(product: Product, filter: InventoryFilter) {
@@ -55,14 +132,49 @@ function matchesFilter(product: Product, filter: InventoryFilter) {
   return true;
 }
 
+function formToProduct(
+  form: ProductFormState,
+  existingProducts: Product[],
+  currentId?: string
+): Product {
+  return {
+    id: currentId ?? createProductId(form.name, existingProducts),
+    name: form.name.trim(),
+    reference: form.reference.trim(),
+    category: form.category,
+    productClass: form.productClass.trim(),
+    details: form.details.trim(),
+    cost: Number(form.cost),
+    salePrice: Number(form.salePrice),
+    stock: Number(form.stock),
+    visible: form.visible,
+    image: form.image.trim() || fallbackImage,
+  };
+}
+
 export function AdminInventoryManager({ products }: AdminInventoryManagerProps) {
+  const [inventory, setInventory] = useState<Product[]>(products);
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<InventoryFilter>("all");
+  const [productForm, setProductForm] = useState<ProductFormState>(
+    createEmptyForm()
+  );
+  const [isProductFormOpen, setIsProductFormOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [stockProduct, setStockProduct] = useState<Product | null>(null);
+  const [stockValue, setStockValue] = useState("0");
+  const [notice, setNotice] = useState("");
+
+  const totalProducts = inventory.length;
+  const outOfStock = inventory.filter((product) => product.stock === 0).length;
+  const visibleProducts = inventory.filter(
+    (product) => product.visible && product.stock > 0
+  ).length;
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return products.filter((product) => {
+    return inventory.filter((product) => {
       const matchesQuery =
         normalizedQuery.length === 0 ||
         [
@@ -77,7 +189,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
 
       return matchesQuery && matchesFilter(product, activeFilter);
     });
-  }, [activeFilter, products, query]);
+  }, [activeFilter, inventory, query]);
 
   const groupedProducts = useMemo(
     () =>
@@ -104,174 +216,508 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     [filteredProducts]
   );
 
+  function openCreateForm() {
+    setEditingProductId(null);
+    setProductForm(createEmptyForm());
+    setIsProductFormOpen(true);
+    setNotice("");
+  }
+
+  function openEditForm(product: Product) {
+    setEditingProductId(product.id);
+    setProductForm(productToForm(product));
+    setIsProductFormOpen(true);
+    setNotice("");
+  }
+
+  function closeProductForm() {
+    setIsProductFormOpen(false);
+    setEditingProductId(null);
+    setProductForm(createEmptyForm());
+  }
+
+  function openStockForm(product: Product) {
+    setStockProduct(product);
+    setStockValue(String(product.stock));
+    setNotice("");
+  }
+
+  function toggleVisibility(product: Product) {
+    setInventory((currentProducts) =>
+      currentProducts.map((item) =>
+        item.id === product.id ? { ...item, visible: !item.visible } : item
+      )
+    );
+    setNotice(
+      product.visible
+        ? `${product.name} quedó oculto del catálogo.`
+        : `${product.name} quedó visible en el catálogo.`
+    );
+  }
+
+  function handleProductSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const savedProduct = formToProduct(
+      productForm,
+      inventory,
+      editingProductId ?? undefined
+    );
+
+    if (editingProductId) {
+      setInventory((currentProducts) =>
+        currentProducts.map((product) =>
+          product.id === editingProductId ? savedProduct : product
+        )
+      );
+      setNotice(`${savedProduct.name} fue actualizado.`);
+    } else {
+      setInventory((currentProducts) => [savedProduct, ...currentProducts]);
+      setNotice(`${savedProduct.name} fue agregado al inventario.`);
+    }
+
+    closeProductForm();
+  }
+
+  function handleStockSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!stockProduct) {
+      return;
+    }
+
+    const nextStock = Math.max(0, Number(stockValue));
+
+    setInventory((currentProducts) =>
+      currentProducts.map((product) =>
+        product.id === stockProduct.id ? { ...product, stock: nextStock } : product
+      )
+    );
+    setNotice(`El stock de ${stockProduct.name} quedó en ${nextStock}.`);
+    setStockProduct(null);
+  }
+
   return (
-    <section className="tableSection">
-      <div className="sectionHeader inventoryHeader">
-        <div>
-          <p className="eyebrow">Control interno</p>
-          <h2>Inventario por tipo de producto</h2>
+    <>
+      <section className="statsGrid">
+        <div className="stat">
+          <Boxes size={22} />
+          <span>Total productos</span>
+          <strong>{totalProducts}</strong>
         </div>
-        <button className="primaryButton inventoryCreateButton" type="button">
-          <Plus size={18} />
-          Nuevo producto
-        </button>
-      </div>
-
-      <div className="inventoryToolbar">
-        <label className="searchBox">
-          <Search size={18} />
-          <input
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por producto, referencia, tipo o clase"
-            type="search"
-            value={query}
-          />
-        </label>
-
-        <div className="inventoryFilters" aria-label="Filtros del inventario">
-          {filters.map((filter) => (
-            <button
-              className={
-                activeFilter === filter.value
-                  ? "filterButton active"
-                  : "filterButton"
-              }
-              key={filter.value}
-              type="button"
-              onClick={() => setActiveFilter(filter.value)}
-            >
-              {filter.label}
-            </button>
-          ))}
+        <div className="stat">
+          <PackageCheck size={22} />
+          <span>Visibles en web</span>
+          <strong>{visibleProducts}</strong>
         </div>
-      </div>
+        <div className="stat">
+          <PackageX size={22} />
+          <span>Agotados</span>
+          <strong>{outOfStock}</strong>
+        </div>
+      </section>
 
-      <div className="actionLegend" aria-label="Leyenda de gestión">
-        <span>
-          <Pencil size={15} />
-          Editar
-        </span>
-        <span>
-          <EyeOff size={15} />
-          Ocultar/Publicar
-        </span>
-        <span>
-          <RotateCcw size={15} />
-          Stock
-        </span>
-      </div>
+      <section className="tableSection">
+        <div className="sectionHeader inventoryHeader">
+          <div>
+            <p className="eyebrow">Control interno</p>
+            <h2>Inventario por tipo de producto</h2>
+          </div>
+          <button
+            className="primaryButton inventoryCreateButton"
+            type="button"
+            onClick={openCreateForm}
+          >
+            <Plus size={18} />
+            Nuevo producto
+          </button>
+        </div>
 
-      {groupedProducts.length > 0 ? (
-        <nav className="inventoryShortcuts" aria-label="Atajos del inventario">
-          {groupedProducts.map((group) => (
-            <a className="inventoryShortcut" href={`#${group.id}`} key={group.id}>
-              <span>{group.category}</span>
-              <small>
-                {group.items.length} productos
-                {group.outOfStock > 0 ? ` · ${group.outOfStock} agotado(s)` : ""}
-              </small>
-            </a>
-          ))}
-        </nav>
+        <div className="inventoryToolbar">
+          <label className="searchBox">
+            <Search size={18} />
+            <input
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar por producto, referencia, tipo o clase"
+              type="search"
+              value={query}
+            />
+          </label>
+
+          <div className="inventoryFilters" aria-label="Filtros del inventario">
+            {filters.map((filter) => (
+              <button
+                className={
+                  activeFilter === filter.value
+                    ? "filterButton active"
+                    : "filterButton"
+                }
+                key={filter.value}
+                type="button"
+                onClick={() => setActiveFilter(filter.value)}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {notice ? (
+          <p className="inventoryNotice" aria-live="polite">
+            {notice}
+          </p>
+        ) : null}
+
+        <div className="actionLegend" aria-label="Leyenda de gestión">
+          <span>
+            <Pencil size={15} />
+            Editar
+          </span>
+          <span>
+            <EyeOff size={15} />
+            Ocultar/Publicar
+          </span>
+          <span>
+            <RotateCcw size={15} />
+            Stock
+          </span>
+        </div>
+
+        {groupedProducts.length > 0 ? (
+          <nav className="inventoryShortcuts" aria-label="Atajos del inventario">
+            {groupedProducts.map((group) => (
+              <a className="inventoryShortcut" href={`#${group.id}`} key={group.id}>
+                <span>{group.category}</span>
+                <small>
+                  {group.items.length} productos
+                  {group.outOfStock > 0
+                    ? ` · ${group.outOfStock} agotado(s)`
+                    : ""}
+                </small>
+              </a>
+            ))}
+          </nav>
+        ) : null}
+
+        {groupedProducts.length === 0 ? (
+          <div className="emptyState">
+            <h2>No se encontraron productos</h2>
+            <p>Cambia la búsqueda o selecciona otro filtro del inventario.</p>
+          </div>
+        ) : (
+          <div className="inventoryGroups">
+            {groupedProducts.map((group) => (
+              <article className="inventoryGroup" id={group.id} key={group.category}>
+                <div className="inventoryGroupHeader">
+                  <div>
+                    <p className="eyebrow">{group.classes.join(" / ")}</p>
+                    <h3>{group.category}</h3>
+                  </div>
+                  <div className="inventoryGroupStats">
+                    <span>{group.items.length} productos</span>
+                    <span>{group.visible} en web</span>
+                    <span>{group.outOfStock} agotados</span>
+                  </div>
+                </div>
+
+                <div className="tableWrap inventoryTableWrap">
+                  <table className="inventoryTable">
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th>Clase</th>
+                        <th>Referencia</th>
+                        <th>Cantidad</th>
+                        <th>Valores</th>
+                        <th>Estado</th>
+                        <th>Web</th>
+                        <th className="actionsHeader">Gestión</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.items.map((product) => (
+                        <tr key={product.id}>
+                          <td>
+                            <strong>{product.name}</strong>
+                          </td>
+                          <td>{product.productClass}</td>
+                          <td>{product.reference}</td>
+                          <td>{product.stock}</td>
+                          <td>
+                            <span className="priceStack">
+                              <span>
+                                Costo: {product.cost.toLocaleString("es-CO")}
+                              </span>
+                              <span>
+                                Venta: {product.salePrice.toLocaleString("es-CO")}
+                              </span>
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={
+                                product.stock > 0 ? "available" : "unavailable"
+                              }
+                            >
+                              {product.stock > 0 ? "Disponible" : "Agotado"}
+                            </span>
+                          </td>
+                          <td>{product.visible ? "Sí" : "No"}</td>
+                          <td className="actionsCell">
+                            <details className="manageMenu">
+                              <summary>
+                                Gestionar
+                                <ChevronDown size={15} />
+                              </summary>
+                              <div className="manageMenuContent">
+                                <button
+                                  className="manageMenuItem"
+                                  type="button"
+                                  onClick={() => openEditForm(product)}
+                                >
+                                  <Pencil size={16} />
+                                  Editar producto
+                                </button>
+                                <button
+                                  className="manageMenuItem"
+                                  type="button"
+                                  onClick={() => toggleVisibility(product)}
+                                >
+                                  {product.visible ? (
+                                    <EyeOff size={16} />
+                                  ) : (
+                                    <Eye size={16} />
+                                  )}
+                                  {product.visible
+                                    ? "Ocultar de la web"
+                                    : "Publicar en la web"}
+                                </button>
+                                <button
+                                  className="manageMenuItem"
+                                  type="button"
+                                  onClick={() => openStockForm(product)}
+                                >
+                                  <RotateCcw size={16} />
+                                  Actualizar stock
+                                </button>
+                              </div>
+                            </details>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {isProductFormOpen ? (
+        <div className="modalOverlay" role="dialog" aria-modal="true">
+          <form className="adminModal" onSubmit={handleProductSubmit}>
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">
+                  {editingProductId ? "Editar producto" : "Nuevo producto"}
+                </p>
+                <h2>{editingProductId ? productForm.name : "Registrar producto"}</h2>
+              </div>
+              <button
+                className="modalClose"
+                type="button"
+                aria-label="Cerrar"
+                onClick={closeProductForm}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="adminFormGrid">
+              <label>
+                Nombre
+                <input
+                  required
+                  value={productForm.name}
+                  onChange={(event) =>
+                    setProductForm({ ...productForm, name: event.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Referencia
+                <input
+                  required
+                  value={productForm.reference}
+                  onChange={(event) =>
+                    setProductForm({
+                      ...productForm,
+                      reference: event.target.value,
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Tipo
+                <select
+                  value={productForm.category}
+                  onChange={(event) =>
+                    setProductForm({
+                      ...productForm,
+                      category: event.target.value as Product["category"],
+                    })
+                  }
+                >
+                  {categoryOptions.map((category) => (
+                    <option key={category}>{category}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Clase
+                <input
+                  required
+                  placeholder="Sala, televisor, nevera..."
+                  value={productForm.productClass}
+                  onChange={(event) =>
+                    setProductForm({
+                      ...productForm,
+                      productClass: event.target.value,
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Costo
+                <input
+                  min="0"
+                  required
+                  type="number"
+                  value={productForm.cost}
+                  onChange={(event) =>
+                    setProductForm({ ...productForm, cost: event.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Precio venta
+                <input
+                  min="0"
+                  required
+                  type="number"
+                  value={productForm.salePrice}
+                  onChange={(event) =>
+                    setProductForm({
+                      ...productForm,
+                      salePrice: event.target.value,
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Cantidad
+                <input
+                  min="0"
+                  required
+                  type="number"
+                  value={productForm.stock}
+                  onChange={(event) =>
+                    setProductForm({ ...productForm, stock: event.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Imagen
+                <input
+                  placeholder="URL de la imagen"
+                  value={productForm.image}
+                  onChange={(event) =>
+                    setProductForm({ ...productForm, image: event.target.value })
+                  }
+                />
+              </label>
+              <label className="adminFormWide">
+                Detalles
+                <textarea
+                  required
+                  rows={3}
+                  value={productForm.details}
+                  onChange={(event) =>
+                    setProductForm({ ...productForm, details: event.target.value })
+                  }
+                />
+              </label>
+              <label className="checkRow adminFormWide">
+                <input
+                  checked={productForm.visible}
+                  type="checkbox"
+                  onChange={(event) =>
+                    setProductForm({
+                      ...productForm,
+                      visible: event.target.checked,
+                    })
+                  }
+                />
+                Mostrar en catálogo web
+              </label>
+            </div>
+
+            <div className="modalActions">
+              <button className="secondaryButton" type="button" onClick={closeProductForm}>
+                Cancelar
+              </button>
+              <button className="primaryButton" type="submit">
+                Guardar producto
+              </button>
+            </div>
+          </form>
+        </div>
       ) : null}
 
-      {groupedProducts.length === 0 ? (
-        <div className="emptyState">
-          <h2>No se encontraron productos</h2>
-          <p>Cambia la búsqueda o selecciona otro filtro del inventario.</p>
-        </div>
-      ) : (
-        <div className="inventoryGroups">
-          {groupedProducts.map((group) => (
-            <article className="inventoryGroup" id={group.id} key={group.category}>
-              <div className="inventoryGroupHeader">
-                <div>
-                  <p className="eyebrow">{group.classes.join(" / ")}</p>
-                  <h3>{group.category}</h3>
-                </div>
-                <div className="inventoryGroupStats">
-                  <span>{group.items.length} productos</span>
-                  <span>{group.visible} en web</span>
-                  <span>{group.outOfStock} agotados</span>
-                </div>
+      {stockProduct ? (
+        <div className="modalOverlay" role="dialog" aria-modal="true">
+          <form className="adminModal smallModal" onSubmit={handleStockSubmit}>
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Actualizar stock</p>
+                <h2>{stockProduct.name}</h2>
               </div>
-
-              <div className="tableWrap inventoryTableWrap">
-                <table className="inventoryTable">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>Clase</th>
-                      <th>Referencia</th>
-                      <th>Cantidad</th>
-                      <th>Valores</th>
-                      <th>Estado</th>
-                      <th>Web</th>
-                      <th className="actionsHeader">Gestión</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {group.items.map((product) => (
-                      <tr key={product.id}>
-                        <td>
-                          <strong>{product.name}</strong>
-                        </td>
-                        <td>{product.productClass}</td>
-                        <td>{product.reference}</td>
-                        <td>{product.stock}</td>
-                        <td>
-                          <span className="priceStack">
-                            <span>Costo: {product.cost.toLocaleString("es-CO")}</span>
-                            <span>
-                              Venta: {product.salePrice.toLocaleString("es-CO")}
-                            </span>
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            className={
-                              product.stock > 0 ? "available" : "unavailable"
-                            }
-                          >
-                            {product.stock > 0 ? "Disponible" : "Agotado"}
-                          </span>
-                        </td>
-                        <td>{product.visible ? "Sí" : "No"}</td>
-                        <td className="actionsCell">
-                          <details className="manageMenu">
-                            <summary>
-                              Gestionar
-                              <ChevronDown size={15} />
-                            </summary>
-                            <div className="manageMenuContent">
-                              <button className="manageMenuItem" type="button">
-                                <Pencil size={16} />
-                                Editar producto
-                              </button>
-                              <button className="manageMenuItem" type="button">
-                                {product.visible ? (
-                                  <EyeOff size={16} />
-                                ) : (
-                                  <Eye size={16} />
-                                )}
-                                {product.visible ? "Ocultar de la web" : "Publicar en la web"}
-                              </button>
-                              <button className="manageMenuItem" type="button">
-                                <RotateCcw size={16} />
-                                Actualizar stock
-                              </button>
-                            </div>
-                          </details>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </article>
-          ))}
+              <button
+                className="modalClose"
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setStockProduct(null)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <label className="adminFormSingle">
+              Nueva cantidad
+              <input
+                autoFocus
+                min="0"
+                required
+                type="number"
+                value={stockValue}
+                onChange={(event) => setStockValue(event.target.value)}
+              />
+            </label>
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={() => setStockProduct(null)}
+              >
+                Cancelar
+              </button>
+              <button className="primaryButton" type="submit">
+                Guardar stock
+              </button>
+            </div>
+          </form>
         </div>
-      )}
-    </section>
+      ) : null}
+    </>
   );
 }
