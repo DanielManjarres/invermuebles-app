@@ -223,8 +223,8 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
         </div>
       </section>
 
-      <section className="tableSection">
-        <div className="sectionHeader inventoryHeader">
+      <section className="tableSection productsSection">
+        <div className="sectionHeader inventoryHeader productsSectionHeader">
           <div>
             <p className="eyebrow">Catálogo interno</p>
             <h2>Productos registrados</h2>
@@ -239,7 +239,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
           </button>
         </div>
 
-        <div className="inventoryToolbar">
+        <div className="inventoryToolbar productsToolbar">
           <label className="searchBox">
             <Search size={18} />
             <input
@@ -250,7 +250,10 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
             />
           </label>
 
-          <div className="inventoryFilters" aria-label="Filtros de productos">
+          <div
+            className="inventoryFilters productCategoryFilters"
+            aria-label="Filtros de productos"
+          >
             {categories.map((category) => (
               <button
                 className={
