@@ -35,6 +35,29 @@ type ProductFormState = {
   image: string;
 };
 
+type MovementType = "entry" | "exit" | "adjustment";
+
+type StockMovement = {
+  id: string;
+  productName: string;
+  productReference: string;
+  type: MovementType;
+  quantity: number;
+  previousStock: number;
+  nextStock: number;
+  reason: string;
+  note: string;
+  createdAt: string;
+  user: string;
+};
+
+type StockMovementFormState = {
+  type: MovementType;
+  quantity: string;
+  reason: string;
+  note: string;
+};
+
 type ActionMenuState = {
   product: Product;
   top: number;
@@ -55,6 +78,23 @@ const categoryOptions: Product["category"][] = [
   "Colchones",
   "Audio y video",
 ];
+
+const movementLabels: Record<MovementType, string> = {
+  entry: "Entrada",
+  exit: "Salida",
+  adjustment: "Ajuste",
+};
+
+const movementReasonOptions: Record<MovementType, string[]> = {
+  entry: ["Reposición", "Compra nueva", "Devolución", "Otro"],
+  exit: ["Venta", "Entrega", "Garantía", "Producto dañado", "Otro"],
+  adjustment: [
+    "Conteo físico",
+    "Corrección de registro",
+    "Inventario inicial",
+    "Otro",
+  ],
+};
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80";
@@ -86,6 +126,15 @@ function productToForm(product: Product): ProductFormState {
     stock: String(product.stock),
     visible: product.visible,
     image: product.image,
+  };
+}
+
+function createMovementForm(): StockMovementFormState {
+  return {
+    type: "entry",
+    quantity: "1",
+    reason: movementReasonOptions.entry[0],
+    note: "",
   };
 }
 
@@ -160,6 +209,7 @@ function formToProduct(
 
 export function AdminInventoryManager({ products }: AdminInventoryManagerProps) {
   const [inventory, setInventory] = useState<Product[]>(products);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<InventoryFilter>("all");
   const [productForm, setProductForm] = useState<ProductFormState>(
@@ -168,7 +218,9 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [stockProduct, setStockProduct] = useState<Product | null>(null);
-  const [stockValue, setStockValue] = useState("0");
+  const [stockMovementForm, setStockMovementForm] =
+    useState<StockMovementFormState>(createMovementForm());
+  const [stockError, setStockError] = useState("");
   const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
   const [notice, setNotice] = useState("");
 
@@ -247,7 +299,8 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   function openStockForm(product: Product) {
     setActionMenu(null);
     setStockProduct(product);
-    setStockValue(String(product.stock));
+    setStockMovementForm(createMovementForm());
+    setStockError("");
     setNotice("");
   }
 
@@ -310,6 +363,16 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     closeProductForm();
   }
 
+  function handleMovementTypeChange(type: MovementType) {
+    setStockMovementForm({
+      type,
+      quantity: "1",
+      reason: movementReasonOptions[type][0],
+      note: "",
+    });
+    setStockError("");
+  }
+
   function handleStockSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -317,14 +380,52 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       return;
     }
 
-    const nextStock = Math.max(0, Number(stockValue));
+    const quantity = Math.max(0, Number(stockMovementForm.quantity));
+
+    if (quantity <= 0) {
+      setStockError("La cantidad debe ser mayor a cero.");
+      return;
+    }
+
+    const previousStock = stockProduct.stock;
+    const nextStock =
+      stockMovementForm.type === "entry"
+        ? previousStock + quantity
+        : stockMovementForm.type === "exit"
+          ? previousStock - quantity
+          : quantity;
+
+    if (nextStock < 0) {
+      setStockError("La salida no puede ser mayor a la cantidad disponible.");
+      return;
+    }
+
+    const movement: StockMovement = {
+      id: `${stockProduct.id}-${Date.now()}`,
+      productName: stockProduct.name,
+      productReference: stockProduct.reference,
+      type: stockMovementForm.type,
+      quantity,
+      previousStock,
+      nextStock,
+      reason: stockMovementForm.reason,
+      note: stockMovementForm.note.trim(),
+      createdAt: new Date().toLocaleString("es-CO", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }),
+      user: "Administrador",
+    };
 
     setInventory((currentProducts) =>
       currentProducts.map((product) =>
         product.id === stockProduct.id ? { ...product, stock: nextStock } : product
       )
     );
-    setNotice(`El stock de ${stockProduct.name} quedó en ${nextStock}.`);
+    setMovements((currentMovements) => [movement, ...currentMovements]);
+    setNotice(
+      `${movementLabels[movement.type]} registrada para ${stockProduct.name}. Stock actual: ${nextStock}.`
+    );
     setStockProduct(null);
   }
 
@@ -408,10 +509,10 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
             <EyeOff size={15} />
             Ocultar/Publicar
           </span>
-          <span>
-            <RotateCcw size={15} />
-            Stock
-          </span>
+        <span>
+          <RotateCcw size={15} />
+          Movimiento
+        </span>
         </div>
 
         {groupedProducts.length > 0 ? (
@@ -553,7 +654,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               onClick={() => openStockForm(actionMenu.product)}
             >
               <RotateCcw size={16} />
-              Actualizar stock
+              Registrar movimiento
             </button>
           </div>
         </>
@@ -725,43 +826,174 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
           <form className="adminModal smallModal" onSubmit={handleStockSubmit}>
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Actualizar stock</p>
+                <p className="eyebrow">Movimiento de inventario</p>
                 <h2>{stockProduct.name}</h2>
               </div>
               <button
                 className="modalClose"
                 type="button"
                 aria-label="Cerrar"
-                onClick={() => setStockProduct(null)}
+                onClick={() => {
+                  setStockProduct(null);
+                  setStockError("");
+                }}
               >
                 <X size={20} />
               </button>
             </div>
-            <label className="adminFormSingle">
-              Nueva cantidad
-              <input
-                autoFocus
-                min="0"
-                required
-                type="number"
-                value={stockValue}
-                onChange={(event) => setStockValue(event.target.value)}
-              />
-            </label>
+
+            <div className="stockSummary">
+              <span>Stock actual</span>
+              <strong>{stockProduct.stock}</strong>
+            </div>
+
+            <div className="movementTypeGroup" aria-label="Tipo de movimiento">
+              {(Object.keys(movementLabels) as MovementType[]).map((type) => (
+                <button
+                  className={
+                    stockMovementForm.type === type
+                      ? "movementTypeButton active"
+                      : "movementTypeButton"
+                  }
+                  key={type}
+                  type="button"
+                  onClick={() => handleMovementTypeChange(type)}
+                >
+                  {movementLabels[type]}
+                </button>
+              ))}
+            </div>
+
+            <div className="adminFormGrid movementFormGrid">
+              <label>
+                {stockMovementForm.type === "adjustment"
+                  ? "Cantidad real contada"
+                  : "Cantidad"}
+                <input
+                  autoFocus
+                  min="1"
+                  required
+                  type="number"
+                  value={stockMovementForm.quantity}
+                  onChange={(event) =>
+                    setStockMovementForm({
+                      ...stockMovementForm,
+                      quantity: event.target.value,
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Motivo
+                <select
+                  value={stockMovementForm.reason}
+                  onChange={(event) =>
+                    setStockMovementForm({
+                      ...stockMovementForm,
+                      reason: event.target.value,
+                    })
+                  }
+                >
+                  {movementReasonOptions[stockMovementForm.type].map((reason) => (
+                    <option key={reason}>{reason}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="adminFormWide">
+                Observación
+                <textarea
+                  placeholder="Opcional"
+                  rows={3}
+                  value={stockMovementForm.note}
+                  onChange={(event) =>
+                    setStockMovementForm({
+                      ...stockMovementForm,
+                      note: event.target.value,
+                    })
+                  }
+                />
+              </label>
+            </div>
+
+            {stockError ? <p className="formError">{stockError}</p> : null}
+
             <div className="modalActions">
               <button
                 className="secondaryButton"
                 type="button"
-                onClick={() => setStockProduct(null)}
+                onClick={() => {
+                  setStockProduct(null);
+                  setStockError("");
+                }}
               >
                 Cancelar
               </button>
               <button className="primaryButton" type="submit">
-                Guardar stock
+                Guardar movimiento
               </button>
             </div>
           </form>
         </div>
+      ) : null}
+
+      {movements.length > 0 ? (
+        <section className="tableSection movementSection">
+          <div className="sectionHeader">
+            <div>
+              <p className="eyebrow">Historial interno</p>
+              <h2>Últimos movimientos de inventario</h2>
+            </div>
+          </div>
+
+          <div className="tableWrap">
+            <table className="movementTable">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Producto</th>
+                  <th>Tipo</th>
+                  <th>Cantidad</th>
+                  <th>Stock</th>
+                  <th>Motivo</th>
+                  <th>Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movements.slice(0, 8).map((movement) => (
+                  <tr key={movement.id}>
+                    <td>{movement.createdAt}</td>
+                    <td>
+                      <strong>{movement.productName}</strong>
+                      <span className="reference">{movement.productReference}</span>
+                    </td>
+                    <td>
+                      <span className={`movementBadge ${movement.type}`}>
+                        {movementLabels[movement.type]}
+                      </span>
+                    </td>
+                    <td>
+                      {movement.type === "entry"
+                        ? `+${movement.quantity}`
+                        : movement.type === "exit"
+                          ? `-${movement.quantity}`
+                          : movement.quantity}
+                    </td>
+                    <td>
+                      {movement.previousStock} → {movement.nextStock}
+                    </td>
+                    <td>
+                      <span className="movementReason">
+                        {movement.reason}
+                        {movement.note ? ` · ${movement.note}` : ""}
+                      </span>
+                    </td>
+                    <td>{movement.user}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       ) : null}
     </>
   );

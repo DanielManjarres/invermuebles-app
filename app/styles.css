@@ -935,6 +935,95 @@ th {
   justify-content: flex-end;
 }
 
+.stockSummary {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  padding: 14px;
+}
+
+.stockSummary span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.stockSummary strong {
+  color: var(--primary);
+  font-size: 1.8rem;
+}
+
+.movementTypeGroup {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.movementTypeButton {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 800;
+  min-height: 42px;
+}
+
+.movementTypeButton.active,
+.movementTypeButton:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.movementFormGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.movementSection {
+  padding-top: 0;
+}
+
+.movementTable {
+  min-width: 980px;
+}
+
+.movementTable .reference {
+  display: block;
+  margin-top: 4px;
+}
+
+.movementBadge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 6px 10px;
+}
+
+.movementBadge.entry {
+  background: #e4f3df;
+  color: var(--primary);
+}
+
+.movementBadge.exit {
+  background: #fae4df;
+  color: #9b2924;
+}
+
+.movementBadge.adjustment {
+  background: #fff1d8;
+  color: #7c4d05;
+}
+
+.movementReason {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .cartLayout {
   align-items: start;
   display: grid;
