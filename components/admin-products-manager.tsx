@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
+  ChevronDown,
   Eye,
   EyeOff,
   PackagePlus,
@@ -278,9 +279,8 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 <th>Producto</th>
                 <th>Tipo / clase</th>
                 <th>Referencia</th>
-                <th>Valores</th>
-                <th>Stock inicial</th>
-                <th>Web</th>
+                <th>Precio venta</th>
+                <th>Estado web</th>
                 <th className="actionsHeader">Gestión</th>
               </tr>
             </thead>
@@ -289,7 +289,6 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 <tr key={product.id}>
                   <td>
                     <strong>{product.name}</strong>
-                    <span className="reference">{product.details}</span>
                   </td>
                   <td>
                     <strong>{product.category}</strong>
@@ -297,30 +296,38 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                   </td>
                   <td>{product.reference}</td>
                   <td>
-                    <span className="priceStack">
-                      <span>Costo: {product.cost.toLocaleString("es-CO")}</span>
-                      <span>Venta: {product.salePrice.toLocaleString("es-CO")}</span>
+                    {product.salePrice.toLocaleString("es-CO")}
+                  </td>
+                  <td>
+                    <span className={product.visible ? "available" : "unavailable"}>
+                      {product.visible ? "Publicado" : "Oculto"}
                     </span>
                   </td>
-                  <td>{product.stock}</td>
-                  <td>{product.visible ? "Sí" : "No"}</td>
                   <td className="actionsCell productActionsCell">
-                    <button
-                      className="tableAction"
-                      type="button"
-                      onClick={() => openEditForm(product)}
-                    >
-                      <Pencil size={16} />
-                      Editar
-                    </button>
-                    <button
-                      className="tableAction"
-                      type="button"
-                      onClick={() => toggleVisibility(product)}
-                    >
-                      {product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
-                      {product.visible ? "Ocultar" : "Publicar"}
-                    </button>
+                    <details className="rowActionMenu">
+                      <summary>
+                        Gestionar
+                        <ChevronDown size={15} />
+                      </summary>
+                      <div className="rowActionMenuContent">
+                        <button
+                          className="rowActionMenuItem"
+                          type="button"
+                          onClick={() => openEditForm(product)}
+                        >
+                          <Pencil size={16} />
+                          Editar producto
+                        </button>
+                        <button
+                          className="rowActionMenuItem"
+                          type="button"
+                          onClick={() => toggleVisibility(product)}
+                        >
+                          {product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
+                          {product.visible ? "Ocultar de la web" : "Publicar en la web"}
+                        </button>
+                      </div>
+                    </details>
                   </td>
                 </tr>
               ))}

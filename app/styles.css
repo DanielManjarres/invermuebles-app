@@ -625,31 +625,78 @@ th {
 }
 
 .productAdminTable {
-  min-width: 1060px;
+  min-width: 860px;
 }
 
 .productActionsCell {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  position: relative;
 }
 
-.tableAction {
+.rowActionMenu {
+  position: relative;
+  width: max-content;
+}
+
+.rowActionMenu summary {
   align-items: center;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--text);
+  cursor: pointer;
   display: inline-flex;
   font-size: 0.82rem;
   font-weight: 800;
-  gap: 7px;
+  gap: 8px;
+  list-style: none;
   min-height: 36px;
-  padding: 0 10px;
+  padding: 0 12px;
 }
 
-.tableAction:hover {
+.rowActionMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.rowActionMenu[open] summary,
+.rowActionMenu summary:hover {
   border-color: var(--primary);
+  color: var(--primary);
+}
+
+.rowActionMenuContent {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  min-width: 210px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  z-index: 8;
+}
+
+.rowActionMenuItem {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text);
+  display: flex;
+  font-size: 0.84rem;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: flex-start;
+  min-height: 36px;
+  padding: 0 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.rowActionMenuItem:hover {
+  background: var(--surface-strong);
   color: var(--primary);
 }
 
