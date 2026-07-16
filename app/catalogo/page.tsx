@@ -4,7 +4,9 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
 export default function CatalogPage() {
-  const visibleProducts = products.filter((product) => product.visible);
+  const visibleProducts = products.filter(
+    (product) => product.visible && product.stock > 0
+  );
 
   return (
     <main>

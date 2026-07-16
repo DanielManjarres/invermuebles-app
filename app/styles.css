@@ -53,8 +53,9 @@ button:disabled {
 
 .topbar {
   align-items: center;
-  background: rgba(255, 255, 255, 0.96);
+  background: #fff;
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 8px 22px rgba(4, 63, 30, 0.06);
   display: flex;
   justify-content: space-between;
   min-height: 84px;
@@ -424,6 +425,22 @@ p {
   max-width: 850px;
 }
 
+.inventoryHeader {
+  align-items: flex-end;
+}
+
+.pageHeaderRow {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  max-width: 1180px;
+}
+
+.pageHeaderRow > div {
+  max-width: 850px;
+}
+
 .catalogTools {
   align-items: center;
   display: flex;
@@ -528,6 +545,508 @@ th {
   text-transform: uppercase;
 }
 
+.actionsHeader {
+  width: 150px;
+}
+
+.actionsCell {
+  position: relative;
+}
+
+.manageButton {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 8px;
+  list-style: none;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.manageButton.active,
+.manageButton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.manageMenuContent {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  min-width: 214px;
+  padding: 6px;
+}
+
+.floatingMenuBackdrop {
+  background: transparent;
+  border: 0;
+  inset: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 14;
+}
+
+.floatingManageMenu {
+  position: fixed;
+  z-index: 15;
+}
+
+.manageMenuItem {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.84rem;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: flex-start;
+  min-height: 36px;
+  padding: 0 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.manageMenuItem:hover {
+  background: var(--surface-strong);
+  color: var(--primary);
+}
+
+.inventoryGroups {
+  display: grid;
+  gap: 22px;
+}
+
+.inventoryToolbar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(380px, 1fr) auto;
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.inventoryNotice {
+  align-items: center;
+  background: #e4f3df;
+  border: 1px solid rgba(7, 85, 42, 0.18);
+  border-radius: 8px;
+  color: var(--primary);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 800;
+  gap: 10px 16px;
+  justify-content: space-between;
+  margin: 0 0 14px;
+  padding: 11px 14px;
+}
+
+.inventoryNotice a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.inventoryCreateButton {
+  min-height: 42px;
+  min-width: 168px;
+  padding: 0 14px;
+}
+
+.searchBox {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.searchBox svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.searchBox:focus-within {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.searchBox input {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  flex: 1;
+  min-height: 42px;
+  min-width: 0;
+  padding: 0;
+}
+
+.searchBox input:focus {
+  outline: 0;
+}
+
+.inventoryFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.actionLegend {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.actionLegend span {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.inventoryShortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.inventoryShortcut {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 170px;
+  padding: 10px 14px;
+}
+
+.inventoryShortcut:hover {
+  border-color: var(--primary);
+}
+
+.inventoryShortcut span {
+  color: var(--primary);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.inventoryShortcut small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.inventoryGroup {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  scroll-margin-top: 108px;
+}
+
+.inventoryGroupHeader {
+  align-items: flex-start;
+  background: var(--surface-strong);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.inventoryGroupHeader h3 {
+  font-size: 1.6rem;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.inventoryGroupStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.inventoryGroupStats span {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
+.inventoryTableWrap {
+  border: 0;
+  border-radius: 0;
+}
+
+.inventoryTable th,
+.inventoryTable td {
+  vertical-align: middle;
+}
+
+.priceStack {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.86rem;
+  font-weight: 700;
+  gap: 4px;
+  min-width: 148px;
+}
+
+.modalOverlay {
+  align-items: center;
+  background: rgba(12, 18, 14, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 20;
+}
+
+.adminModal {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 24px 60px rgba(4, 31, 18, 0.26);
+  display: grid;
+  gap: 16px;
+  max-height: calc(100vh - 48px);
+  max-width: 780px;
+  overflow-y: auto;
+  padding: 24px;
+  width: min(100%, 780px);
+}
+
+.smallModal {
+  max-width: 540px;
+  padding: 22px;
+  width: min(100%, 540px);
+}
+
+.modalHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.modalHeader h2 {
+  font-size: clamp(1.55rem, 3vw, 2rem);
+  line-height: 1.08;
+  margin: 0;
+}
+
+.modalClose {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  width: 38px;
+}
+
+.modalClose:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.adminFormGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.adminFormGrid label,
+.adminFormSingle {
+  color: var(--text);
+  display: grid;
+  font-size: 0.86rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.adminFormGrid input,
+.adminFormGrid select,
+.adminFormGrid textarea,
+.adminFormSingle input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.adminFormGrid textarea {
+  min-height: 82px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.adminFormGrid input:focus,
+.adminFormGrid select:focus,
+.adminFormGrid textarea:focus,
+.adminFormSingle input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.adminFormWide {
+  grid-column: 1 / -1;
+}
+
+.checkRow {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.checkRow input {
+  accent-color: var(--primary);
+  min-height: auto;
+  width: 18px;
+}
+
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.modalActions .primaryButton,
+.modalActions .secondaryButton {
+  min-height: 42px;
+  padding: 0 18px;
+}
+
+.stockSummary {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.stockSummary span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.stockSummary strong {
+  color: var(--primary);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.movementTypeGroup {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.movementTypeButton {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+  min-height: 40px;
+}
+
+.movementTypeButton.active,
+.movementTypeButton:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.movementFormGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.movementSection {
+  padding-top: 48px;
+}
+
+.movementTable {
+  min-width: 980px;
+}
+
+.movementTable .reference {
+  display: block;
+  margin-top: 4px;
+}
+
+.movementBadge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 6px 10px;
+}
+
+.movementBadge.entry {
+  background: #e4f3df;
+  color: var(--primary);
+}
+
+.movementBadge.exit {
+  background: #fae4df;
+  color: #9b2924;
+}
+
+.movementBadge.adjustment {
+  background: #fff1d8;
+  color: #7c4d05;
+}
+
+.movementReason {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .cartLayout {
   align-items: start;
   display: grid;
@@ -572,6 +1091,201 @@ th {
 .emptyState {
   grid-column: 1 / -1;
   text-align: center;
+}
+
+.loginPage {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(248, 250, 247, 0.94), rgba(238, 245, 237, 0.9)),
+    var(--hero-image);
+  background-position: center;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  min-height: calc(100vh - 84px);
+  padding: 48px 5vw;
+}
+
+.loginShell {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(4, 63, 30, 0.16);
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 0.72fr);
+  max-width: 1040px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.loginIntro {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(4, 63, 30, 0.96), rgba(7, 85, 42, 0.84));
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 560px;
+  padding: 42px;
+}
+
+.loginIntro .eyebrow {
+  color: #d8b47a;
+}
+
+.loginIntro h1 {
+  font-size: clamp(2rem, 4vw, 3.45rem);
+  line-height: 1.02;
+  margin-bottom: 18px;
+}
+
+.loginIntro p {
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.75;
+  max-width: 540px;
+}
+
+.loginTrust {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  max-width: 470px;
+  padding: 13px 14px;
+}
+
+.loginTrust svg {
+  color: #d8b47a;
+  flex: 0 0 auto;
+}
+
+.loginTrust span {
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.loginCard {
+  display: grid;
+  gap: 18px;
+  padding: 42px;
+  width: 100%;
+}
+
+.loginCard img {
+  border-radius: 50%;
+}
+
+.loginLogoRow {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+.loginLogoRow h2 {
+  font-size: 1.85rem;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.loginHelp {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: -4px 0 4px;
+}
+
+.loginCard label {
+  color: var(--text);
+  display: grid;
+  font-weight: 800;
+  gap: 8px;
+}
+
+.fieldControl {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 12px;
+}
+
+.fieldControl svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.fieldControl:focus-within {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.loginCard input {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  flex: 1;
+  min-height: 48px;
+  min-width: 0;
+  padding: 0;
+}
+
+.loginCard input:focus {
+  outline: 0;
+}
+
+.loginCard input:-webkit-autofill,
+.loginCard input:-webkit-autofill:hover,
+.loginCard input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  box-shadow: 0 0 0 1000px #fff inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.passwordToggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+}
+
+.passwordToggle:hover {
+  color: var(--primary);
+}
+
+.formError {
+  background: #fae4df;
+  border-radius: 8px;
+  color: #9b2924;
+  font-weight: 800;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.loginBackLink {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 800;
+  gap: 7px;
+  justify-content: center;
+}
+
+.loginBackLink:hover {
+  color: var(--primary);
 }
 
 .siteFooter {
@@ -628,6 +1342,24 @@ th {
   color: #fff;
 }
 
+.footerAccess {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 32px auto 0;
+  max-width: 1180px;
+  padding-top: 16px;
+  text-align: right;
+}
+
+.footerAccess a {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.footerAccess a:hover {
+  color: #d8b47a;
+}
+
 @media (max-width: 900px) {
   .productGrid,
   .statsGrid,
@@ -651,6 +1383,48 @@ th {
     white-space: normal;
   }
 
+  .pageHeaderRow {
+    flex-direction: column;
+  }
+
+  .inventoryGroupHeader {
+    flex-direction: column;
+  }
+
+  .inventoryGroupStats {
+    justify-content: flex-start;
+  }
+
+  .inventoryToolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .inventoryFilters {
+    justify-content: flex-start;
+  }
+
+  .inventoryShortcut {
+    min-width: min(100%, 220px);
+  }
+
+  .loginShell {
+    grid-template-columns: 1fr;
+  }
+
+  .loginIntro {
+    min-height: auto;
+    padding: 30px;
+  }
+
+  .adminModal,
+  .smallModal {
+    max-width: 620px;
+    width: min(100%, 620px);
+  }
+
+  .footerAccess {
+    text-align: left;
+  }
 }
 
 @media (max-width: 620px) {
@@ -686,8 +1460,56 @@ th {
     min-height: 72vh;
   }
 
+  .loginPage {
+    padding: 26px 5vw;
+  }
+
+  .loginCard {
+    padding: 24px;
+  }
+
+  .loginLogoRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .sectionHeader {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .modalOverlay {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .adminModal,
+  .smallModal {
+    gap: 14px;
+    max-height: calc(100vh - 28px);
+    padding: 18px;
+  }
+
+  .modalHeader h2 {
+    font-size: 1.45rem;
+  }
+
+  .adminFormGrid,
+  .movementFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .movementTypeGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .modalActions .primaryButton,
+  .modalActions .secondaryButton {
+    justify-content: center;
+    width: 100%;
   }
 }

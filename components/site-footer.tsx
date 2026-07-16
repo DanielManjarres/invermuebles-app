@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Clock, MapPin, MessageCircle, PackageCheck } from "lucide-react";
 import { company } from "@/lib/company";
 
@@ -43,6 +44,9 @@ export function SiteFooter() {
         </div>
       </div>
 
+      <div className="footerAccess">
+        <Link href="/login">Acceso administrativo</Link>
+      </div>
     </footer>
   );
 }

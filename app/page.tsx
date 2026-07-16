@@ -7,7 +7,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { company, whatsappUrl } from "@/lib/company";
 
 export default function HomePage() {
-  const featured = products.filter((product) => product.visible).slice(0, 6);
+  const featured = products
+    .filter((product) => product.visible && product.stock > 0)
+    .slice(0, 6);
 
   return (
     <main>
