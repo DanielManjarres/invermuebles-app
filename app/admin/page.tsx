@@ -12,10 +12,10 @@ export default function AdminPage() {
         <div className="pageHeaderRow">
           <div>
             <p className="eyebrow">Panel administrativo</p>
-            <h1>Inventario básico</h1>
+            <h1>Inventario</h1>
             <p>
-              Primera versión para organizar productos, cantidades y visibilidad
-              en la web.
+              Controla cantidades disponibles, productos agotados y movimientos
+              de stock del almacén.
             </p>
           </div>
           <LogoutButton />

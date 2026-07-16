@@ -624,6 +624,35 @@ th {
   color: var(--primary);
 }
 
+.productAdminTable {
+  min-width: 1060px;
+}
+
+.productActionsCell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tableAction {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.tableAction:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 .inventoryGroups {
   display: grid;
   gap: 22px;
