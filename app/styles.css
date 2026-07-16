@@ -642,14 +642,25 @@ th {
 }
 
 .inventoryNotice {
+  align-items: center;
   background: #e4f3df;
   border: 1px solid rgba(7, 85, 42, 0.18);
   border-radius: 8px;
   color: var(--primary);
+  display: flex;
+  flex-wrap: wrap;
   font-size: 0.9rem;
   font-weight: 800;
+  gap: 10px 16px;
+  justify-content: space-between;
   margin: 0 0 14px;
   padding: 11px 14px;
+}
+
+.inventoryNotice a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .inventoryCreateButton {
@@ -995,7 +1006,7 @@ th {
 }
 
 .movementSection {
-  padding-top: 0;
+  padding-top: 48px;
 }
 
 .movementTable {

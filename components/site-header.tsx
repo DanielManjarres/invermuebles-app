@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 type SiteHeaderProps = {
-  active?: "catalogo" | "carrito" | "admin";
+  active?: "catalogo" | "carrito" | "admin" | "movimientos";
   variant?: "public" | "admin";
 };
 
@@ -36,9 +36,17 @@ export function SiteHeader({ active, variant = "public" }: SiteHeaderProps) {
         aria-label={isAdmin ? "Navegación administrativa" : "Navegación principal"}
       >
         {isAdmin ? (
-          <Link className={active === "admin" ? "active" : ""} href="/admin">
-            Inventario
-          </Link>
+          <>
+            <Link className={active === "admin" ? "active" : ""} href="/admin">
+              Inventario
+            </Link>
+            <Link
+              className={active === "movimientos" ? "active" : ""}
+              href="/admin/movimientos"
+            >
+              Movimientos
+            </Link>
+          </>
         ) : (
           <>
             <Link
