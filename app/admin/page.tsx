@@ -1,24 +1,8 @@
-import {
-  Boxes,
-  Eye,
-  EyeOff,
-  PackageCheck,
-  PackageX,
-  Pencil,
-  RotateCcw,
-} from "lucide-react";
+import { Boxes, PackageCheck, PackageX } from "lucide-react";
 import { products } from "@/lib/products";
+import { AdminInventoryManager } from "@/components/admin-inventory-manager";
 import { SiteHeader } from "@/components/site-header";
 import { LogoutButton } from "@/components/logout-button";
-
-function createCategoryId(category: string) {
-  return `inventario-${category
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/gi, "-")
-    .replace(/(^-|-$)/g, "")
-    .toLowerCase()}`;
-}
 
 export default function AdminPage() {
   const totalProducts = products.length;
@@ -26,21 +10,6 @@ export default function AdminPage() {
   const visibleProducts = products.filter(
     (product) => product.visible && product.stock > 0
   ).length;
-  const groupedProducts = Array.from(
-    new Set(products.map((product) => product.category))
-  ).map((category) => {
-    const items = products.filter((product) => product.category === category);
-
-    return {
-      category,
-      id: createCategoryId(category),
-      items,
-      classes: Array.from(new Set(items.map((product) => product.productClass))),
-      available: items.filter((product) => product.stock > 0).length,
-      outOfStock: items.filter((product) => product.stock === 0).length,
-      visible: items.filter((product) => product.visible && product.stock > 0).length,
-    };
-  });
 
   return (
     <main>
@@ -78,116 +47,7 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="tableSection">
-        <div className="sectionHeader">
-          <div>
-            <p className="eyebrow">Control interno</p>
-            <h2>Inventario por tipo de producto</h2>
-          </div>
-        </div>
-
-        <nav className="inventoryShortcuts" aria-label="Atajos del inventario">
-          {groupedProducts.map((group) => (
-            <a className="inventoryShortcut" href={`#${group.id}`} key={group.id}>
-              <span>{group.category}</span>
-              <small>
-                {group.items.length} productos
-                {group.outOfStock > 0 ? ` · ${group.outOfStock} agotado(s)` : ""}
-              </small>
-            </a>
-          ))}
-        </nav>
-
-        <div className="inventoryGroups">
-          {groupedProducts.map((group) => (
-            <article className="inventoryGroup" id={group.id} key={group.category}>
-              <div className="inventoryGroupHeader">
-                <div>
-                  <p className="eyebrow">{group.classes.join(" / ")}</p>
-                  <h3>{group.category}</h3>
-                </div>
-                <div className="inventoryGroupStats">
-                  <span>{group.items.length} productos</span>
-                  <span>{group.visible} en web</span>
-                  <span>{group.outOfStock} agotados</span>
-                </div>
-              </div>
-
-              <div className="tableWrap inventoryTableWrap">
-                <table className="inventoryTable">
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>Clase</th>
-                      <th>Referencia</th>
-                      <th>Cantidad</th>
-                      <th>Valores</th>
-                      <th>Estado</th>
-                      <th>Web</th>
-                      <th>Gestión</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {group.items.map((product) => (
-                      <tr key={product.id}>
-                        <td>
-                          <strong>{product.name}</strong>
-                        </td>
-                        <td>{product.productClass}</td>
-                        <td>{product.reference}</td>
-                        <td>{product.stock}</td>
-                        <td>
-                          <span className="priceStack">
-                            <span>Costo: {product.cost.toLocaleString("es-CO")}</span>
-                            <span>Venta: {product.salePrice.toLocaleString("es-CO")}</span>
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            className={product.stock > 0 ? "available" : "unavailable"}
-                          >
-                            {product.stock > 0 ? "Disponible" : "Agotado"}
-                          </span>
-                        </td>
-                        <td>{product.visible ? "Sí" : "No"}</td>
-                        <td>
-                          <div className="actionsCell">
-                            <button
-                              className="tableAction iconOnly"
-                              title="Editar producto"
-                              type="button"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                            <button
-                              className="tableAction iconOnly"
-                              title={product.visible ? "Ocultar de la web" : "Publicar en la web"}
-                              type="button"
-                            >
-                              {product.visible ? (
-                                <EyeOff size={16} />
-                              ) : (
-                                <Eye size={16} />
-                              )}
-                            </button>
-                            <button
-                              className="tableAction iconOnly"
-                              title="Actualizar stock"
-                              type="button"
-                            >
-                              <RotateCcw size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      <AdminInventoryManager products={products} />
     </main>
   );
 }

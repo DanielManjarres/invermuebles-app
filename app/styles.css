@@ -424,6 +424,10 @@ p {
   max-width: 850px;
 }
 
+.inventoryHeader {
+  align-items: center;
+}
+
 .pageHeaderRow {
   align-items: flex-start;
   display: flex;
@@ -574,6 +578,77 @@ th {
 .inventoryGroups {
   display: grid;
   gap: 22px;
+}
+
+.inventoryToolbar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.searchBox {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.searchBox svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.searchBox:focus-within {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.searchBox input {
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  flex: 1;
+  min-height: 42px;
+  min-width: 0;
+  padding: 0;
+}
+
+.searchBox input:focus {
+  outline: 0;
+}
+
+.inventoryFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.actionLegend {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.actionLegend span {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
 }
 
 .inventoryShortcuts {
@@ -1015,6 +1090,14 @@ th {
   }
 
   .inventoryGroupStats {
+    justify-content: flex-start;
+  }
+
+  .inventoryToolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .inventoryFilters {
     justify-content: flex-start;
   }
 
