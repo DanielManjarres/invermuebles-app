@@ -1502,6 +1502,17 @@ th {
   padding: 10px 12px;
 }
 
+.formHint {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  margin: 0;
+  padding: 11px 12px;
+}
+
 .loginBackLink {
   align-items: center;
   color: var(--muted);

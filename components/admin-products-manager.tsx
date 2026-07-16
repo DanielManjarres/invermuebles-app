@@ -39,6 +39,88 @@ type ProductFormState = {
 const fallbackImage =
   "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80";
 
+function cleanText(value: string) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function cleanReference(value: string) {
+  return cleanText(value).toUpperCase();
+}
+
+function isValidImageUrl(value: string) {
+  const image = value.trim();
+
+  if (!image) {
+    return true;
+  }
+
+  try {
+    const url = new URL(image);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validateProductForm(
+  form: ProductFormState,
+  products: Product[],
+  editingProductId: string | null
+) {
+  const requiredFields = [
+    form.name,
+    form.reference,
+    form.category,
+    form.productClass,
+    form.details,
+  ];
+
+  if (requiredFields.some((field) => cleanText(field).length === 0)) {
+    return "Completa los datos principales del producto.";
+  }
+
+  if (cleanText(form.category).toLowerCase() === "todos") {
+    return "Usa un tipo de producto real, por ejemplo Muebles o Electrodomésticos.";
+  }
+
+  const cost = Number(form.cost);
+  const salePrice = Number(form.salePrice);
+  const stock = Number(form.stock);
+
+  if (![cost, salePrice, stock].every(Number.isFinite)) {
+    return "Costo, precio y stock deben ser números válidos.";
+  }
+
+  if (cost < 0 || salePrice < 0 || stock < 0) {
+    return "Los valores y el stock no pueden ser negativos.";
+  }
+
+  if (!Number.isInteger(stock)) {
+    return "El stock debe ser un número entero.";
+  }
+
+  if (salePrice < cost) {
+    return "El precio de venta no debería ser menor que el costo.";
+  }
+
+  if (!isValidImageUrl(form.image)) {
+    return "La imagen debe ser una URL válida que empiece por http o https.";
+  }
+
+  const reference = cleanReference(form.reference);
+  const duplicateReference = products.some(
+    (product) =>
+      cleanReference(product.reference) === reference &&
+      product.id !== editingProductId
+  );
+
+  if (duplicateReference) {
+    return "Ya existe un producto con esa referencia.";
+  }
+
+  return "";
+}
+
 function createEmptyForm(): ProductFormState {
   return {
     name: "",
@@ -75,12 +157,12 @@ function formToProduct(
   currentId?: string
 ): Product {
   return {
-    id: currentId ?? createProductId(form.name, existingProducts),
-    name: form.name.trim(),
-    reference: form.reference.trim(),
-    category: form.category.trim(),
-    productClass: form.productClass.trim(),
-    details: form.details.trim(),
+    id: currentId ?? createProductId(cleanText(form.name), existingProducts),
+    name: cleanText(form.name),
+    reference: cleanReference(form.reference),
+    category: cleanText(form.category),
+    productClass: cleanText(form.productClass),
+    details: cleanText(form.details),
     cost: Number(form.cost),
     salePrice: Number(form.salePrice),
     stock: Number(form.stock),
@@ -189,29 +271,14 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   function handleProductSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const duplicateReference = productList.some(
-      (product) =>
-        product.reference.trim().toLowerCase() ===
-          productForm.reference.trim().toLowerCase() &&
-        product.id !== editingProductId
+    const validationError = validateProductForm(
+      productForm,
+      productList,
+      editingProductId
     );
 
-    if (duplicateReference) {
-      setFormError("Ya existe un producto con esa referencia.");
-      return;
-    }
-
-    const cost = Number(productForm.cost);
-    const salePrice = Number(productForm.salePrice);
-    const stock = Number(productForm.stock);
-
-    if (cost < 0 || salePrice < 0 || stock < 0) {
-      setFormError("Los valores y el stock no pueden ser negativos.");
-      return;
-    }
-
-    if (salePrice < cost) {
-      setFormError("El precio de venta no debería ser menor que el costo.");
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
@@ -236,6 +303,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
       setNotice(`${productToSave.name} fue actualizado.`);
     } else {
       persistProducts([productToSave, ...productList]);
+      setActiveCategory(productToSave.category);
 
       if (productToSave.stock > 0) {
         saveStockMovement(
@@ -519,7 +587,12 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                     }
                   />
                 </label>
-              ) : null}
+              ) : (
+                <p className="formHint adminFormWide">
+                  El stock de este producto se actualiza desde Inventario,
+                  registrando una entrada, salida o ajuste.
+                </p>
+              )}
               <label>
                 Imagen
                 <input
