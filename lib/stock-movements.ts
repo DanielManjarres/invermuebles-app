@@ -1,9 +1,14 @@
+import type { Product } from "@/lib/products";
+
 export type MovementType = "entry" | "exit" | "adjustment";
 
 export type StockMovement = {
   id: string;
+  productId: string;
   productName: string;
   productReference: string;
+  productCategory: string;
+  productClass: string;
   type: MovementType;
   quantity: number;
   previousStock: number;
@@ -11,6 +16,7 @@ export type StockMovement = {
   reason: string;
   note: string;
   createdAt: string;
+  createdAtISO: string;
   user: string;
 };
 
@@ -46,6 +52,51 @@ export function createMovementForm(): StockMovementFormState {
     quantity: "1",
     reason: movementReasonOptions.entry[0],
     note: "",
+  };
+}
+
+type CreateStockMovementParams = {
+  nextStock: number;
+  note?: string;
+  previousStock: number;
+  product: Product;
+  quantity: number;
+  reason: string;
+  type: MovementType;
+  user?: string;
+};
+
+export function createStockMovement({
+  nextStock,
+  note = "",
+  previousStock,
+  product,
+  quantity,
+  reason,
+  type,
+  user = "Administrador",
+}: CreateStockMovementParams): StockMovement {
+  const createdAt = new Date();
+
+  return {
+    id: `${product.id}-${createdAt.getTime()}`,
+    productId: product.id,
+    productName: product.name,
+    productReference: product.reference,
+    productCategory: product.category,
+    productClass: product.productClass,
+    type,
+    quantity,
+    previousStock,
+    nextStock,
+    reason,
+    note: note.trim(),
+    createdAt: createdAt.toLocaleString("es-CO", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }),
+    createdAtISO: createdAt.toISOString(),
+    user,
   };
 }
 

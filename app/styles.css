@@ -429,6 +429,19 @@ p {
   align-items: flex-end;
 }
 
+.productsSectionHeader {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.productsSectionHeader h2 {
+  font-size: clamp(2.1rem, 4vw, 2.85rem);
+}
+
+.productsSectionHeader .inventoryCreateButton {
+  margin-top: 18px;
+}
+
 .pageHeaderRow {
   align-items: flex-start;
   display: flex;
@@ -624,6 +637,82 @@ th {
   color: var(--primary);
 }
 
+.productAdminTable {
+  min-width: 860px;
+}
+
+.productActionsCell {
+  position: relative;
+}
+
+.rowActionMenu {
+  position: relative;
+  width: max-content;
+}
+
+.rowActionMenu summary {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 8px;
+  list-style: none;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.rowActionMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.rowActionMenu[open] summary,
+.rowActionMenu summary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.rowActionMenuContent {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  min-width: 210px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  z-index: 8;
+}
+
+.rowActionMenuItem {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text);
+  display: flex;
+  font-size: 0.84rem;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: flex-start;
+  min-height: 36px;
+  padding: 0 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.rowActionMenuItem:hover {
+  background: var(--surface-strong);
+  color: var(--primary);
+}
+
 .inventoryGroups {
   display: grid;
   gap: 22px;
@@ -639,6 +728,16 @@ th {
   grid-template-columns: minmax(380px, 1fr) auto;
   margin-bottom: 14px;
   padding: 12px;
+}
+
+.productsToolbar {
+  align-items: stretch;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.productsToolbar .searchBox {
+  max-width: 520px;
 }
 
 .inventoryNotice {
@@ -709,6 +808,10 @@ th {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.productCategoryFilters {
+  justify-content: flex-start;
 }
 
 .actionLegend {
@@ -1009,8 +1112,119 @@ th {
   padding-top: 48px;
 }
 
+.movementFiltersPanel {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: -4px 0 18px;
+  padding: 12px;
+}
+
+.filterMenuLabel {
+  color: var(--text);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.filterMenu {
+  position: relative;
+}
+
+.filterMenu.open {
+  z-index: 16;
+}
+
+.filterMenuButton {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  min-height: 42px;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.filterMenuButton svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.filterMenuButton span {
+  flex: 1;
+  font-weight: 800;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterMenu.open .filterMenuButton,
+.filterMenuButton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.filterMenuBackdrop {
+  background: transparent;
+  border: 0;
+  inset: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 12;
+}
+
+.filterMenuList {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 40px rgba(4, 31, 18, 0.16);
+  display: grid;
+  gap: 4px;
+  left: 0;
+  margin-top: 6px;
+  max-height: 220px;
+  min-width: 100%;
+  overflow-y: auto;
+  padding: 6px;
+  position: absolute;
+  top: 100%;
+  z-index: 18;
+}
+
+.filterMenuOption {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text);
+  display: flex;
+  font-weight: 800;
+  gap: 10px;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 0 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.filterMenuOption.active,
+.filterMenuOption:hover {
+  background: var(--surface-strong);
+  color: var(--primary);
+}
+
 .movementTable {
-  min-width: 980px;
+  min-width: 1120px;
 }
 
 .movementTable .reference {
@@ -1045,6 +1259,20 @@ th {
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.movementSection .emptyState {
+  box-shadow: none;
+  padding: 24px;
+}
+
+.movementSection .emptyState h2 {
+  font-size: 1.05rem;
+}
+
+.movementSection .emptyState p {
+  margin: 0 auto;
+  max-width: 680px;
 }
 
 .cartLayout {
@@ -1396,6 +1624,10 @@ th {
   }
 
   .inventoryToolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .movementFiltersPanel {
     grid-template-columns: 1fr;
   }
 

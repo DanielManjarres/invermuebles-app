@@ -4,10 +4,6 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
 export default function CatalogPage() {
-  const visibleProducts = products.filter(
-    (product) => product.visible && product.stock > 0
-  );
-
   return (
     <main>
       <SiteHeader active="catalogo" />
@@ -21,7 +17,7 @@ export default function CatalogPage() {
         </p>
       </section>
 
-      <CatalogBrowser products={visibleProducts} />
+      <CatalogBrowser products={products} />
       <SiteFooter />
     </main>
   );

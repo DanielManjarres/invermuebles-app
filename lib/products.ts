@@ -2,7 +2,7 @@ export type Product = {
   id: string;
   name: string;
   reference: string;
-  category: "Muebles" | "Electrodomésticos" | "Colchones" | "Audio y video";
+  category: string;
   productClass: string;
   details: string;
   cost: number;

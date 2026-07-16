@@ -1,28 +1,24 @@
 "use client";
 
-import { FormEvent, MouseEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Boxes,
-  ChevronDown,
-  Eye,
-  EyeOff,
   PackageCheck,
   PackageX,
-  Pencil,
-  Plus,
   RotateCcw,
   Search,
   X,
 } from "lucide-react";
+import { readAdminProducts, saveAdminProducts } from "@/lib/admin-products";
 import type { Product } from "@/lib/products";
 import {
   createMovementForm,
+  createStockMovement,
   movementLabels,
   movementReasonOptions,
   saveStockMovement,
   type MovementType,
-  type StockMovement,
   type StockMovementFormState,
 } from "@/lib/stock-movements";
 
@@ -30,74 +26,13 @@ type AdminInventoryManagerProps = {
   products: Product[];
 };
 
-type InventoryFilter = "all" | "available" | "outOfStock" | "web" | "hidden";
-
-type ProductFormState = {
-  name: string;
-  reference: string;
-  category: Product["category"];
-  productClass: string;
-  details: string;
-  cost: string;
-  salePrice: string;
-  stock: string;
-  visible: boolean;
-  image: string;
-};
-
-type ActionMenuState = {
-  product: Product;
-  top: number;
-  left: number;
-};
+type InventoryFilter = "all" | "available" | "outOfStock";
 
 const filters: Array<{ label: string; value: InventoryFilter }> = [
   { label: "Todos", value: "all" },
   { label: "Disponibles", value: "available" },
   { label: "Agotados", value: "outOfStock" },
-  { label: "En web", value: "web" },
-  { label: "Ocultos", value: "hidden" },
 ];
-
-const categoryOptions: Product["category"][] = [
-  "Muebles",
-  "Electrodomésticos",
-  "Colchones",
-  "Audio y video",
-];
-
-const fallbackImage =
-  "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80";
-
-function createEmptyForm(): ProductFormState {
-  return {
-    name: "",
-    reference: "",
-    category: "Muebles",
-    productClass: "",
-    details: "",
-    cost: "",
-    salePrice: "",
-    stock: "1",
-    visible: true,
-    image: "",
-  };
-}
-
-function productToForm(product: Product): ProductFormState {
-  return {
-    name: product.name,
-    reference: product.reference,
-    category: product.category,
-    productClass: product.productClass,
-    details: product.details,
-    cost: String(product.cost),
-    salePrice: String(product.salePrice),
-    stock: String(product.stock),
-    visible: product.visible,
-    image: product.image,
-  };
-}
 
 function createCategoryId(category: string) {
   return `inventario-${category
@@ -106,26 +41,6 @@ function createCategoryId(category: string) {
     .replace(/[^a-z0-9]+/gi, "-")
     .replace(/(^-|-$)/g, "")
     .toLowerCase()}`;
-}
-
-function createProductId(name: string, existingProducts: Product[]) {
-  const baseId =
-    name
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/gi, "-")
-      .replace(/(^-|-$)/g, "")
-      .toLowerCase() || "producto";
-
-  let id = baseId;
-  let counter = 2;
-
-  while (existingProducts.some((product) => product.id === id)) {
-    id = `${baseId}-${counter}`;
-    counter += 1;
-  }
-
-  return id;
 }
 
 function matchesFilter(product: Product, filter: InventoryFilter) {
@@ -137,58 +52,26 @@ function matchesFilter(product: Product, filter: InventoryFilter) {
     return product.stock === 0;
   }
 
-  if (filter === "web") {
-    return product.visible && product.stock > 0;
-  }
-
-  if (filter === "hidden") {
-    return !product.visible;
-  }
-
   return true;
-}
-
-function formToProduct(
-  form: ProductFormState,
-  existingProducts: Product[],
-  currentId?: string
-): Product {
-  return {
-    id: currentId ?? createProductId(form.name, existingProducts),
-    name: form.name.trim(),
-    reference: form.reference.trim(),
-    category: form.category,
-    productClass: form.productClass.trim(),
-    details: form.details.trim(),
-    cost: Number(form.cost),
-    salePrice: Number(form.salePrice),
-    stock: Number(form.stock),
-    visible: form.visible,
-    image: form.image.trim() || fallbackImage,
-  };
 }
 
 export function AdminInventoryManager({ products }: AdminInventoryManagerProps) {
   const [inventory, setInventory] = useState<Product[]>(products);
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<InventoryFilter>("all");
-  const [productForm, setProductForm] = useState<ProductFormState>(
-    createEmptyForm()
-  );
-  const [isProductFormOpen, setIsProductFormOpen] = useState(false);
-  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [stockProduct, setStockProduct] = useState<Product | null>(null);
   const [stockMovementForm, setStockMovementForm] =
     useState<StockMovementFormState>(createMovementForm());
   const [stockError, setStockError] = useState("");
-  const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
   const [notice, setNotice] = useState("");
 
+  useEffect(() => {
+    setInventory(readAdminProducts(products));
+  }, [products]);
+
   const totalProducts = inventory.length;
+  const availableProducts = inventory.filter((product) => product.stock > 0).length;
   const outOfStock = inventory.filter((product) => product.stock === 0).length;
-  const visibleProducts = inventory.filter(
-    (product) => product.visible && product.stock > 0
-  ).length;
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -226,101 +109,23 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               new Set(items.map((product) => product.productClass))
             ),
             outOfStock: items.filter((product) => product.stock === 0).length,
-            visible: items.filter(
-              (product) => product.visible && product.stock > 0
-            ).length,
+            available: items.filter((product) => product.stock > 0).length,
           };
         }
       ),
     [filteredProducts]
   );
 
-  function openCreateForm() {
-    setEditingProductId(null);
-    setProductForm(createEmptyForm());
-    setIsProductFormOpen(true);
-    setNotice("");
-  }
-
-  function openEditForm(product: Product) {
-    setActionMenu(null);
-    setEditingProductId(product.id);
-    setProductForm(productToForm(product));
-    setIsProductFormOpen(true);
-    setNotice("");
-  }
-
-  function closeProductForm() {
-    setIsProductFormOpen(false);
-    setEditingProductId(null);
-    setProductForm(createEmptyForm());
-  }
-
   function openStockForm(product: Product) {
-    setActionMenu(null);
     setStockProduct(product);
     setStockMovementForm(createMovementForm());
     setStockError("");
     setNotice("");
   }
 
-  function toggleVisibility(product: Product) {
-    setActionMenu(null);
-    setInventory((currentProducts) =>
-      currentProducts.map((item) =>
-        item.id === product.id ? { ...item, visible: !item.visible } : item
-      )
-    );
-    setNotice(
-      product.visible
-        ? `${product.name} quedó oculto del catálogo.`
-        : `${product.name} quedó visible en el catálogo.`
-    );
-  }
-
-  function toggleActionMenu(
-    event: MouseEvent<HTMLButtonElement>,
-    product: Product
-  ) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const menuWidth = 224;
-
-    setActionMenu((currentMenu) =>
-      currentMenu?.product.id === product.id
-        ? null
-        : {
-            product,
-            top: rect.bottom + 8,
-            left: Math.max(
-              12,
-              Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12)
-            ),
-          }
-    );
-  }
-
-  function handleProductSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const savedProduct = formToProduct(
-      productForm,
-      inventory,
-      editingProductId ?? undefined
-    );
-
-    if (editingProductId) {
-      setInventory((currentProducts) =>
-        currentProducts.map((product) =>
-          product.id === editingProductId ? savedProduct : product
-        )
-      );
-      setNotice(`${savedProduct.name} fue actualizado.`);
-    } else {
-      setInventory((currentProducts) => [savedProduct, ...currentProducts]);
-      setNotice(`${savedProduct.name} fue agregado al inventario.`);
-    }
-
-    closeProductForm();
+  function closeStockForm() {
+    setStockProduct(null);
+    setStockError("");
   }
 
   function handleMovementTypeChange(type: MovementType) {
@@ -360,28 +165,22 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       return;
     }
 
-    const movement: StockMovement = {
-      id: `${stockProduct.id}-${Date.now()}`,
-      productName: stockProduct.name,
-      productReference: stockProduct.reference,
+    const movement = createStockMovement({
+      product: stockProduct,
       type: stockMovementForm.type,
       quantity,
       previousStock,
       nextStock,
       reason: stockMovementForm.reason,
       note: stockMovementForm.note.trim(),
-      createdAt: new Date().toLocaleString("es-CO", {
-        dateStyle: "short",
-        timeStyle: "short",
-      }),
-      user: "Administrador",
-    };
+    });
 
-    setInventory((currentProducts) =>
-      currentProducts.map((product) =>
-        product.id === stockProduct.id ? { ...product, stock: nextStock } : product
-      )
+    const nextInventory = inventory.map((product) =>
+      product.id === stockProduct.id ? { ...product, stock: nextStock } : product
     );
+
+    setInventory(nextInventory);
+    saveAdminProducts(nextInventory);
     saveStockMovement(movement);
     setNotice(
       `${movementLabels[movement.type]} registrada para ${stockProduct.name}. Stock actual: ${nextStock}.`
@@ -399,8 +198,8 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         </div>
         <div className="stat">
           <PackageCheck size={22} />
-          <span>Visibles en web</span>
-          <strong>{visibleProducts}</strong>
+          <span>Disponibles</span>
+          <strong>{availableProducts}</strong>
         </div>
         <div className="stat">
           <PackageX size={22} />
@@ -415,14 +214,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
             <p className="eyebrow">Control interno</p>
             <h2>Inventario por tipo de producto</h2>
           </div>
-          <button
-            className="primaryButton inventoryCreateButton"
-            type="button"
-            onClick={openCreateForm}
-          >
-            <Plus size={18} />
-            Nuevo producto
-          </button>
         </div>
 
         <div className="inventoryToolbar">
@@ -461,21 +252,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
           </p>
         ) : null}
 
-        <div className="actionLegend" aria-label="Leyenda de gestión">
-          <span>
-            <Pencil size={15} />
-            Editar
-          </span>
-          <span>
-            <EyeOff size={15} />
-            Ocultar/Publicar
-          </span>
-          <span>
-            <RotateCcw size={15} />
-            Movimiento
-          </span>
-        </div>
-
         {groupedProducts.length > 0 ? (
           <nav className="inventoryShortcuts" aria-label="Atajos del inventario">
             {groupedProducts.map((group) => (
@@ -508,7 +284,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                   </div>
                   <div className="inventoryGroupStats">
                     <span>{group.items.length} productos</span>
-                    <span>{group.visible} en web</span>
+                    <span>{group.available} disponibles</span>
                     <span>{group.outOfStock} agotados</span>
                   </div>
                 </div>
@@ -521,9 +297,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                         <th>Clase</th>
                         <th>Referencia</th>
                         <th>Cantidad</th>
-                        <th>Valores</th>
                         <th>Estado</th>
-                        <th>Web</th>
                         <th className="actionsHeader">Gestión</th>
                       </tr>
                     </thead>
@@ -537,16 +311,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                           <td>{product.reference}</td>
                           <td>{product.stock}</td>
                           <td>
-                            <span className="priceStack">
-                              <span>
-                                Costo: {product.cost.toLocaleString("es-CO")}
-                              </span>
-                              <span>
-                                Venta: {product.salePrice.toLocaleString("es-CO")}
-                              </span>
-                            </span>
-                          </td>
-                          <td>
                             <span
                               className={
                                 product.stock > 0 ? "available" : "unavailable"
@@ -555,19 +319,14 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                               {product.stock > 0 ? "Disponible" : "Agotado"}
                             </span>
                           </td>
-                          <td>{product.visible ? "Sí" : "No"}</td>
                           <td className="actionsCell">
                             <button
-                              className={
-                                actionMenu?.product.id === product.id
-                                  ? "manageButton active"
-                                  : "manageButton"
-                              }
+                              className="manageButton"
                               type="button"
-                              onClick={(event) => toggleActionMenu(event, product)}
+                              onClick={() => openStockForm(product)}
                             >
-                              Gestionar
-                              <ChevronDown size={15} />
+                              <RotateCcw size={15} />
+                              Registrar movimiento
                             </button>
                           </td>
                         </tr>
@@ -581,207 +340,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         )}
       </section>
 
-      {actionMenu ? (
-        <>
-          <button
-            className="floatingMenuBackdrop"
-            type="button"
-            aria-label="Cerrar menú de gestión"
-            onClick={() => setActionMenu(null)}
-          />
-          <div
-            className="manageMenuContent floatingManageMenu"
-            style={{ left: actionMenu.left, top: actionMenu.top }}
-          >
-            <button
-              className="manageMenuItem"
-              type="button"
-              onClick={() => openEditForm(actionMenu.product)}
-            >
-              <Pencil size={16} />
-              Editar producto
-            </button>
-            <button
-              className="manageMenuItem"
-              type="button"
-              onClick={() => toggleVisibility(actionMenu.product)}
-            >
-              {actionMenu.product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
-              {actionMenu.product.visible ? "Ocultar de la web" : "Publicar en la web"}
-            </button>
-            <button
-              className="manageMenuItem"
-              type="button"
-              onClick={() => openStockForm(actionMenu.product)}
-            >
-              <RotateCcw size={16} />
-              Registrar movimiento
-            </button>
-          </div>
-        </>
-      ) : null}
-
-      {isProductFormOpen ? (
-        <div className="modalOverlay" role="dialog" aria-modal="true">
-          <form className="adminModal" onSubmit={handleProductSubmit}>
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">
-                  {editingProductId ? "Editar producto" : "Nuevo producto"}
-                </p>
-                <h2>{editingProductId ? productForm.name : "Registrar producto"}</h2>
-              </div>
-              <button
-                className="modalClose"
-                type="button"
-                aria-label="Cerrar"
-                onClick={closeProductForm}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="adminFormGrid">
-              <label>
-                Nombre
-                <input
-                  required
-                  value={productForm.name}
-                  onChange={(event) =>
-                    setProductForm({ ...productForm, name: event.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Referencia
-                <input
-                  required
-                  value={productForm.reference}
-                  onChange={(event) =>
-                    setProductForm({
-                      ...productForm,
-                      reference: event.target.value,
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Tipo
-                <select
-                  value={productForm.category}
-                  onChange={(event) =>
-                    setProductForm({
-                      ...productForm,
-                      category: event.target.value as Product["category"],
-                    })
-                  }
-                >
-                  {categoryOptions.map((category) => (
-                    <option key={category}>{category}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Clase
-                <input
-                  required
-                  placeholder="Sala, televisor, nevera..."
-                  value={productForm.productClass}
-                  onChange={(event) =>
-                    setProductForm({
-                      ...productForm,
-                      productClass: event.target.value,
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Costo
-                <input
-                  min="0"
-                  required
-                  type="number"
-                  value={productForm.cost}
-                  onChange={(event) =>
-                    setProductForm({ ...productForm, cost: event.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Precio venta
-                <input
-                  min="0"
-                  required
-                  type="number"
-                  value={productForm.salePrice}
-                  onChange={(event) =>
-                    setProductForm({
-                      ...productForm,
-                      salePrice: event.target.value,
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Cantidad
-                <input
-                  min="0"
-                  required
-                  type="number"
-                  value={productForm.stock}
-                  onChange={(event) =>
-                    setProductForm({ ...productForm, stock: event.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Imagen
-                <input
-                  placeholder="URL de la imagen"
-                  value={productForm.image}
-                  onChange={(event) =>
-                    setProductForm({ ...productForm, image: event.target.value })
-                  }
-                />
-              </label>
-              <label className="adminFormWide">
-                Detalles
-                <textarea
-                  required
-                  rows={3}
-                  value={productForm.details}
-                  onChange={(event) =>
-                    setProductForm({ ...productForm, details: event.target.value })
-                  }
-                />
-              </label>
-              <label className="checkRow adminFormWide">
-                <input
-                  checked={productForm.visible}
-                  type="checkbox"
-                  onChange={(event) =>
-                    setProductForm({
-                      ...productForm,
-                      visible: event.target.checked,
-                    })
-                  }
-                />
-                Mostrar en catálogo web
-              </label>
-            </div>
-
-            <div className="modalActions">
-              <button className="secondaryButton" type="button" onClick={closeProductForm}>
-                Cancelar
-              </button>
-              <button className="primaryButton" type="submit">
-                Guardar producto
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
-
       {stockProduct ? (
         <div className="modalOverlay" role="dialog" aria-modal="true">
           <form className="adminModal smallModal" onSubmit={handleStockSubmit}>
@@ -794,10 +352,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                 className="modalClose"
                 type="button"
                 aria-label="Cerrar"
-                onClick={() => {
-                  setStockProduct(null);
-                  setStockError("");
-                }}
+                onClick={closeStockForm}
               >
                 <X size={20} />
               </button>
@@ -882,10 +437,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               <button
                 className="secondaryButton"
                 type="button"
-                onClick={() => {
-                  setStockProduct(null);
-                  setStockError("");
-                }}
+                onClick={closeStockForm}
               >
                 Cancelar
               </button>
@@ -896,7 +448,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
           </form>
         </div>
       ) : null}
-
     </>
   );
 }
