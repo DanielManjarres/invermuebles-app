@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { CalendarDays, Layers3, PackageSearch, Search } from "lucide-react";
 import {
   movementLabels,
   readStockMovements,
@@ -152,47 +152,56 @@ export function AdminMovementsBrowser() {
 
       <div className="movementFiltersPanel">
         <label>
-          Categoría
-          <select
-            value={activeCategory}
-            onChange={(event) => setActiveCategory(event.target.value)}
-          >
-            <option value={allCategories}>Todas</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+          <span>Categoría</span>
+          <div className="selectControl">
+            <Layers3 size={17} />
+            <select
+              value={activeCategory}
+              onChange={(event) => setActiveCategory(event.target.value)}
+            >
+              <option value={allCategories}>Todas</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
         </label>
 
         <label>
-          Fecha
-          <select
-            value={activeDate}
-            onChange={(event) => setActiveDate(event.target.value as DateFilter)}
-          >
-            {dateFilters.map((filter) => (
-              <option key={filter.value} value={filter.value}>
-                {filter.label}
-              </option>
-            ))}
-          </select>
+          <span>Fecha</span>
+          <div className="selectControl">
+            <CalendarDays size={17} />
+            <select
+              value={activeDate}
+              onChange={(event) => setActiveDate(event.target.value as DateFilter)}
+            >
+              {dateFilters.map((filter) => (
+                <option key={filter.value} value={filter.value}>
+                  {filter.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </label>
 
         <label>
-          Producto
-          <select
-            value={activeProduct}
-            onChange={(event) => setActiveProduct(event.target.value)}
-          >
-            <option value={allProducts}>Todos</option>
-            {products.map((product) => (
-              <option key={product} value={product}>
-                {product}
-              </option>
-            ))}
-          </select>
+          <span>Producto</span>
+          <div className="selectControl">
+            <PackageSearch size={17} />
+            <select
+              value={activeProduct}
+              onChange={(event) => setActiveProduct(event.target.value)}
+            >
+              <option value={allProducts}>Todos</option>
+              {products.map((product) => (
+                <option key={product} value={product}>
+                  {product}
+                </option>
+              ))}
+            </select>
+          </div>
         </label>
       </div>
 
@@ -223,13 +232,13 @@ export function AdminMovementsBrowser() {
               {filteredMovements.map((movement) => (
                 <tr key={movement.id}>
                   <td>{movement.createdAt}</td>
-                    <td>
-                      <strong>{movement.productName}</strong>
-                      <span className="reference">{movement.productReference}</span>
-                    </td>
-                    <td>{movement.productCategory || "Sin categoría"}</td>
-                    <td>
-                      <span className={`movementBadge ${movement.type}`}>
+                  <td>
+                    <strong>{movement.productName}</strong>
+                    <span className="reference">{movement.productReference}</span>
+                  </td>
+                  <td>{movement.productCategory || "Sin categoría"}</td>
+                  <td>
+                    <span className={`movementBadge ${movement.type}`}>
                       {movementLabels[movement.type]}
                     </span>
                   </td>

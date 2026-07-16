@@ -1010,13 +1010,13 @@ th {
 }
 
 .movementFiltersPanel {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: -2px 0 18px;
+  margin: -4px 0 18px;
   padding: 12px;
 }
 
@@ -1028,18 +1028,45 @@ th {
   gap: 6px;
 }
 
-.movementFiltersPanel select {
+.selectControl {
+  align-items: center;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
-  color: var(--text);
+  display: flex;
+  gap: 10px;
   min-height: 42px;
-  padding: 0 12px;
+  padding: 0 10px;
 }
 
-.movementFiltersPanel select:focus {
+.selectControl svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.selectControl select {
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) right 8px center /
+      6px 6px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) right 4px center /
+      6px 6px no-repeat;
+  border: 0;
+  color: var(--text);
+  flex: 1;
+  font-weight: 800;
+  min-height: 40px;
+  min-width: 0;
+  padding: 0 22px 0 0;
+}
+
+.selectControl:focus-within {
   border-color: var(--primary);
   outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.selectControl select:focus {
+  outline: 0;
 }
 
 .movementTable {
@@ -1078,6 +1105,20 @@ th {
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.movementSection .emptyState {
+  box-shadow: none;
+  padding: 24px;
+}
+
+.movementSection .emptyState h2 {
+  font-size: 1.05rem;
+}
+
+.movementSection .emptyState p {
+  margin: 0 auto;
+  max-width: 680px;
 }
 
 .cartLayout {
