@@ -138,7 +138,9 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     });
   }, [activeCategory, productList, query]);
 
-  const visibleProducts = productList.filter((product) => product.visible).length;
+  const visibleCatalogProducts = productList.filter(
+    (product) => product.visible && product.stock > 0
+  ).length;
 
   function persistProducts(nextProducts: Product[]) {
     setProductList(nextProducts);
@@ -265,8 +267,8 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
         </div>
         <div className="stat">
           <Eye size={22} />
-          <span>Visibles en web</span>
-          <strong>{visibleProducts}</strong>
+          <span>Visibles en catálogo</span>
+          <strong>{visibleCatalogProducts}</strong>
         </div>
         <div className="stat">
           <Shapes size={22} />
