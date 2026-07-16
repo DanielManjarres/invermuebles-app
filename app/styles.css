@@ -426,7 +426,7 @@ p {
 }
 
 .inventoryHeader {
-  align-items: flex-start;
+  align-items: flex-end;
 }
 
 .pageHeaderRow {
@@ -587,14 +587,16 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(260px, 1fr) auto auto;
+  gap: 18px;
+  grid-template-columns: minmax(380px, 1fr) auto;
   margin-bottom: 14px;
-  padding: 14px;
+  padding: 12px;
 }
 
 .inventoryCreateButton {
-  min-width: 180px;
+  min-height: 42px;
+  min-width: 168px;
+  padding: 0 14px;
 }
 
 .searchBox {
