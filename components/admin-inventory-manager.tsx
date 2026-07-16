@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
+  ChevronDown,
   Eye,
   EyeOff,
   Pencil,
@@ -206,7 +207,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                       <th>Valores</th>
                       <th>Estado</th>
                       <th>Web</th>
-                      <th>Gestión</th>
+                      <th className="actionsHeader">Gestión</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -236,38 +237,31 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                           </span>
                         </td>
                         <td>{product.visible ? "Sí" : "No"}</td>
-                        <td>
-                          <div className="actionsCell">
-                            <button
-                              className="tableAction iconOnly"
-                              title="Editar producto"
-                              type="button"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                            <button
-                              className="tableAction iconOnly"
-                              title={
-                                product.visible
-                                  ? "Ocultar de la web"
-                                  : "Publicar en la web"
-                              }
-                              type="button"
-                            >
-                              {product.visible ? (
-                                <EyeOff size={16} />
-                              ) : (
-                                <Eye size={16} />
-                              )}
-                            </button>
-                            <button
-                              className="tableAction iconOnly"
-                              title="Actualizar stock"
-                              type="button"
-                            >
-                              <RotateCcw size={16} />
-                            </button>
-                          </div>
+                        <td className="actionsCell">
+                          <details className="manageMenu">
+                            <summary>
+                              Gestionar
+                              <ChevronDown size={15} />
+                            </summary>
+                            <div className="manageMenuContent">
+                              <button className="manageMenuItem" type="button">
+                                <Pencil size={16} />
+                                Editar producto
+                              </button>
+                              <button className="manageMenuItem" type="button">
+                                {product.visible ? (
+                                  <EyeOff size={16} />
+                                ) : (
+                                  <Eye size={16} />
+                                )}
+                                {product.visible ? "Ocultar de la web" : "Publicar en la web"}
+                              </button>
+                              <button className="manageMenuItem" type="button">
+                                <RotateCcw size={16} />
+                                Actualizar stock
+                              </button>
+                            </div>
+                          </details>
                         </td>
                       </tr>
                     ))}
