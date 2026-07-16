@@ -11,6 +11,15 @@ import { products } from "@/lib/products";
 import { SiteHeader } from "@/components/site-header";
 import { LogoutButton } from "@/components/logout-button";
 
+function createCategoryId(category: string) {
+  return `inventario-${category
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/(^-|-$)/g, "")
+    .toLowerCase()}`;
+}
+
 export default function AdminPage() {
   const totalProducts = products.length;
   const outOfStock = products.filter((product) => product.stock === 0).length;
@@ -24,6 +33,7 @@ export default function AdminPage() {
 
     return {
       category,
+      id: createCategoryId(category),
       items,
       classes: Array.from(new Set(items.map((product) => product.productClass))),
       available: items.filter((product) => product.stock > 0).length,
@@ -76,9 +86,21 @@ export default function AdminPage() {
           </div>
         </div>
 
+        <nav className="inventoryShortcuts" aria-label="Atajos del inventario">
+          {groupedProducts.map((group) => (
+            <a className="inventoryShortcut" href={`#${group.id}`} key={group.id}>
+              <span>{group.category}</span>
+              <small>
+                {group.items.length} productos
+                {group.outOfStock > 0 ? ` · ${group.outOfStock} agotado(s)` : ""}
+              </small>
+            </a>
+          ))}
+        </nav>
+
         <div className="inventoryGroups">
           {groupedProducts.map((group) => (
-            <article className="inventoryGroup" key={group.category}>
+            <article className="inventoryGroup" id={group.id} key={group.category}>
               <div className="inventoryGroupHeader">
                 <div>
                   <p className="eyebrow">{group.classes.join(" / ")}</p>

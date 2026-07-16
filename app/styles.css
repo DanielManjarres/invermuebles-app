@@ -576,11 +576,46 @@ th {
   gap: 22px;
 }
 
+.inventoryShortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.inventoryShortcut {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 170px;
+  padding: 10px 14px;
+}
+
+.inventoryShortcut:hover {
+  border-color: var(--primary);
+}
+
+.inventoryShortcut span {
+  color: var(--primary);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.inventoryShortcut small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
 .inventoryGroup {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
+  scroll-margin-top: 108px;
 }
 
 .inventoryGroupHeader {
@@ -981,6 +1016,10 @@ th {
 
   .inventoryGroupStats {
     justify-content: flex-start;
+  }
+
+  .inventoryShortcut {
+    min-width: min(100%, 220px);
   }
 
   .loginShell {
