@@ -110,10 +110,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
           <p className="eyebrow">Control interno</p>
           <h2>Inventario por tipo de producto</h2>
         </div>
-        <button className="primaryButton" type="button">
-          <Plus size={18} />
-          Nuevo producto
-        </button>
       </div>
 
       <div className="inventoryToolbar">
@@ -143,6 +139,11 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
             </button>
           ))}
         </div>
+
+        <button className="primaryButton inventoryCreateButton" type="button">
+          <Plus size={18} />
+          Nuevo producto
+        </button>
       </div>
 
       <div className="actionLegend" aria-label="Leyenda de gestión">

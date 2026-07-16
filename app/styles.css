@@ -53,8 +53,9 @@ button:disabled {
 
 .topbar {
   align-items: center;
-  background: rgba(255, 255, 255, 0.96);
+  background: #fff;
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 8px 22px rgba(4, 63, 30, 0.06);
   display: flex;
   justify-content: space-between;
   min-height: 84px;
@@ -425,7 +426,7 @@ p {
 }
 
 .inventoryHeader {
-  align-items: center;
+  align-items: flex-start;
 }
 
 .pageHeaderRow {
@@ -587,9 +588,13 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 14px;
-  grid-template-columns: minmax(260px, 1fr) auto;
+  grid-template-columns: minmax(260px, 1fr) auto auto;
   margin-bottom: 14px;
   padding: 14px;
+}
+
+.inventoryCreateButton {
+  min-width: 180px;
 }
 
 .searchBox {
