@@ -1009,8 +1009,41 @@ th {
   padding-top: 48px;
 }
 
+.movementFiltersPanel {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: -2px 0 18px;
+  padding: 12px;
+}
+
+.movementFiltersPanel label {
+  color: var(--text);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.movementFiltersPanel select {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.movementFiltersPanel select:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
 .movementTable {
-  min-width: 980px;
+  min-width: 1120px;
 }
 
 .movementTable .reference {
@@ -1396,6 +1429,10 @@ th {
   }
 
   .inventoryToolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .movementFiltersPanel {
     grid-template-columns: 1fr;
   }
 

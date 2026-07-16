@@ -4,6 +4,7 @@ export type StockMovement = {
   id: string;
   productName: string;
   productReference: string;
+  productCategory: string;
   type: MovementType;
   quantity: number;
   previousStock: number;
@@ -11,6 +12,7 @@ export type StockMovement = {
   reason: string;
   note: string;
   createdAt: string;
+  createdAtISO: string;
   user: string;
 };
 

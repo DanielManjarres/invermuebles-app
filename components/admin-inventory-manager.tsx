@@ -364,6 +364,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       id: `${stockProduct.id}-${Date.now()}`,
       productName: stockProduct.name,
       productReference: stockProduct.reference,
+      productCategory: stockProduct.category,
       type: stockMovementForm.type,
       quantity,
       previousStock,
@@ -374,6 +375,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         dateStyle: "short",
         timeStyle: "short",
       }),
+      createdAtISO: new Date().toISOString(),
       user: "Administrador",
     };
 

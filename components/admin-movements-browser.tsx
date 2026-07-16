@@ -10,6 +10,41 @@ import {
 } from "@/lib/stock-movements";
 
 const allTypes = "all";
+const allCategories = "all";
+const allUsers = "all";
+
+type DateFilter = "all" | "today" | "week" | "month";
+
+const dateFilters: Array<{ label: string; value: DateFilter }> = [
+  { label: "Todas las fechas", value: "all" },
+  { label: "Hoy", value: "today" },
+  { label: "Últimos 7 días", value: "week" },
+  { label: "Últimos 30 días", value: "month" },
+];
+
+function matchesDateFilter(movement: StockMovement, filter: DateFilter) {
+  if (filter === "all") {
+    return true;
+  }
+
+  const movementDate = movement.createdAtISO
+    ? new Date(movement.createdAtISO)
+    : null;
+
+  if (!movementDate || Number.isNaN(movementDate.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+  const startDate = new Date(today);
+
+  if (filter === "today") {
+    return movementDate.toDateString() === today.toDateString();
+  }
+
+  startDate.setDate(today.getDate() - (filter === "week" ? 7 : 30));
+  return movementDate >= startDate;
+}
 
 export function AdminMovementsBrowser() {
   const [movements, setMovements] = useState<StockMovement[]>([]);
@@ -17,21 +52,44 @@ export function AdminMovementsBrowser() {
   const [activeType, setActiveType] = useState<MovementType | typeof allTypes>(
     allTypes
   );
+  const [activeCategory, setActiveCategory] = useState(allCategories);
+  const [activeDate, setActiveDate] = useState<DateFilter>("all");
+  const [activeUser, setActiveUser] = useState(allUsers);
 
   useEffect(() => {
     setMovements(readStockMovements());
   }, []);
+
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          movements.map((movement) => movement.productCategory || "Sin categoría")
+        )
+      ),
+    [movements]
+  );
+
+  const users = useMemo(
+    () => Array.from(new Set(movements.map((movement) => movement.user))),
+    [movements]
+  );
 
   const filteredMovements = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return movements.filter((movement) => {
       const matchesType = activeType === allTypes || movement.type === activeType;
+      const movementCategory = movement.productCategory || "Sin categoría";
+      const matchesCategory =
+        activeCategory === allCategories || movementCategory === activeCategory;
+      const matchesUser = activeUser === allUsers || movement.user === activeUser;
       const matchesQuery =
         normalizedQuery.length === 0 ||
         [
           movement.productName,
           movement.productReference,
+          movementCategory,
           movement.reason,
           movement.note,
           movement.user,
@@ -40,9 +98,15 @@ export function AdminMovementsBrowser() {
           .toLowerCase()
           .includes(normalizedQuery);
 
-      return matchesType && matchesQuery;
+      return (
+        matchesType &&
+        matchesCategory &&
+        matchesUser &&
+        matchesDateFilter(movement, activeDate) &&
+        matchesQuery
+      );
     });
-  }, [activeType, movements, query]);
+  }, [activeCategory, activeDate, activeType, activeUser, movements, query]);
 
   return (
     <section className="tableSection movementSection">
@@ -79,10 +143,56 @@ export function AdminMovementsBrowser() {
               type="button"
               onClick={() => setActiveType(type)}
             >
-              {movementLabels[type]}
+            {movementLabels[type]}
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="movementFiltersPanel">
+        <label>
+          Categoría
+          <select
+            value={activeCategory}
+            onChange={(event) => setActiveCategory(event.target.value)}
+          >
+            <option value={allCategories}>Todas</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Fecha
+          <select
+            value={activeDate}
+            onChange={(event) => setActiveDate(event.target.value as DateFilter)}
+          >
+            {dateFilters.map((filter) => (
+              <option key={filter.value} value={filter.value}>
+                {filter.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Usuario
+          <select
+            value={activeUser}
+            onChange={(event) => setActiveUser(event.target.value)}
+          >
+            <option value={allUsers}>Todos</option>
+            {users.map((user) => (
+              <option key={user} value={user}>
+                {user}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {filteredMovements.length === 0 ? (
@@ -100,6 +210,7 @@ export function AdminMovementsBrowser() {
               <tr>
                 <th>Fecha</th>
                 <th>Producto</th>
+                <th>Categoría</th>
                 <th>Tipo</th>
                 <th>Cantidad</th>
                 <th>Stock</th>
@@ -111,12 +222,13 @@ export function AdminMovementsBrowser() {
               {filteredMovements.map((movement) => (
                 <tr key={movement.id}>
                   <td>{movement.createdAt}</td>
-                  <td>
-                    <strong>{movement.productName}</strong>
-                    <span className="reference">{movement.productReference}</span>
-                  </td>
-                  <td>
-                    <span className={`movementBadge ${movement.type}`}>
+                    <td>
+                      <strong>{movement.productName}</strong>
+                      <span className="reference">{movement.productReference}</span>
+                    </td>
+                    <td>{movement.productCategory || "Sin categoría"}</td>
+                    <td>
+                      <span className={`movementBadge ${movement.type}`}>
                       {movementLabels[movement.type]}
                     </span>
                   </td>
