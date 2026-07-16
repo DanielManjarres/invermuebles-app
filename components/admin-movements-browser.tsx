@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Layers3, PackageSearch, Search } from "lucide-react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import {
+  CalendarDays,
+  Check,
+  ChevronDown,
+  Layers3,
+  PackageSearch,
+  Search,
+} from "lucide-react";
 import {
   movementLabels,
   readStockMovements,
@@ -14,6 +21,11 @@ const allCategories = "all";
 const allProducts = "all";
 
 type DateFilter = "all" | "today" | "week" | "month";
+
+type FilterOption = {
+  label: string;
+  value: string;
+};
 
 const dateFilters: Array<{ label: string; value: DateFilter }> = [
   { label: "Todas las fechas", value: "all" },
@@ -46,6 +58,62 @@ function matchesDateFilter(movement: StockMovement, filter: DateFilter) {
   return movementDate >= startDate;
 }
 
+type FilterMenuProps = {
+  icon: ReactNode;
+  isOpen: boolean;
+  label: string;
+  onSelect: (value: string) => void;
+  onToggle: () => void;
+  options: FilterOption[];
+  value: string;
+};
+
+function FilterMenu({
+  icon,
+  isOpen,
+  label,
+  onSelect,
+  onToggle,
+  options,
+  value,
+}: FilterMenuProps) {
+  const selectedOption =
+    options.find((option) => option.value === value) ?? options[0];
+
+  return (
+    <label className="filterMenuLabel">
+      <span>{label}</span>
+      <div className={isOpen ? "filterMenu open" : "filterMenu"}>
+        <button className="filterMenuButton" type="button" onClick={onToggle}>
+          {icon}
+          <span>{selectedOption.label}</span>
+          <ChevronDown size={16} />
+        </button>
+
+        {isOpen ? (
+          <div className="filterMenuList" role="listbox">
+            {options.map((option) => (
+              <button
+                className={
+                  option.value === value
+                    ? "filterMenuOption active"
+                    : "filterMenuOption"
+                }
+                key={option.value}
+                type="button"
+                onClick={() => onSelect(option.value)}
+              >
+                <span>{option.label}</span>
+                {option.value === value ? <Check size={15} /> : null}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </label>
+  );
+}
+
 export function AdminMovementsBrowser() {
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [query, setQuery] = useState("");
@@ -55,6 +123,7 @@ export function AdminMovementsBrowser() {
   const [activeCategory, setActiveCategory] = useState(allCategories);
   const [activeDate, setActiveDate] = useState<DateFilter>("all");
   const [activeProduct, setActiveProduct] = useState(allProducts);
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
 
   useEffect(() => {
     setMovements(readStockMovements());
@@ -73,6 +142,22 @@ export function AdminMovementsBrowser() {
   const products = useMemo(
     () => Array.from(new Set(movements.map((movement) => movement.productName))),
     [movements]
+  );
+
+  const categoryOptions = useMemo<FilterOption[]>(
+    () => [
+      { label: "Todas", value: allCategories },
+      ...categories.map((category) => ({ label: category, value: category })),
+    ],
+    [categories]
+  );
+
+  const productOptions = useMemo<FilterOption[]>(
+    () => [
+      { label: "Todos", value: allProducts },
+      ...products.map((product) => ({ label: product, value: product })),
+    ],
+    [products]
   );
 
   const filteredMovements = useMemo(() => {
@@ -151,58 +236,57 @@ export function AdminMovementsBrowser() {
       </div>
 
       <div className="movementFiltersPanel">
-        <label>
-          <span>Categoría</span>
-          <div className="selectControl">
-            <Layers3 size={17} />
-            <select
-              value={activeCategory}
-              onChange={(event) => setActiveCategory(event.target.value)}
-            >
-              <option value={allCategories}>Todas</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-        </label>
+        {openFilter ? (
+          <button
+            className="filterMenuBackdrop"
+            type="button"
+            aria-label="Cerrar filtros"
+            onClick={() => setOpenFilter(null)}
+          />
+        ) : null}
 
-        <label>
-          <span>Fecha</span>
-          <div className="selectControl">
-            <CalendarDays size={17} />
-            <select
-              value={activeDate}
-              onChange={(event) => setActiveDate(event.target.value as DateFilter)}
-            >
-              {dateFilters.map((filter) => (
-                <option key={filter.value} value={filter.value}>
-                  {filter.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </label>
+        <FilterMenu
+          icon={<Layers3 size={17} />}
+          isOpen={openFilter === "category"}
+          label="Categoría"
+          options={categoryOptions}
+          value={activeCategory}
+          onToggle={() =>
+            setOpenFilter(openFilter === "category" ? null : "category")
+          }
+          onSelect={(value) => {
+            setActiveCategory(value);
+            setOpenFilter(null);
+          }}
+        />
 
-        <label>
-          <span>Producto</span>
-          <div className="selectControl">
-            <PackageSearch size={17} />
-            <select
-              value={activeProduct}
-              onChange={(event) => setActiveProduct(event.target.value)}
-            >
-              <option value={allProducts}>Todos</option>
-              {products.map((product) => (
-                <option key={product} value={product}>
-                  {product}
-                </option>
-              ))}
-            </select>
-          </div>
-        </label>
+        <FilterMenu
+          icon={<CalendarDays size={17} />}
+          isOpen={openFilter === "date"}
+          label="Fecha"
+          options={dateFilters}
+          value={activeDate}
+          onToggle={() => setOpenFilter(openFilter === "date" ? null : "date")}
+          onSelect={(value) => {
+            setActiveDate(value as DateFilter);
+            setOpenFilter(null);
+          }}
+        />
+
+        <FilterMenu
+          icon={<PackageSearch size={17} />}
+          isOpen={openFilter === "product"}
+          label="Producto"
+          options={productOptions}
+          value={activeProduct}
+          onToggle={() =>
+            setOpenFilter(openFilter === "product" ? null : "product")
+          }
+          onSelect={(value) => {
+            setActiveProduct(value);
+            setOpenFilter(null);
+          }}
+        />
       </div>
 
       {filteredMovements.length === 0 ? (
