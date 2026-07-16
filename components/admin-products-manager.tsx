@@ -17,6 +17,7 @@ import {
   saveAdminProducts,
 } from "@/lib/admin-products";
 import type { Product } from "@/lib/products";
+import { createStockMovement, saveStockMovement } from "@/lib/stock-movements";
 
 type AdminProductsManagerProps = {
   products: Product[];
@@ -98,6 +99,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     setProductList(readAdminProducts(products));
@@ -151,6 +153,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     });
     setIsProductFormOpen(true);
     setNotice("");
+    setFormError("");
   }
 
   function openEditForm(product: Product) {
@@ -158,12 +161,14 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     setProductForm(productToForm(product));
     setIsProductFormOpen(true);
     setNotice("");
+    setFormError("");
   }
 
   function closeProductForm() {
     setIsProductFormOpen(false);
     setEditingProductId(null);
     setProductForm(createEmptyForm());
+    setFormError("");
   }
 
   function toggleVisibility(product: Product) {
@@ -182,22 +187,69 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   function handleProductSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const duplicateReference = productList.some(
+      (product) =>
+        product.reference.trim().toLowerCase() ===
+          productForm.reference.trim().toLowerCase() &&
+        product.id !== editingProductId
+    );
+
+    if (duplicateReference) {
+      setFormError("Ya existe un producto con esa referencia.");
+      return;
+    }
+
+    const cost = Number(productForm.cost);
+    const salePrice = Number(productForm.salePrice);
+    const stock = Number(productForm.stock);
+
+    if (cost < 0 || salePrice < 0 || stock < 0) {
+      setFormError("Los valores y el stock no pueden ser negativos.");
+      return;
+    }
+
+    if (salePrice < cost) {
+      setFormError("El precio de venta no debería ser menor que el costo.");
+      return;
+    }
+
+    const previousProduct = productList.find(
+      (product) => product.id === editingProductId
+    );
     const savedProduct = formToProduct(
       productForm,
       productList,
       editingProductId ?? undefined
     );
+    const productToSave = editingProductId
+      ? { ...savedProduct, stock: previousProduct?.stock ?? savedProduct.stock }
+      : savedProduct;
 
     if (editingProductId) {
       persistProducts(
         productList.map((product) =>
-          product.id === editingProductId ? savedProduct : product
+          product.id === editingProductId ? productToSave : product
         )
       );
-      setNotice(`${savedProduct.name} fue actualizado.`);
+      setNotice(`${productToSave.name} fue actualizado.`);
     } else {
-      persistProducts([savedProduct, ...productList]);
-      setNotice(`${savedProduct.name} fue agregado a productos.`);
+      persistProducts([productToSave, ...productList]);
+
+      if (productToSave.stock > 0) {
+        saveStockMovement(
+          createStockMovement({
+            product: productToSave,
+            type: "adjustment",
+            quantity: productToSave.stock,
+            previousStock: 0,
+            nextStock: productToSave.stock,
+            reason: "Inventario inicial",
+            note: "Producto creado desde gestión de productos",
+          })
+        );
+      }
+
+      setNotice(`${productToSave.name} fue agregado a productos.`);
     }
 
     closeProductForm();
@@ -452,18 +504,20 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                   }
                 />
               </label>
-              <label>
-                Stock inicial
-                <input
-                  min="0"
-                  required
-                  type="number"
-                  value={productForm.stock}
-                  onChange={(event) =>
-                    setProductForm({ ...productForm, stock: event.target.value })
-                  }
-                />
-              </label>
+              {!editingProductId ? (
+                <label>
+                  Stock inicial
+                  <input
+                    min="0"
+                    required
+                    type="number"
+                    value={productForm.stock}
+                    onChange={(event) =>
+                      setProductForm({ ...productForm, stock: event.target.value })
+                    }
+                  />
+                </label>
+              ) : null}
               <label>
                 Imagen
                 <input
@@ -499,6 +553,8 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 Mostrar en catálogo web
               </label>
             </div>
+
+            {formError ? <p className="formError">{formError}</p> : null}
 
             <div className="modalActions">
               <button className="secondaryButton" type="button" onClick={closeProductForm}>

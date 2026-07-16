@@ -1,16 +1,12 @@
 import { ArrowRight, MessageCircle, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { products } from "@/lib/products";
-import { ProductCard } from "@/components/product-card";
+import { FeaturedProducts } from "@/components/featured-products";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { company, whatsappUrl } from "@/lib/company";
 
 export default function HomePage() {
-  const featured = products
-    .filter((product) => product.visible && product.stock > 0)
-    .slice(0, 6);
-
   return (
     <main>
       <SiteHeader />
@@ -86,11 +82,7 @@ export default function HomePage() {
             Ver todos
           </Link>
         </div>
-        <div className="productGrid">
-          {featured.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <FeaturedProducts products={products} />
       </section>
       <SiteFooter />
     </main>

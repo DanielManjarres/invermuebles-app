@@ -14,11 +14,11 @@ import { readAdminProducts, saveAdminProducts } from "@/lib/admin-products";
 import type { Product } from "@/lib/products";
 import {
   createMovementForm,
+  createStockMovement,
   movementLabels,
   movementReasonOptions,
   saveStockMovement,
   type MovementType,
-  type StockMovement,
   type StockMovementFormState,
 } from "@/lib/stock-movements";
 
@@ -165,24 +165,15 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       return;
     }
 
-    const movement: StockMovement = {
-      id: `${stockProduct.id}-${Date.now()}`,
-      productName: stockProduct.name,
-      productReference: stockProduct.reference,
-      productCategory: stockProduct.category,
+    const movement = createStockMovement({
+      product: stockProduct,
       type: stockMovementForm.type,
       quantity,
       previousStock,
       nextStock,
       reason: stockMovementForm.reason,
       note: stockMovementForm.note.trim(),
-      createdAt: new Date().toLocaleString("es-CO", {
-        dateStyle: "short",
-        timeStyle: "short",
-      }),
-      createdAtISO: new Date().toISOString(),
-      user: "Administrador",
-    };
+    });
 
     const nextInventory = inventory.map((product) =>
       product.id === stockProduct.id ? { ...product, stock: nextStock } : product

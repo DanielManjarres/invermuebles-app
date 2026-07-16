@@ -17,7 +17,7 @@ import {
 } from "@/lib/stock-movements";
 
 const allTypes = "all";
-const allCategories = "all";
+const allProductTypes = "all";
 const allProducts = "all";
 
 type DateFilter = "all" | "today" | "week" | "month";
@@ -120,7 +120,7 @@ export function AdminMovementsBrowser() {
   const [activeType, setActiveType] = useState<MovementType | typeof allTypes>(
     allTypes
   );
-  const [activeCategory, setActiveCategory] = useState(allCategories);
+  const [activeProductType, setActiveProductType] = useState(allProductTypes);
   const [activeDate, setActiveDate] = useState<DateFilter>("all");
   const [activeProduct, setActiveProduct] = useState(allProducts);
   const [openFilter, setOpenFilter] = useState<string | null>(null);
@@ -129,11 +129,11 @@ export function AdminMovementsBrowser() {
     setMovements(readStockMovements());
   }, []);
 
-  const categories = useMemo(
+  const productTypes = useMemo(
     () =>
       Array.from(
         new Set(
-          movements.map((movement) => movement.productCategory || "Sin categoría")
+          movements.map((movement) => movement.productCategory || "Sin tipo")
         )
       ),
     [movements]
@@ -144,12 +144,12 @@ export function AdminMovementsBrowser() {
     [movements]
   );
 
-  const categoryOptions = useMemo<FilterOption[]>(
+  const productTypeOptions = useMemo<FilterOption[]>(
     () => [
-      { label: "Todas", value: allCategories },
-      ...categories.map((category) => ({ label: category, value: category })),
+      { label: "Todos", value: allProductTypes },
+      ...productTypes.map((type) => ({ label: type, value: type })),
     ],
-    [categories]
+    [productTypes]
   );
 
   const productOptions = useMemo<FilterOption[]>(
@@ -165,9 +165,10 @@ export function AdminMovementsBrowser() {
 
     return movements.filter((movement) => {
       const matchesType = activeType === allTypes || movement.type === activeType;
-      const movementCategory = movement.productCategory || "Sin categoría";
-      const matchesCategory =
-        activeCategory === allCategories || movementCategory === activeCategory;
+      const movementProductType = movement.productCategory || "Sin tipo";
+      const matchesProductType =
+        activeProductType === allProductTypes ||
+        movementProductType === activeProductType;
       const matchesProduct =
         activeProduct === allProducts || movement.productName === activeProduct;
       const matchesQuery =
@@ -175,10 +176,10 @@ export function AdminMovementsBrowser() {
         [
           movement.productName,
           movement.productReference,
-          movementCategory,
+          movementProductType,
+          movement.productClass,
           movement.reason,
           movement.note,
-          movement.user,
         ]
           .join(" ")
           .toLowerCase()
@@ -186,13 +187,13 @@ export function AdminMovementsBrowser() {
 
       return (
         matchesType &&
-        matchesCategory &&
+        matchesProductType &&
         matchesProduct &&
         matchesDateFilter(movement, activeDate) &&
         matchesQuery
       );
     });
-  }, [activeCategory, activeDate, activeProduct, activeType, movements, query]);
+  }, [activeDate, activeProduct, activeProductType, activeType, movements, query]);
 
   return (
     <section className="tableSection movementSection">
@@ -208,7 +209,7 @@ export function AdminMovementsBrowser() {
           <Search size={18} />
           <input
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por producto, referencia, motivo o usuario"
+            placeholder="Buscar por producto, referencia, tipo o motivo"
             type="search"
             value={query}
           />
@@ -247,15 +248,15 @@ export function AdminMovementsBrowser() {
 
         <FilterMenu
           icon={<Layers3 size={17} />}
-          isOpen={openFilter === "category"}
-          label="Categoría"
-          options={categoryOptions}
-          value={activeCategory}
+          isOpen={openFilter === "productType"}
+          label="Tipo"
+          options={productTypeOptions}
+          value={activeProductType}
           onToggle={() =>
-            setOpenFilter(openFilter === "category" ? null : "category")
+            setOpenFilter(openFilter === "productType" ? null : "productType")
           }
           onSelect={(value) => {
-            setActiveCategory(value);
+            setActiveProductType(value);
             setOpenFilter(null);
           }}
         />
@@ -304,8 +305,8 @@ export function AdminMovementsBrowser() {
               <tr>
                 <th>Fecha</th>
                 <th>Producto</th>
-                <th>Categoría</th>
                 <th>Tipo</th>
+                <th>Movimiento</th>
                 <th>Cantidad</th>
                 <th>Stock</th>
                 <th>Motivo</th>
@@ -320,7 +321,12 @@ export function AdminMovementsBrowser() {
                     <strong>{movement.productName}</strong>
                     <span className="reference">{movement.productReference}</span>
                   </td>
-                  <td>{movement.productCategory || "Sin categoría"}</td>
+                  <td>
+                    {movement.productCategory || "Sin tipo"}
+                    {movement.productClass ? (
+                      <span className="reference">{movement.productClass}</span>
+                    ) : null}
+                  </td>
                   <td>
                     <span className={`movementBadge ${movement.type}`}>
                       {movementLabels[movement.type]}

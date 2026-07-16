@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 import { whatsappUrl } from "@/lib/company";
+import { readAdminProducts } from "@/lib/admin-products";
 
 type CatalogBrowserProps = {
   products: Product[];
@@ -13,20 +14,30 @@ type CatalogBrowserProps = {
 const allCategories = "Todos";
 
 export function CatalogBrowser({ products }: CatalogBrowserProps) {
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
   const [activeCategory, setActiveCategory] = useState(allCategories);
+
+  useEffect(() => {
+    setCatalogProducts(readAdminProducts(products));
+  }, [products]);
+
+  const availableProducts = useMemo(
+    () => catalogProducts.filter((product) => product.visible && product.stock > 0),
+    [catalogProducts]
+  );
 
   const categories = useMemo(
     () => [
       allCategories,
-      ...Array.from(new Set(products.map((product) => product.category))),
+      ...Array.from(new Set(availableProducts.map((product) => product.category))),
     ],
-    [products]
+    [availableProducts]
   );
 
   const filteredProducts =
     activeCategory === allCategories
-      ? products
-      : products.filter((product) => product.category === activeCategory);
+      ? availableProducts
+      : availableProducts.filter((product) => product.category === activeCategory);
 
   return (
     <section className="catalogSection">
