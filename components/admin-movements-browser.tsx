@@ -11,7 +11,7 @@ import {
 
 const allTypes = "all";
 const allCategories = "all";
-const allUsers = "all";
+const allProducts = "all";
 
 type DateFilter = "all" | "today" | "week" | "month";
 
@@ -54,7 +54,7 @@ export function AdminMovementsBrowser() {
   );
   const [activeCategory, setActiveCategory] = useState(allCategories);
   const [activeDate, setActiveDate] = useState<DateFilter>("all");
-  const [activeUser, setActiveUser] = useState(allUsers);
+  const [activeProduct, setActiveProduct] = useState(allProducts);
 
   useEffect(() => {
     setMovements(readStockMovements());
@@ -70,8 +70,8 @@ export function AdminMovementsBrowser() {
     [movements]
   );
 
-  const users = useMemo(
-    () => Array.from(new Set(movements.map((movement) => movement.user))),
+  const products = useMemo(
+    () => Array.from(new Set(movements.map((movement) => movement.productName))),
     [movements]
   );
 
@@ -83,7 +83,8 @@ export function AdminMovementsBrowser() {
       const movementCategory = movement.productCategory || "Sin categoría";
       const matchesCategory =
         activeCategory === allCategories || movementCategory === activeCategory;
-      const matchesUser = activeUser === allUsers || movement.user === activeUser;
+      const matchesProduct =
+        activeProduct === allProducts || movement.productName === activeProduct;
       const matchesQuery =
         normalizedQuery.length === 0 ||
         [
@@ -101,12 +102,12 @@ export function AdminMovementsBrowser() {
       return (
         matchesType &&
         matchesCategory &&
-        matchesUser &&
+        matchesProduct &&
         matchesDateFilter(movement, activeDate) &&
         matchesQuery
       );
     });
-  }, [activeCategory, activeDate, activeType, activeUser, movements, query]);
+  }, [activeCategory, activeDate, activeProduct, activeType, movements, query]);
 
   return (
     <section className="tableSection movementSection">
@@ -180,15 +181,15 @@ export function AdminMovementsBrowser() {
         </label>
 
         <label>
-          Usuario
+          Producto
           <select
-            value={activeUser}
-            onChange={(event) => setActiveUser(event.target.value)}
+            value={activeProduct}
+            onChange={(event) => setActiveProduct(event.target.value)}
           >
-            <option value={allUsers}>Todos</option>
-            {users.map((user) => (
-              <option key={user} value={user}>
-                {user}
+            <option value={allProducts}>Todos</option>
+            {products.map((product) => (
+              <option key={product} value={product}>
+                {product}
               </option>
             ))}
           </select>
