@@ -47,6 +47,10 @@ function cleanReference(value: string) {
   return cleanText(value).toUpperCase();
 }
 
+function formatCurrency(value: number) {
+  return value.toLocaleString("es-CO");
+}
+
 function isValidImageSource(value: string) {
   const image = value.trim();
 
@@ -200,6 +204,19 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     () => Array.from(new Set(productList.map((product) => product.productClass))),
     [productList]
   );
+
+  const formCost = Number(productForm.cost);
+  const formSalePrice = Number(productForm.salePrice);
+  const hasValidPrices = Number.isFinite(formCost) && Number.isFinite(formSalePrice);
+  const estimatedProfit = hasValidPrices ? formSalePrice - formCost : 0;
+  const estimatedMargin =
+    hasValidPrices && formSalePrice > 0
+      ? Math.round((estimatedProfit / formSalePrice) * 100)
+      : 0;
+  const imagePreview =
+    isValidImageSource(productForm.image) && productForm.image.trim()
+      ? productForm.image.trim()
+      : fallbackImage;
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -426,8 +443,8 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                   <td>{product.reference}</td>
                   <td>
                     <span className="valueStack">
-                      <span>Costo: {product.cost.toLocaleString("es-CO")}</span>
-                      <span>Venta: {product.salePrice.toLocaleString("es-CO")}</span>
+                      <span>Costo: {formatCurrency(product.cost)}</span>
+                      <span>Venta: {formatCurrency(product.salePrice)}</span>
                     </span>
                   </td>
                   <td>
@@ -489,10 +506,27 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
             </div>
 
             <div className="adminFormGrid">
+              <div className="adminFormPreview adminFormWide">
+                <div className="adminFormImagePreview">
+                  <img src={imagePreview} alt="Vista previa del producto" />
+                </div>
+                <div>
+                  <span className="previewLabel">Vista previa</span>
+                  <strong>{productForm.name || "Nombre del producto"}</strong>
+                  <span>{productForm.reference || "Referencia"}</span>
+                  <p>
+                    {productForm.image.trim()
+                      ? "La imagen se usará en el catálogo web."
+                      : "Si no agregas imagen, se usará una imagen temporal."}
+                  </p>
+                </div>
+              </div>
+
               <label>
                 Nombre
                 <input
                   required
+                  placeholder="Ej: Sala modular gris"
                   value={productForm.name}
                   onChange={(event) =>
                     setProductForm({ ...productForm, name: event.target.value })
@@ -503,6 +537,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 Referencia
                 <input
                   required
+                  placeholder="Ej: MUE-001"
                   value={productForm.reference}
                   onChange={(event) =>
                     setProductForm({
@@ -559,6 +594,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 <input
                   min="0"
                   required
+                  step="1"
                   type="number"
                   value={productForm.cost}
                   onChange={(event) =>
@@ -571,6 +607,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 <input
                   min="0"
                   required
+                  step="1"
                   type="number"
                   value={productForm.salePrice}
                   onChange={(event) =>
@@ -587,6 +624,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                   <input
                     min="0"
                     required
+                    step="1"
                     type="number"
                     value={productForm.stock}
                     onChange={(event) =>
@@ -600,6 +638,18 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                   registrando una entrada, salida o ajuste.
                 </p>
               )}
+              <div className="adminFormWide priceSummary">
+                <div>
+                  <span>Utilidad estimada</span>
+                  <strong>
+                    {hasValidPrices ? formatCurrency(Math.max(estimatedProfit, 0)) : "0"}
+                  </strong>
+                </div>
+                <div>
+                  <span>Margen aproximado</span>
+                  <strong>{hasValidPrices ? `${Math.max(estimatedMargin, 0)}%` : "0%"}</strong>
+                </div>
+              </div>
               <label>
                 Imagen
                 <input

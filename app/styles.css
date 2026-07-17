@@ -1178,6 +1178,91 @@ th {
   grid-column: 1 / -1;
 }
 
+.adminFormPreview {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  padding: 12px;
+}
+
+.adminFormImagePreview {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.adminFormImagePreview img {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+  width: 100%;
+}
+
+.adminFormPreview div:last-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.previewLabel {
+  color: var(--leaf);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.adminFormPreview strong {
+  font-size: 1.02rem;
+}
+
+.adminFormPreview span:not(.previewLabel),
+.adminFormPreview p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.priceSummary {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 12px;
+}
+
+.priceSummary div {
+  background: var(--surface-strong);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.priceSummary span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.priceSummary strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
 .checkRow {
   align-items: center;
   display: flex;
@@ -2000,6 +2085,15 @@ th {
   .adminFormGrid,
   .movementFormGrid {
     grid-template-columns: 1fr;
+  }
+
+  .adminFormPreview,
+  .priceSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .adminFormImagePreview {
+    max-width: 180px;
   }
 
   .movementTypeGroup {
