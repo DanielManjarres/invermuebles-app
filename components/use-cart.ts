@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 
 export type CartItem = {
+  category?: string;
+  details?: string;
   id: string;
+  image?: string;
   name: string;
   reference: string;
 };

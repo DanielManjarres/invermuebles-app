@@ -62,7 +62,10 @@ export function ProductCard({
                 onClick={(event) => {
                   event.stopPropagation();
                   addItem({
+                    category: product.category,
+                    details: product.details,
                     id: product.id,
+                    image: product.image,
                     name: product.name,
                     reference: product.reference,
                   });
@@ -114,7 +117,10 @@ export function ProductCard({
                   disabled={!isAvailable}
                   onClick={() =>
                     addItem({
+                      category: product.category,
+                      details: product.details,
                       id: product.id,
+                      image: product.image,
                       name: product.name,
                       reference: product.reference,
                     })
