@@ -17,6 +17,7 @@ function summarizeDetails(details?: string) {
 
 export default function CartPage() {
   const { items, removeItem, clearCart } = useCart();
+  const totalQuantity = items.reduce((total, item) => total + item.quantity, 0);
 
   const message = encodeURIComponent(
     `Hola, quiero recibir información sobre estos productos de Invermuebles del Quindío:\n\n${items
@@ -24,7 +25,7 @@ export default function CartPage() {
         (item, index) =>
           `${index + 1}. ${item.name}\nReferencia: ${item.reference}${
             item.category ? `\nTipo: ${item.category}` : ""
-          }`
+          }\nCantidad: ${item.quantity}`
       )
       .join("\n\n")}\n\nQuedo atento(a) para confirmar precio, disponibilidad y forma de pago.`
   );
@@ -63,6 +64,7 @@ export default function CartPage() {
                     {item.category ? <span className="tag">{item.category}</span> : null}
                     <h2>{item.name}</h2>
                     <span className="reference">{item.reference}</span>
+                    <span className="quantityBadge">Cantidad: {item.quantity}</span>
                     {item.details ? <p>{summarizeDetails(item.details)}</p> : null}
                   </div>
                   <button
@@ -79,7 +81,10 @@ export default function CartPage() {
 
             <aside className="summaryPanel">
               <h2>Resumen</h2>
-              <p>{items.length} producto(s) seleccionados.</p>
+              <p>
+                {totalQuantity} unidad(es) en {items.length} producto(s)
+                seleccionado(s).
+              </p>
               <p>
                 El almacén confirmará precio, disponibilidad y forma de pago por
                 WhatsApp.

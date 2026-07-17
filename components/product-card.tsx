@@ -45,11 +45,14 @@ export function ProductCard({
       id: product.id,
       image: product.image,
       name: product.name,
+      quantity: 1,
       reference: product.reference,
     });
 
     setCartFeedback(
-      result === "added" ? "Producto agregado al carrito" : "Ya está en el carrito",
+      result.status === "added"
+        ? "Producto agregado al carrito"
+        : `Cantidad actualizada: ${result.quantity}`,
     );
   }
 
@@ -95,7 +98,7 @@ export function ProductCard({
                 {cartFeedback
                   ? isAddedFeedback
                     ? "Agregado"
-                    : "Ya agregado"
+                    : "Actualizado"
                   : "Agregar"}
               </button>
             ) : (
@@ -150,7 +153,7 @@ export function ProductCard({
                   {cartFeedback
                     ? isAddedFeedback
                       ? "Agregado al carrito"
-                      : "Ya está en el carrito"
+                      : "Cantidad actualizada"
                     : "Agregar al carrito"}
                 </button>
               ) : null}

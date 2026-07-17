@@ -8,10 +8,14 @@ export type CartItem = {
   id: string;
   image?: string;
   name: string;
+  quantity: number;
   reference: string;
 };
 
-export type AddCartResult = "added" | "exists";
+export type AddCartResult = {
+  quantity: number;
+  status: "added" | "updated";
+};
 
 const cartKey = "invermuebles-cart";
 
@@ -26,7 +30,11 @@ function readCart(): CartItem[] {
   }
 
   try {
-    return JSON.parse(storedCart) as CartItem[];
+    const parsedItems = JSON.parse(storedCart) as CartItem[];
+    return parsedItems.map((item) => ({
+      ...item,
+      quantity: item.quantity && item.quantity > 0 ? item.quantity : 1,
+    }));
   } catch {
     return [];
   }
@@ -45,13 +53,39 @@ export function useCart() {
   }
 
   function addItem(item: CartItem): AddCartResult {
-    const exists = items.some((cartItem) => cartItem.id === item.id);
-    if (exists) {
-      return "exists";
+    const currentItems = readCart();
+    const existingItem = currentItems.find((cartItem) => cartItem.id === item.id);
+
+    if (existingItem) {
+      const nextQuantity = existingItem.quantity + 1;
+      const nextItems = currentItems.map((cartItem) =>
+        cartItem.id === item.id
+          ? {
+              ...cartItem,
+              quantity: nextQuantity,
+            }
+          : cartItem,
+      );
+
+      saveCart(nextItems);
+      return {
+        quantity: nextQuantity,
+        status: "updated",
+      };
     }
 
-    saveCart([...items, item]);
-    return "added";
+    saveCart([
+      ...currentItems,
+      {
+        ...item,
+        quantity: 1,
+      },
+    ]);
+
+    return {
+      quantity: 1,
+      status: "added",
+    };
   }
 
   function removeItem(id: string) {

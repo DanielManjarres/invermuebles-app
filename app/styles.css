@@ -1488,6 +1488,18 @@ th {
   margin-bottom: 6px;
 }
 
+.quantityBadge {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--primary);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  margin: 2px 0 8px;
+  padding: 6px 10px;
+}
+
 .summaryPanel {
   display: grid;
   gap: 12px;
