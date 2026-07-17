@@ -47,10 +47,14 @@ function cleanReference(value: string) {
   return cleanText(value).toUpperCase();
 }
 
-function isValidImageUrl(value: string) {
+function isValidImageSource(value: string) {
   const image = value.trim();
 
   if (!image) {
+    return true;
+  }
+
+  if (image.startsWith("/") && !image.startsWith("//") && !/\s/.test(image)) {
     return true;
   }
 
@@ -103,8 +107,8 @@ function validateProductForm(
     return "El precio de venta no debería ser menor que el costo.";
   }
 
-  if (!isValidImageUrl(form.image)) {
-    return "La imagen debe ser una URL válida que empiece por http o https.";
+  if (!isValidImageSource(form.image)) {
+    return "La imagen debe ser una URL válida o una ruta interna como /productos/foto.jpg.";
   }
 
   const reference = cleanReference(form.reference);
@@ -596,12 +600,15 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
               <label>
                 Imagen
                 <input
-                  placeholder="URL de la imagen"
+                  placeholder="https://... o /productos/foto.jpg"
                   value={productForm.image}
                   onChange={(event) =>
                     setProductForm({ ...productForm, image: event.target.value })
                   }
                 />
+                <span className="fieldHint">
+                  Puede ser una URL externa o una ruta interna guardada en public.
+                </span>
               </label>
               <label className="adminFormWide">
                 Detalles

@@ -356,7 +356,10 @@ p {
 }
 
 .productImage img {
+  display: block;
+  height: 100%;
   object-fit: cover;
+  width: 100%;
 }
 
 .productInfo {
@@ -1026,6 +1029,13 @@ th {
 .adminFormSingle input:focus {
   border-color: var(--primary);
   outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.fieldHint {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .adminFormWide {

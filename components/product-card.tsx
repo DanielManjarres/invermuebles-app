@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { useCart } from "@/components/use-cart";
@@ -16,11 +15,10 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="productCard">
       <div className="productImage">
-        <Image
+        <img
           src={product.image}
           alt={product.name}
-          fill
-          sizes="(max-width: 768px) 100vw, 33vw"
+          loading="lazy"
         />
       </div>
       <div className="productInfo">
