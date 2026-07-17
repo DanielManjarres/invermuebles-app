@@ -11,6 +11,8 @@ export type CartItem = {
   reference: string;
 };
 
+export type AddCartResult = "added" | "exists";
+
 const cartKey = "invermuebles-cart";
 
 function readCart(): CartItem[] {
@@ -42,13 +44,14 @@ export function useCart() {
     window.localStorage.setItem(cartKey, JSON.stringify(nextItems));
   }
 
-  function addItem(item: CartItem) {
+  function addItem(item: CartItem): AddCartResult {
     const exists = items.some((cartItem) => cartItem.id === item.id);
     if (exists) {
-      return;
+      return "exists";
     }
 
     saveCart([...items, item]);
+    return "added";
   }
 
   function removeItem(id: string) {

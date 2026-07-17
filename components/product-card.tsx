@@ -1,7 +1,7 @@
 "use client";
 
-import { ShoppingCart, X } from "lucide-react";
-import { useState } from "react";
+import { Check, ShoppingCart, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Product } from "@/lib/products";
 import { useCart } from "@/components/use-cart";
 
@@ -23,8 +23,35 @@ export function ProductCard({
 }: ProductCardProps) {
   const { addItem } = useCart();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [cartFeedback, setCartFeedback] = useState("");
   const isAvailable = product.stock > 0;
   const productSummary = createSummary(product.details);
+  const isAddedFeedback = cartFeedback === "Producto agregado al carrito";
+
+  useEffect(() => {
+    if (!cartFeedback) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setCartFeedback(""), 1800);
+
+    return () => window.clearTimeout(timeout);
+  }, [cartFeedback]);
+
+  function handleAddToCart() {
+    const result = addItem({
+      category: product.category,
+      details: product.details,
+      id: product.id,
+      image: product.image,
+      name: product.name,
+      reference: product.reference,
+    });
+
+    setCartFeedback(
+      result === "added" ? "Producto agregado al carrito" : "Ya está en el carrito",
+    );
+  }
 
   return (
     <>
@@ -56,27 +83,29 @@ export function ProductCard({
             </span>
             {showCartAction ? (
               <button
-                className="iconTextButton"
+                className={`iconTextButton ${cartFeedback ? "cartButtonFeedback" : ""}`}
                 type="button"
                 disabled={!isAvailable}
                 onClick={(event) => {
                   event.stopPropagation();
-                  addItem({
-                    category: product.category,
-                    details: product.details,
-                    id: product.id,
-                    image: product.image,
-                    name: product.name,
-                    reference: product.reference,
-                  });
+                  handleAddToCart();
                 }}
               >
-                <ShoppingCart size={17} />
-                Agregar
+                {cartFeedback ? <Check size={17} /> : <ShoppingCart size={17} />}
+                {cartFeedback
+                  ? isAddedFeedback
+                    ? "Agregado"
+                    : "Ya agregado"
+                  : "Agregar"}
               </button>
             ) : (
               <span className="detailsHint">Ver detalle</span>
             )}
+            {showCartAction && cartFeedback ? (
+              <span className="cartFeedback" aria-live="polite">
+                {cartFeedback}
+              </span>
+            ) : null}
           </div>
         </div>
       </article>
@@ -112,23 +141,23 @@ export function ProductCard({
               </dl>
               {showCartAction ? (
                 <button
-                  className="primaryButton"
+                  className={`primaryButton ${cartFeedback ? "cartButtonFeedback" : ""}`}
                   type="button"
                   disabled={!isAvailable}
-                  onClick={() =>
-                    addItem({
-                      category: product.category,
-                      details: product.details,
-                      id: product.id,
-                      image: product.image,
-                      name: product.name,
-                      reference: product.reference,
-                    })
-                  }
+                  onClick={handleAddToCart}
                 >
-                  <ShoppingCart size={17} />
-                  Agregar al carrito
+                  {cartFeedback ? <Check size={17} /> : <ShoppingCart size={17} />}
+                  {cartFeedback
+                    ? isAddedFeedback
+                      ? "Agregado al carrito"
+                      : "Ya está en el carrito"
+                    : "Agregar al carrito"}
                 </button>
+              ) : null}
+              {showCartAction && cartFeedback ? (
+                <span className="cartFeedback productDetailFeedback" aria-live="polite">
+                  {cartFeedback}
+                </span>
               ) : null}
             </div>
           </article>

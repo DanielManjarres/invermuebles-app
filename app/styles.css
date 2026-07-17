@@ -230,6 +230,22 @@ p {
   min-height: 40px;
 }
 
+.cartButtonFeedback {
+  animation: cartPulse 520ms ease;
+  background: var(--primary-dark);
+}
+
+.cartFeedback {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.productDetailFeedback {
+  margin-top: -4px;
+}
+
 .iconButton {
   aspect-ratio: 1;
   background: #fff;
@@ -237,6 +253,20 @@ p {
   color: var(--primary);
   padding: 0;
   width: 42px;
+}
+
+@keyframes cartPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.04);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .fullWidth {
