@@ -29,12 +29,12 @@ export default function CartPage() {
   const productText = items.length === 1 ? "producto" : "productos";
 
   const message = encodeURIComponent(
-    `Hola, quiero recibir información sobre estos productos de Invermuebles del Quindío:\n\n${items
+    `Hola, quiero consultar información y disponibilidad de estos productos de Invermuebles del Quindío:\n\n${items
       .map(
         (item, index) =>
           `${index + 1}. ${item.name}\nReferencia: ${item.reference}${
             item.category ? `\nTipo: ${item.category}` : ""
-          }\nCantidad: ${item.quantity}`
+          }\nCantidad solicitada: ${item.quantity}`
       )
       .join("\n\n")}\n\nQuedo atento(a) para confirmar precio, disponibilidad y forma de pago.`
   );
