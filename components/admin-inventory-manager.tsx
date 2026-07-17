@@ -35,6 +35,12 @@ const filters: Array<{ label: string; value: InventoryFilter }> = [
   { label: "Agotados", value: "outOfStock" },
 ];
 
+const movementNotePlaceholders: Record<MovementType, string> = {
+  entry: "Ej: Reposición recibida en buen estado",
+  exit: "Ej: Venta confirmada por WhatsApp",
+  adjustment: "Ej: Conteo físico realizado en bodega",
+};
+
 function createCategoryId(category: string) {
   return `inventario-${category
     .normalize("NFD")
@@ -119,6 +125,33 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   const currentReasonOptions = stockMovementForm.type
     ? movementReasonOptions[stockMovementForm.type]
     : [];
+  const movementQuantity = Number(stockMovementForm.quantity);
+  const hasValidMovementQuantity =
+    stockMovementForm.quantity.trim() !== "" &&
+    Number.isFinite(movementQuantity) &&
+    movementQuantity > 0;
+  const projectedStock =
+    stockProduct && stockMovementForm.type && hasValidMovementQuantity
+      ? stockMovementForm.type === "entry"
+        ? stockProduct.stock + movementQuantity
+        : stockMovementForm.type === "exit"
+          ? stockProduct.stock - movementQuantity
+          : movementQuantity
+      : null;
+  const isInvalidExit =
+    stockMovementForm.type === "exit" &&
+    projectedStock !== null &&
+    projectedStock < 0;
+  const movementSummaryText = !stockMovementForm.type
+    ? "Selecciona entrada, salida o ajuste para calcular el stock final."
+    : !hasValidMovementQuantity
+      ? "Ingresa una cantidad para ver el cambio antes de guardar."
+      : isInvalidExit
+        ? "La salida supera el stock disponible."
+        : "Revisa el stock final antes de guardar el movimiento.";
+  const notePlaceholder = stockMovementForm.type
+    ? movementNotePlaceholders[stockMovementForm.type]
+    : "Opcional";
 
   function openStockForm(product: Product) {
     setStockProduct(product);
@@ -159,22 +192,16 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       return;
     }
 
-    const quantity = Math.max(0, Number(stockMovementForm.quantity));
-
-    if (quantity <= 0) {
+    if (!hasValidMovementQuantity) {
       setStockError("La cantidad debe ser mayor a cero.");
       return;
     }
 
+    const quantity = movementQuantity;
     const previousStock = stockProduct.stock;
-    const nextStock =
-      stockMovementForm.type === "entry"
-        ? previousStock + quantity
-        : stockMovementForm.type === "exit"
-          ? previousStock - quantity
-          : quantity;
+    const nextStock = projectedStock ?? previousStock;
 
-    if (nextStock < 0) {
+    if (isInvalidExit) {
       setStockError("La salida no puede ser mayor a la cantidad disponible.");
       return;
     }
@@ -377,6 +404,11 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               <strong>{stockProduct.stock}</strong>
             </div>
 
+            <p className="formHint">
+              Registra entradas cuando llegue mercancía, salidas cuando se entregue o
+              venda un producto, y ajustes cuando el conteo físico no coincida.
+            </p>
+
             <div className="movementTypeGroup" aria-label="Tipo de movimiento">
               {(Object.keys(movementLabels) as MovementType[]).map((type) => (
                 <button
@@ -434,7 +466,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               <label className="adminFormWide">
                 Observación
                 <textarea
-                  placeholder="Opcional"
+                  placeholder={notePlaceholder}
                   rows={3}
                   value={stockMovementForm.note}
                   onChange={(event) =>
@@ -445,6 +477,36 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                   }
                 />
               </label>
+            </div>
+
+            <div
+              className={
+                isInvalidExit
+                  ? "movementPreview movementPreviewWarning"
+                  : "movementPreview"
+              }
+            >
+              <div>
+                <span>Stock actual</span>
+                <strong>{stockProduct.stock}</strong>
+              </div>
+              <div>
+                <span>Movimiento</span>
+                <strong>
+                  {hasValidMovementQuantity
+                    ? stockMovementForm.type === "entry"
+                      ? `+${movementQuantity}`
+                      : stockMovementForm.type === "exit"
+                        ? `-${movementQuantity}`
+                        : movementQuantity
+                    : "-"}
+                </strong>
+              </div>
+              <div>
+                <span>Stock final</span>
+                <strong>{projectedStock ?? "-"}</strong>
+              </div>
+              <p>{movementSummaryText}</p>
             </div>
 
             {stockError ? <p className="formError">{stockError}</p> : null}

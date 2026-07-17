@@ -1525,6 +1525,58 @@ th {
   color: #fff;
 }
 
+.movementPreview {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 12px;
+}
+
+.movementPreview div {
+  background: var(--surface-strong);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.movementPreview span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.movementPreview strong {
+  color: var(--text);
+  font-size: 1.08rem;
+}
+
+.movementPreview p {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  grid-column: 1 / -1;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.movementPreviewWarning {
+  background: #fff8f3;
+  border-color: #efc7aa;
+}
+
+.movementPreviewWarning div {
+  background: #fae9df;
+}
+
+.movementPreviewWarning p,
+.movementPreviewWarning strong {
+  color: #9b2924;
+}
+
 .movementFormGrid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -2294,6 +2346,10 @@ th {
   }
 
   .movementTypeGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .movementPreview {
     grid-template-columns: 1fr;
   }
 
