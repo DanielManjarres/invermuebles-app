@@ -336,6 +336,7 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
+  cursor: pointer;
   overflow: hidden;
   transition:
     border-color 160ms ease,
@@ -347,6 +348,11 @@ p {
   border-color: rgba(7, 85, 42, 0.32);
   box-shadow: 0 18px 34px rgba(4, 63, 30, 0.13);
   transform: translateY(-2px);
+}
+
+.productCard:focus-visible {
+  outline: 3px solid rgba(7, 85, 42, 0.18);
+  outline-offset: 3px;
 }
 
 .productImage {
@@ -365,7 +371,7 @@ p {
 .productInfo {
   display: grid;
   gap: 20px;
-  min-height: 236px;
+  min-height: 250px;
   padding: 20px;
 }
 
@@ -380,6 +386,21 @@ p {
   font-size: 0.86rem;
   font-weight: 700;
   margin-bottom: 10px;
+}
+
+.detailsHint {
+  color: var(--primary);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.valueStack {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.86rem;
+  font-weight: 800;
+  gap: 3px;
+  line-height: 1.35;
 }
 
 .productInfo p,
@@ -414,6 +435,86 @@ p {
 .unavailable {
   background: #fae4df;
   color: var(--accent);
+}
+
+.productDetailModal {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.2);
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1fr);
+  max-height: min(86vh, 760px);
+  max-width: min(980px, calc(100vw - 32px));
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.productDetailClose {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  z-index: 2;
+}
+
+.productDetailImage {
+  background: var(--surface-strong);
+  min-height: 420px;
+}
+
+.productDetailImage img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.productDetailInfo {
+  align-content: start;
+  display: grid;
+  gap: 14px;
+  overflow: auto;
+  padding: 34px;
+}
+
+.productDetailInfo h2 {
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
+  line-height: 1.08;
+  margin: 0;
+}
+
+.productDetailInfo p {
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.productDetailList {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 4px 0;
+}
+
+.productDetailList div {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px 12px;
+}
+
+.productDetailList dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.productDetailList dd {
+  color: var(--text);
+  font-weight: 800;
+  margin: 0;
 }
 
 .pageHeader {
@@ -1675,6 +1776,16 @@ th {
     width: min(100%, 620px);
   }
 
+  .productDetailModal {
+    grid-template-columns: 1fr;
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+  }
+
+  .productDetailImage {
+    min-height: 300px;
+  }
+
   .footerAccess {
     text-align: left;
   }
@@ -1745,6 +1856,18 @@ th {
 
   .modalHeader h2 {
     font-size: 1.45rem;
+  }
+
+  .productDetailInfo {
+    padding: 22px;
+  }
+
+  .productDetailImage {
+    min-height: 230px;
+  }
+
+  .productDetailList {
+    grid-template-columns: 1fr;
   }
 
   .adminFormGrid,

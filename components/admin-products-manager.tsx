@@ -408,7 +408,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 <th>Producto</th>
                 <th>Tipo / clase</th>
                 <th>Referencia</th>
-                <th>Precio venta</th>
+                <th>Valores</th>
                 <th>Estado web</th>
                 <th className="actionsHeader">Gestión</th>
               </tr>
@@ -425,7 +425,10 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                   </td>
                   <td>{product.reference}</td>
                   <td>
-                    {product.salePrice.toLocaleString("es-CO")}
+                    <span className="valueStack">
+                      <span>Costo: {product.cost.toLocaleString("es-CO")}</span>
+                      <span>Venta: {product.salePrice.toLocaleString("es-CO")}</span>
+                    </span>
                   </td>
                   <td>
                     <span className={product.visible ? "available" : "unavailable"}>

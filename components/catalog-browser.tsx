@@ -8,12 +8,14 @@ import { whatsappUrl } from "@/lib/company";
 import { readAdminProducts } from "@/lib/admin-products";
 
 type CatalogBrowserProps = {
+  mode?: "public" | "admin";
   products: Product[];
 };
 
 const allCategories = "Todos";
 
-export function CatalogBrowser({ products }: CatalogBrowserProps) {
+export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProps) {
+  const isAdmin = mode === "admin";
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
   const [activeCategory, setActiveCategory] = useState(allCategories);
 
@@ -56,20 +58,26 @@ export function CatalogBrowser({ products }: CatalogBrowserProps) {
             </button>
           ))}
         </div>
-        <a
-          className="whatsappHint"
-          href={whatsappUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <MessageCircle size={18} />
-          Consultar por WhatsApp
-        </a>
+        {isAdmin ? null : (
+          <a
+            className="whatsappHint"
+            href={whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MessageCircle size={18} />
+            Consultar por WhatsApp
+          </a>
+        )}
       </div>
 
       <div className="productGrid">
         {filteredProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            showCartAction={!isAdmin}
+          />
         ))}
       </div>
     </section>

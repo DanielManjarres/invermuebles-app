@@ -4,7 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 
 type SiteHeaderProps = {
-  active?: "catalogo" | "carrito" | "admin" | "productos" | "movimientos";
+  active?:
+    | "catalogo"
+    | "carrito"
+    | "admin"
+    | "productos"
+    | "movimientos"
+    | "adminCatalogo";
   variant?: "public" | "admin";
 };
 
@@ -45,6 +51,12 @@ export function SiteHeader({ active, variant = "public" }: SiteHeaderProps) {
               href="/admin/productos"
             >
               Productos
+            </Link>
+            <Link
+              className={active === "adminCatalogo" ? "active" : ""}
+              href="/admin/catalogo"
+            >
+              Catálogo
             </Link>
             <Link
               className={active === "movimientos" ? "active" : ""}
