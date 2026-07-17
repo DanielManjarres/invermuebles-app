@@ -440,11 +440,11 @@ p {
 .productDetailModal {
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.18);
   display: grid;
-  grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1fr);
-  max-height: min(86vh, 760px);
-  max-width: min(980px, calc(100vw - 32px));
+  grid-template-columns: minmax(260px, 0.78fr) minmax(340px, 1fr);
+  max-height: min(82vh, 680px);
+  max-width: min(880px, calc(100vw - 40px));
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -452,40 +452,45 @@ p {
 
 .productDetailClose {
   position: absolute;
-  right: 16px;
-  top: 16px;
+  right: 14px;
+  top: 14px;
   z-index: 2;
 }
 
 .productDetailImage {
-  background: var(--surface-strong);
-  min-height: 420px;
+  align-items: center;
+  background: linear-gradient(180deg, #fff, var(--surface-strong));
+  display: flex;
+  justify-content: center;
+  min-height: 360px;
+  padding: 22px;
 }
 
 .productDetailImage img {
   display: block;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 430px;
+  object-fit: contain;
   width: 100%;
 }
 
 .productDetailInfo {
   align-content: start;
   display: grid;
-  gap: 14px;
+  gap: 12px;
   overflow: auto;
-  padding: 34px;
+  padding: 30px 34px 30px 26px;
 }
 
 .productDetailInfo h2 {
-  font-size: clamp(1.5rem, 3vw, 2.15rem);
+  font-size: clamp(1.45rem, 2.7vw, 1.95rem);
   line-height: 1.08;
   margin: 0;
 }
 
 .productDetailInfo p {
   color: var(--muted);
-  line-height: 1.65;
+  line-height: 1.58;
   margin: 0;
   white-space: pre-line;
 }
@@ -1779,11 +1784,12 @@ th {
   .productDetailModal {
     grid-template-columns: 1fr;
     max-height: calc(100vh - 32px);
+    max-width: min(620px, calc(100vw - 32px));
     overflow: auto;
   }
 
   .productDetailImage {
-    min-height: 300px;
+    min-height: 260px;
   }
 
   .footerAccess {
@@ -1863,7 +1869,12 @@ th {
   }
 
   .productDetailImage {
-    min-height: 230px;
+    min-height: 210px;
+    padding: 16px;
+  }
+
+  .productDetailImage img {
+    max-height: 260px;
   }
 
   .productDetailList {
