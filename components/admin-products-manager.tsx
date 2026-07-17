@@ -44,6 +44,30 @@ type ProductType = {
   classes: string[];
 };
 
+type TaxonomyDialog =
+  | {
+      mode: "renameType";
+      typeName: string;
+      value: string;
+    }
+  | {
+      mode: "deleteType";
+      typeName: string;
+      value: string;
+    }
+  | {
+      mode: "renameClass";
+      typeName: string;
+      className: string;
+      value: string;
+    }
+  | {
+      mode: "deleteClass";
+      typeName: string;
+      className: string;
+      value: string;
+    };
+
 const fallbackImage =
   "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80";
 const productTypesStorageKey = "invermuebles_product_types";
@@ -302,6 +326,10 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   );
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [taxonomyDialog, setTaxonomyDialog] = useState<TaxonomyDialog | null>(
+    null
+  );
+  const [taxonomyError, setTaxonomyError] = useState("");
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
 
@@ -468,146 +496,43 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     setNotice(`${className} fue agregado a ${selectedType.name}.`);
   }
 
-  function handleRenameProductType(typeName: string) {
-    const currentName = cleanText(typeName);
-    const nextName = cleanText(
-      window.prompt("Nuevo nombre para este tipo", currentName) ?? ""
-    );
-
-    if (!nextName || normalizeName(nextName) === normalizeName(currentName)) {
-      return;
-    }
-
-    const exists = productTypes.some(
-      (productType) =>
-        normalizeName(productType.name) === normalizeName(nextName) &&
-        normalizeName(productType.name) !== normalizeName(currentName)
-    );
-
-    if (exists) {
-      setNotice("Ya existe un tipo con ese nombre.");
-      return;
-    }
-
-    const nextTypes = productTypes.map((productType) =>
-      normalizeName(productType.name) === normalizeName(currentName)
-        ? { ...productType, name: nextName }
-        : productType
-    );
-    const nextProducts = productList.map((product) =>
-      normalizeName(product.category) === normalizeName(currentName)
-        ? { ...product, category: nextName }
-        : product
-    );
-
-    persistProductTypes(nextTypes);
-    persistProducts(nextProducts);
-    setActiveCategory(
-      normalizeName(activeCategory) === normalizeName(currentName)
-        ? nextName
-        : activeCategory
-    );
-    setSelectedTypeName(
-      normalizeName(selectedTypeName) === normalizeName(currentName)
-        ? nextName
-        : selectedTypeName
-    );
-    setProductForm((currentForm) =>
-      normalizeName(currentForm.category) === normalizeName(currentName)
-        ? { ...currentForm, category: nextName }
-        : currentForm
-    );
-    setNotice(`${currentName} fue renombrado como ${nextName}.`);
+  function openRenameProductType(typeName: string) {
+    setTaxonomyDialog({
+      mode: "renameType",
+      typeName,
+      value: typeName,
+    });
+    setTaxonomyError("");
+    setNotice("");
   }
 
-  function handleDeleteProductType(typeName: string, productCount: number) {
+  function openDeleteProductType(typeName: string, productCount: number) {
     if (productCount > 0) {
       setNotice("No puedes eliminar un tipo que tiene productos registrados.");
       return;
     }
 
-    const shouldDelete = window.confirm(
-      `Eliminar el tipo "${typeName}" y sus clases registradas?`
-    );
-
-    if (!shouldDelete) {
-      return;
-    }
-
-    const nextTypes = productTypes.filter(
-      (productType) => normalizeName(productType.name) !== normalizeName(typeName)
-    );
-
-    persistProductTypes(nextTypes);
-    setSelectedTypeName(
-      normalizeName(selectedTypeName) === normalizeName(typeName)
-        ? ""
-        : selectedTypeName
-    );
-    setNotice(`${typeName} fue eliminado.`);
+    setTaxonomyDialog({
+      mode: "deleteType",
+      typeName,
+      value: "",
+    });
+    setTaxonomyError("");
+    setNotice("");
   }
 
-  function handleRenameProductClass(typeName: string, className: string) {
-    const currentClass = cleanText(className);
-    const nextClass = cleanText(
-      window.prompt("Nuevo nombre para esta clase", currentClass) ?? ""
-    );
-
-    if (!nextClass || normalizeName(nextClass) === normalizeName(currentClass)) {
-      return;
-    }
-
-    const selectedType = productTypes.find(
-      (productType) => normalizeName(productType.name) === normalizeName(typeName)
-    );
-
-    if (!selectedType) {
-      setNotice("El tipo seleccionado no existe.");
-      return;
-    }
-
-    const exists = selectedType.classes.some(
-      (productClass) =>
-        normalizeName(productClass) === normalizeName(nextClass) &&
-        normalizeName(productClass) !== normalizeName(currentClass)
-    );
-
-    if (exists) {
-      setNotice("Ya existe una clase con ese nombre en este tipo.");
-      return;
-    }
-
-    const nextTypes = productTypes.map((productType) =>
-      normalizeName(productType.name) === normalizeName(typeName)
-        ? {
-            ...productType,
-            classes: productType.classes.map((productClass) =>
-              normalizeName(productClass) === normalizeName(currentClass)
-                ? nextClass
-                : productClass
-            ),
-          }
-        : productType
-    );
-    const nextProducts = productList.map((product) =>
-      normalizeName(product.category) === normalizeName(typeName) &&
-      normalizeName(product.productClass) === normalizeName(currentClass)
-        ? { ...product, productClass: nextClass }
-        : product
-    );
-
-    persistProductTypes(nextTypes);
-    persistProducts(nextProducts);
-    setProductForm((currentForm) =>
-      normalizeName(currentForm.category) === normalizeName(typeName) &&
-      normalizeName(currentForm.productClass) === normalizeName(currentClass)
-        ? { ...currentForm, productClass: nextClass }
-        : currentForm
-    );
-    setNotice(`${currentClass} fue renombrada como ${nextClass}.`);
+  function openRenameProductClass(typeName: string, className: string) {
+    setTaxonomyDialog({
+      mode: "renameClass",
+      typeName,
+      className,
+      value: className,
+    });
+    setTaxonomyError("");
+    setNotice("");
   }
 
-  function handleDeleteProductClass(typeName: string, className: string) {
+  function openDeleteProductClass(typeName: string, className: string) {
     const usedByProducts = productList.some(
       (product) =>
         normalizeName(product.category) === normalizeName(typeName) &&
@@ -619,28 +544,204 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
       return;
     }
 
-    const shouldDelete = window.confirm(
-      `Eliminar la clase "${className}" de ${typeName}?`
-    );
+    setTaxonomyDialog({
+      mode: "deleteClass",
+      typeName,
+      className,
+      value: "",
+    });
+    setTaxonomyError("");
+    setNotice("");
+  }
 
-    if (!shouldDelete) {
+  function closeTaxonomyDialog() {
+    setTaxonomyDialog(null);
+    setTaxonomyError("");
+  }
+
+  function handleTaxonomyDialogSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!taxonomyDialog) {
+      return;
+    }
+
+    if (taxonomyDialog.mode === "renameType") {
+      const currentName = cleanText(taxonomyDialog.typeName);
+      const nextName = cleanText(taxonomyDialog.value);
+
+      if (!nextName) {
+        setTaxonomyError("Escribe el nuevo nombre del tipo.");
+        return;
+      }
+
+      if (normalizeName(nextName) === normalizeName(currentName)) {
+        closeTaxonomyDialog();
+        return;
+      }
+
+      const exists = productTypes.some(
+        (productType) =>
+          normalizeName(productType.name) === normalizeName(nextName) &&
+          normalizeName(productType.name) !== normalizeName(currentName)
+      );
+
+      if (exists) {
+        setTaxonomyError("Ya existe un tipo con ese nombre.");
+        return;
+      }
+
+      const nextTypes = productTypes.map((productType) =>
+        normalizeName(productType.name) === normalizeName(currentName)
+          ? { ...productType, name: nextName }
+          : productType
+      );
+      const nextProducts = productList.map((product) =>
+        normalizeName(product.category) === normalizeName(currentName)
+          ? { ...product, category: nextName }
+          : product
+      );
+
+      persistProductTypes(nextTypes);
+      persistProducts(nextProducts);
+      setActiveCategory(
+        normalizeName(activeCategory) === normalizeName(currentName)
+          ? nextName
+          : activeCategory
+      );
+      setSelectedTypeName(
+        normalizeName(selectedTypeName) === normalizeName(currentName)
+          ? nextName
+          : selectedTypeName
+      );
+      setProductForm((currentForm) =>
+        normalizeName(currentForm.category) === normalizeName(currentName)
+          ? { ...currentForm, category: nextName }
+          : currentForm
+      );
+      setNotice(`${currentName} fue renombrado como ${nextName}.`);
+      closeTaxonomyDialog();
+      return;
+    }
+
+    if (taxonomyDialog.mode === "deleteType") {
+      const nextTypes = productTypes.filter(
+        (productType) =>
+          normalizeName(productType.name) !== normalizeName(taxonomyDialog.typeName)
+      );
+
+      persistProductTypes(nextTypes);
+      setActiveCategory(
+        normalizeName(activeCategory) === normalizeName(taxonomyDialog.typeName)
+          ? "Todos"
+          : activeCategory
+      );
+      setSelectedTypeName(
+        normalizeName(selectedTypeName) === normalizeName(taxonomyDialog.typeName)
+          ? ""
+          : selectedTypeName
+      );
+      setProductForm((currentForm) =>
+        normalizeName(currentForm.category) === normalizeName(taxonomyDialog.typeName)
+          ? { ...currentForm, category: "", productClass: "" }
+          : currentForm
+      );
+      setNotice(`${taxonomyDialog.typeName} fue eliminado.`);
+      closeTaxonomyDialog();
+      return;
+    }
+
+    if (taxonomyDialog.mode === "renameClass") {
+      const currentClass = cleanText(taxonomyDialog.className);
+      const nextClass = cleanText(taxonomyDialog.value);
+
+      if (!nextClass) {
+        setTaxonomyError("Escribe el nuevo nombre de la clase.");
+        return;
+      }
+
+      if (normalizeName(nextClass) === normalizeName(currentClass)) {
+        closeTaxonomyDialog();
+        return;
+      }
+
+      const selectedType = productTypes.find(
+        (productType) =>
+          normalizeName(productType.name) === normalizeName(taxonomyDialog.typeName)
+      );
+
+      if (!selectedType) {
+        setTaxonomyError("El tipo seleccionado no existe.");
+        return;
+      }
+
+      const exists = selectedType.classes.some(
+        (productClass) =>
+          normalizeName(productClass) === normalizeName(nextClass) &&
+          normalizeName(productClass) !== normalizeName(currentClass)
+      );
+
+      if (exists) {
+        setTaxonomyError("Ya existe una clase con ese nombre en este tipo.");
+        return;
+      }
+
+      const nextTypes = productTypes.map((productType) =>
+        normalizeName(productType.name) === normalizeName(taxonomyDialog.typeName)
+          ? {
+              ...productType,
+              classes: productType.classes.map((productClass) =>
+                normalizeName(productClass) === normalizeName(currentClass)
+                  ? nextClass
+                  : productClass
+              ),
+            }
+          : productType
+      );
+      const nextProducts = productList.map((product) =>
+        normalizeName(product.category) === normalizeName(taxonomyDialog.typeName) &&
+        normalizeName(product.productClass) === normalizeName(currentClass)
+          ? { ...product, productClass: nextClass }
+          : product
+      );
+
+      persistProductTypes(nextTypes);
+      persistProducts(nextProducts);
+      setProductForm((currentForm) =>
+        normalizeName(currentForm.category) ===
+          normalizeName(taxonomyDialog.typeName) &&
+        normalizeName(currentForm.productClass) === normalizeName(currentClass)
+          ? { ...currentForm, productClass: nextClass }
+          : currentForm
+      );
+      setNotice(`${currentClass} fue renombrada como ${nextClass}.`);
+      closeTaxonomyDialog();
       return;
     }
 
     const nextTypes = productTypes.map((productType) =>
-      normalizeName(productType.name) === normalizeName(typeName)
+      normalizeName(productType.name) === normalizeName(taxonomyDialog.typeName)
         ? {
             ...productType,
             classes: productType.classes.filter(
               (productClass) =>
-                normalizeName(productClass) !== normalizeName(className)
+                normalizeName(productClass) !==
+                normalizeName(taxonomyDialog.className)
             ),
           }
         : productType
     );
 
     persistProductTypes(nextTypes);
-    setNotice(`${className} fue eliminada de ${typeName}.`);
+    setProductForm((currentForm) =>
+      normalizeName(currentForm.category) === normalizeName(taxonomyDialog.typeName) &&
+      normalizeName(currentForm.productClass) ===
+        normalizeName(taxonomyDialog.className)
+        ? { ...currentForm, productClass: "" }
+        : currentForm
+    );
+    setNotice(`${taxonomyDialog.className} fue eliminada de ${taxonomyDialog.typeName}.`);
+    closeTaxonomyDialog();
   }
 
   function openCreateForm() {
@@ -736,6 +837,32 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     closeProductForm();
   }
 
+  const isDeleteTaxonomyDialog =
+    taxonomyDialog?.mode === "deleteType" ||
+    taxonomyDialog?.mode === "deleteClass";
+  const taxonomyDialogTitle =
+    taxonomyDialog?.mode === "renameType"
+      ? "Editar tipo"
+      : taxonomyDialog?.mode === "deleteType"
+        ? "Eliminar tipo"
+        : taxonomyDialog?.mode === "renameClass"
+          ? "Editar clase"
+          : "Eliminar clase";
+  const taxonomyDialogDescription =
+    taxonomyDialog?.mode === "renameType"
+      ? "Cambia el nombre del tipo. Los productos relacionados se actualizaran tambien."
+      : taxonomyDialog?.mode === "deleteType"
+        ? `Se eliminara el tipo ${taxonomyDialog.typeName} y sus clases registradas.`
+        : taxonomyDialog?.mode === "renameClass"
+          ? `Cambia el nombre de la clase dentro de ${taxonomyDialog.typeName}.`
+          : taxonomyDialog
+            ? `Se eliminara la clase ${taxonomyDialog.className} de ${taxonomyDialog.typeName}.`
+            : "";
+  const taxonomyDialogLabel =
+    taxonomyDialog?.mode === "renameType"
+      ? "Nombre del tipo"
+      : "Nombre de la clase";
+
   return (
     <>
       <section className="statsGrid">
@@ -827,7 +954,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                     type="button"
                     aria-label={`Editar tipo ${productType.name}`}
                     title="Editar tipo"
-                    onClick={() => handleRenameProductType(productType.name)}
+                    onClick={() => openRenameProductType(productType.name)}
                   >
                     <Pencil size={15} />
                   </button>
@@ -836,7 +963,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                     aria-label={`Eliminar tipo ${productType.name}`}
                     title="Eliminar tipo"
                     onClick={() =>
-                      handleDeleteProductType(
+                      openDeleteProductType(
                         productType.name,
                         productType.productCount
                       )
@@ -866,7 +993,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                           aria-label={`Editar clase ${productClass}`}
                           title="Editar clase"
                           onClick={() =>
-                            handleRenameProductClass(
+                            openRenameProductClass(
                               productType.name,
                               productClass
                             )
@@ -879,7 +1006,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                           aria-label={`Eliminar clase ${productClass}`}
                           title="Eliminar clase"
                           onClick={() =>
-                            handleDeleteProductClass(
+                            openDeleteProductClass(
                               productType.name,
                               productClass
                             )
@@ -1235,6 +1362,75 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
               </button>
               <button className="primaryButton" type="submit">
                 Guardar producto
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      {taxonomyDialog ? (
+        <div className="modalOverlay" role="dialog" aria-modal="true">
+          <form
+            className="adminModal smallModal taxonomyDialog"
+            onSubmit={handleTaxonomyDialogSubmit}
+          >
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Organizacion del catalogo</p>
+                <h2>{taxonomyDialogTitle}</h2>
+              </div>
+              <button
+                className="modalClose"
+                type="button"
+                aria-label="Cerrar"
+                onClick={closeTaxonomyDialog}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="formHint">{taxonomyDialogDescription}</p>
+
+            {isDeleteTaxonomyDialog ? (
+              <div className="deleteSummary">
+                <span>Elemento seleccionado</span>
+                <strong>
+                  {taxonomyDialog.mode === "deleteType"
+                    ? taxonomyDialog.typeName
+                    : taxonomyDialog.className}
+                </strong>
+              </div>
+            ) : (
+              <label className="adminFormSingle">
+                {taxonomyDialogLabel}
+                <input
+                  autoFocus
+                  value={taxonomyDialog.value}
+                  onChange={(event) =>
+                    setTaxonomyDialog({
+                      ...taxonomyDialog,
+                      value: event.target.value,
+                    })
+                  }
+                />
+              </label>
+            )}
+
+            {taxonomyError ? <p className="formError">{taxonomyError}</p> : null}
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={closeTaxonomyDialog}
+              >
+                Cancelar
+              </button>
+              <button
+                className={isDeleteTaxonomyDialog ? "dangerButton" : "primaryButton"}
+                type="submit"
+              >
+                {isDeleteTaxonomyDialog ? "Eliminar" : "Guardar cambios"}
               </button>
             </div>
           </form>

@@ -179,6 +179,7 @@ p {
 
 .primaryButton,
 .secondaryButton,
+.dangerButton,
 .ghostButton,
 .iconTextButton,
 .iconButton {
@@ -211,6 +212,15 @@ p {
 .secondaryButton:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.dangerButton {
+  background: #9b2924;
+  color: #fff;
+}
+
+.dangerButton:hover {
+  background: #7d1f1b;
 }
 
 .ghostButton {
@@ -1530,9 +1540,34 @@ th {
 }
 
 .modalActions .primaryButton,
-.modalActions .secondaryButton {
+.modalActions .secondaryButton,
+.modalActions .dangerButton {
   min-height: 42px;
   padding: 0 18px;
+}
+
+.taxonomyDialog .formHint {
+  margin: 0;
+}
+
+.deleteSummary {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
+.deleteSummary span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.deleteSummary strong {
+  color: var(--text);
+  font-size: 1.1rem;
 }
 
 .stockSummary {
@@ -2574,7 +2609,8 @@ th {
   }
 
   .modalActions .primaryButton,
-  .modalActions .secondaryButton {
+  .modalActions .secondaryButton,
+  .modalActions .dangerButton {
     justify-content: center;
     width: 100%;
   }
