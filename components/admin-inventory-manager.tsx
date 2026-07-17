@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { readAdminProducts, saveAdminProducts } from "@/lib/admin-products";
+import { SelectMenu } from "@/components/select-menu";
 import type { Product } from "@/lib/products";
 import {
   createMovementForm,
@@ -414,21 +415,21 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               </label>
               <label>
                 Motivo
-                <select
-                  value={stockMovementForm.reason}
+                <SelectMenu
                   disabled={!stockMovementForm.type}
-                  onChange={(event) =>
+                  options={currentReasonOptions.map((reason) => ({
+                    label: reason,
+                    value: reason,
+                  }))}
+                  placeholder="Selecciona un motivo"
+                  value={stockMovementForm.reason}
+                  onChange={(value) =>
                     setStockMovementForm({
                       ...stockMovementForm,
-                      reason: event.target.value,
+                      reason: value,
                     })
                   }
-                >
-                  <option value="">Selecciona un motivo</option>
-                  {currentReasonOptions.map((reason) => (
-                    <option key={reason}>{reason}</option>
-                  ))}
-                </select>
+                />
               </label>
               <label className="adminFormWide">
                 Observación

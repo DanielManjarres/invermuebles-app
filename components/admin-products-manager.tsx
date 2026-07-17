@@ -17,6 +17,7 @@ import {
   readAdminProducts,
   saveAdminProducts,
 } from "@/lib/admin-products";
+import { SelectMenu } from "@/components/select-menu";
 import type { Product } from "@/lib/products";
 import { createStockMovement, saveStockMovement } from "@/lib/stock-movements";
 
@@ -612,17 +613,15 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
           <form className="taxonomyForm" onSubmit={handleAddProductClass}>
             <label>
               Tipo
-              <select
+              <SelectMenu
+                options={productTypes.map((productType) => ({
+                  label: productType.name,
+                  value: productType.name,
+                }))}
+                placeholder="Selecciona un tipo"
                 value={selectedTypeName}
-                onChange={(event) => setSelectedTypeName(event.target.value)}
-              >
-                <option value="">Selecciona un tipo</option>
-                {productTypes.map((productType) => (
-                  <option key={productType.name} value={productType.name}>
-                    {productType.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedTypeName}
+              />
             </label>
             <label>
               Nueva clase
@@ -837,11 +836,14 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
               </label>
               <label>
                 Tipo / categoría
-                <select
-                  required
+                <SelectMenu
+                  options={productTypes.map((productType) => ({
+                    label: productType.name,
+                    value: productType.name,
+                  }))}
+                  placeholder="Selecciona un tipo"
                   value={productForm.category}
-                  onChange={(event) => {
-                    const nextCategory = event.target.value;
+                  onChange={(nextCategory) => {
                     const nextType = productTypes.find(
                       (productType) =>
                         normalizeName(productType.name) === normalizeName(nextCategory)
@@ -858,34 +860,29 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                       productClass: shouldKeepClass ? productForm.productClass : "",
                     });
                   }}
-                >
-                  <option value="">Selecciona un tipo</option>
-                  {productTypes.map((productType) => (
-                    <option key={productType.name} value={productType.name}>
-                      {productType.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </label>
               <label>
                 Clase
-                <select
-                  required
+                <SelectMenu
+                  disabled={!productForm.category}
+                  options={productClasses.map((productClass) => ({
+                    label: productClass,
+                    value: productClass,
+                  }))}
+                  placeholder={
+                    productForm.category
+                      ? "Selecciona una clase"
+                      : "Selecciona primero un tipo"
+                  }
                   value={productForm.productClass}
-                  onChange={(event) =>
+                  onChange={(value) =>
                     setProductForm({
                       ...productForm,
-                      productClass: event.target.value,
+                      productClass: value,
                     })
                   }
-                >
-                  <option value="">Selecciona una clase</option>
-                  {productClasses.map((productClass) => (
-                    <option key={productClass} value={productClass}>
-                      {productClass}
-                    </option>
-                  ))}
-                </select>
+                />
                 <span className="fieldHint">
                   Si no aparece la clase, agregala primero en Tipos y clases.
                 </span>
