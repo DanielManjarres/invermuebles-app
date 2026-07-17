@@ -1608,8 +1608,8 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 6px;
-  padding: 16px;
+  gap: 4px;
+  padding: 12px 14px;
 }
 
 .movementSummaryGrid span {
@@ -1620,7 +1620,7 @@ th {
 
 .movementSummaryGrid strong {
   color: var(--text);
-  font-size: 1.7rem;
+  font-size: 1.45rem;
   line-height: 1;
 }
 
@@ -1764,7 +1764,7 @@ th {
 
 .movementList {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .movementCard {
@@ -1772,19 +1772,20 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 10px 16px;
+  grid-template-columns: minmax(280px, 1.25fr) minmax(420px, 1.75fr);
+  padding: 12px 14px;
 }
 
 .movementCardMain {
-  align-items: flex-start;
+  align-items: center;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: max-content minmax(0, 1fr);
 }
 
 .movementCardMain h3 {
-  font-size: 1.08rem;
+  font-size: 1rem;
   line-height: 1.15;
   margin: 0;
 }
@@ -1799,16 +1800,16 @@ th {
 
 .movementCardData {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0;
 }
 
 .movementCardData div {
-  background: var(--surface-strong);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--line);
+  padding: 0 0 0 10px;
 }
 
 .movementCardData dt {
@@ -1831,12 +1832,59 @@ th {
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 700;
+  grid-column: 1 / -1;
   line-height: 1.45;
   margin: 0;
 }
 
 .movementReason strong {
   color: var(--text);
+}
+
+.movementResultsBar {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  font-weight: 800;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.paginationControls {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.paginationControls button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-weight: 800;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.paginationControls button:not(:disabled):hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.paginationControls button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.paginationControls span {
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .movementSection .emptyState {
@@ -2303,6 +2351,10 @@ th {
   .movementSummaryGrid,
   .movementCardData {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .movementCard {
+    grid-template-columns: 1fr;
   }
 
   .inventoryFilters {

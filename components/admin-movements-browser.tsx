@@ -19,6 +19,7 @@ import {
 const allTypes = "all";
 const allProductTypes = "all";
 const allProducts = "all";
+const movementsPerPage = 8;
 
 type DateFilter = "all" | "today" | "week" | "month";
 
@@ -30,8 +31,8 @@ type FilterOption = {
 const dateFilters: Array<{ label: string; value: DateFilter }> = [
   { label: "Todas las fechas", value: "all" },
   { label: "Hoy", value: "today" },
-  { label: "Últimos 7 días", value: "week" },
-  { label: "Últimos 30 días", value: "month" },
+  { label: "Ultimos 7 dias", value: "week" },
+  { label: "Ultimos 30 dias", value: "month" },
 ];
 
 function matchesDateFilter(movement: StockMovement, filter: DateFilter) {
@@ -136,10 +137,15 @@ export function AdminMovementsBrowser() {
   const [activeDate, setActiveDate] = useState<DateFilter>("all");
   const [activeProduct, setActiveProduct] = useState(allProducts);
   const [openFilter, setOpenFilter] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setMovements(readStockMovements());
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeDate, activeProduct, activeProductType, activeType, query]);
 
   const productTypes = useMemo(
     () =>
@@ -219,6 +225,15 @@ export function AdminMovementsBrowser() {
       ).length,
     }),
     [filteredMovements]
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredMovements.length / movementsPerPage)
+  );
+  const paginatedMovements = filteredMovements.slice(
+    (currentPage - 1) * movementsPerPage,
+    currentPage * movementsPerPage
   );
 
   return (
@@ -347,55 +362,91 @@ export function AdminMovementsBrowser() {
           <h2>No hay movimientos registrados</h2>
           <p>
             Cuando registres una entrada, salida o ajuste desde el inventario,
-            aparecerá en esta pantalla.
+            aparecera en esta pantalla.
           </p>
         </div>
       ) : (
-        <div className="movementList">
-          {filteredMovements.map((movement) => (
-            <article className="movementCard" key={movement.id}>
-              <div className="movementCardMain">
-                <span className={`movementBadge ${movement.type}`}>
-                  {movementLabels[movement.type]}
-                </span>
-                <div>
-                  <h3>{movement.productName}</h3>
-                  <p>
-                    {movement.productReference} ·{" "}
-                    {movement.productCategory || "Sin tipo"}
-                    {movement.productClass ? ` / ${movement.productClass}` : ""}
-                  </p>
-                </div>
-              </div>
+        <>
+          <div className="movementResultsBar">
+            <span>
+              Mostrando {paginatedMovements.length} de{" "}
+              {filteredMovements.length} movimiento(s)
+            </span>
+            <span>
+              Pagina {currentPage} de {totalPages}
+            </span>
+          </div>
 
-              <dl className="movementCardData">
-                <div>
-                  <dt>Fecha</dt>
-                  <dd>{movement.createdAt}</dd>
+          <div className="movementList">
+            {paginatedMovements.map((movement) => (
+              <article className="movementCard" key={movement.id}>
+                <div className="movementCardMain">
+                  <span className={`movementBadge ${movement.type}`}>
+                    {movementLabels[movement.type]}
+                  </span>
+                  <div>
+                    <h3>{movement.productName}</h3>
+                    <p>
+                      {movement.productReference} -{" "}
+                      {movement.productCategory || "Sin tipo"}
+                      {movement.productClass ? ` / ${movement.productClass}` : ""}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <dt>Cantidad</dt>
-                  <dd>{getSignedQuantity(movement)}</dd>
-                </div>
-                <div>
-                  <dt>Stock</dt>
-                  <dd>
-                    {movement.previousStock} → {movement.nextStock}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Usuario</dt>
-                  <dd>{movement.user}</dd>
-                </div>
-              </dl>
 
-              <p className="movementReason">
-                <strong>{movement.reason}</strong>
-                {movement.note ? ` · ${movement.note}` : ""}
-              </p>
-            </article>
-          ))}
-        </div>
+                <dl className="movementCardData">
+                  <div>
+                    <dt>Fecha</dt>
+                    <dd>{movement.createdAt}</dd>
+                  </div>
+                  <div>
+                    <dt>Cantidad</dt>
+                    <dd>{getSignedQuantity(movement)}</dd>
+                  </div>
+                  <div>
+                    <dt>Stock</dt>
+                    <dd>
+                      {movement.previousStock} → {movement.nextStock}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Usuario</dt>
+                    <dd>{movement.user}</dd>
+                  </div>
+                </dl>
+
+                <p className="movementReason">
+                  <strong>{movement.reason}</strong>
+                  {movement.note ? ` - ${movement.note}` : ""}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          {totalPages > 1 ? (
+            <div className="paginationControls">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              >
+                Anterior
+              </button>
+              <span>
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((page) => Math.min(totalPages, page + 1))
+                }
+              >
+                Siguiente
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </section>
   );
