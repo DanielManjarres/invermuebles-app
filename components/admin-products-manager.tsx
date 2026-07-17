@@ -193,6 +193,10 @@ function validateProductForm(
     return "Usa un tipo de producto real, por ejemplo Muebles o Electrodomésticos.";
   }
 
+  if ([form.cost, form.salePrice, form.stock].some((field) => cleanText(field) === "")) {
+    return "Completa costo, precio de venta y stock.";
+  }
+
   const cost = Number(form.cost);
   const salePrice = Number(form.salePrice);
   const stock = Number(form.stock);
@@ -240,8 +244,8 @@ function createEmptyForm(): ProductFormState {
     details: "",
     cost: "",
     salePrice: "",
-    stock: "1",
-    visible: true,
+    stock: "",
+    visible: false,
     image: "",
   };
 }
@@ -305,7 +309,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
 
     setProductList(storedProducts);
     setProductTypes(storedTypes);
-    setSelectedTypeName(storedTypes[0]?.name ?? "");
+    setSelectedTypeName("");
   }, [products]);
 
   const categories = useMemo(
@@ -314,6 +318,10 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   );
 
   const productClasses = useMemo(() => {
+    if (!productForm.category) {
+      return [];
+    }
+
     const selectedType = productTypes.find(
       (productType) =>
         normalizeName(productType.name) === normalizeName(productForm.category)
@@ -410,7 +418,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     const nextTypes = [...productTypes, { name: typeName, classes: [] }];
 
     persistProductTypes(nextTypes);
-    setSelectedTypeName(typeName);
+    setSelectedTypeName("");
     setNewTypeName("");
     setNotice(`${typeName} fue agregado como tipo de producto.`);
   }
@@ -460,10 +468,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
 
   function openCreateForm() {
     setEditingProductId(null);
-    setProductForm({
-      ...createEmptyForm(),
-      category: categories.find((category) => category !== "Todos") ?? "",
-    });
+    setProductForm(createEmptyForm());
     setIsProductFormOpen(true);
     setNotice("");
     setFormError("");
@@ -611,6 +616,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 value={selectedTypeName}
                 onChange={(event) => setSelectedTypeName(event.target.value)}
               >
+                <option value="">Selecciona un tipo</option>
                 {productTypes.map((productType) => (
                   <option key={productType.name} value={productType.name}>
                     {productType.name}

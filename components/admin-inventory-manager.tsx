@@ -115,6 +115,9 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       ),
     [filteredProducts]
   );
+  const currentReasonOptions = stockMovementForm.type
+    ? movementReasonOptions[stockMovementForm.type]
+    : [];
 
   function openStockForm(product: Product) {
     setStockProduct(product);
@@ -131,8 +134,8 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   function handleMovementTypeChange(type: MovementType) {
     setStockMovementForm({
       type,
-      quantity: "1",
-      reason: movementReasonOptions[type][0],
+      quantity: "",
+      reason: "",
       note: "",
     });
     setStockError("");
@@ -142,6 +145,16 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     event.preventDefault();
 
     if (!stockProduct) {
+      return;
+    }
+
+    if (!stockMovementForm.type) {
+      setStockError("Selecciona el tipo de movimiento.");
+      return;
+    }
+
+    if (!stockMovementForm.reason) {
+      setStockError("Selecciona el motivo del movimiento.");
       return;
     }
 
@@ -403,6 +416,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                 Motivo
                 <select
                   value={stockMovementForm.reason}
+                  disabled={!stockMovementForm.type}
                   onChange={(event) =>
                     setStockMovementForm({
                       ...stockMovementForm,
@@ -410,7 +424,8 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                     })
                   }
                 >
-                  {movementReasonOptions[stockMovementForm.type].map((reason) => (
+                  <option value="">Selecciona un motivo</option>
+                  {currentReasonOptions.map((reason) => (
                     <option key={reason}>{reason}</option>
                   ))}
                 </select>

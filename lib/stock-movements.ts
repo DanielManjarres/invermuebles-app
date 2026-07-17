@@ -21,7 +21,7 @@ export type StockMovement = {
 };
 
 export type StockMovementFormState = {
-  type: MovementType;
+  type: MovementType | "";
   quantity: string;
   reason: string;
   note: string;
@@ -48,9 +48,9 @@ export const movementReasonOptions: Record<MovementType, string[]> = {
 
 export function createMovementForm(): StockMovementFormState {
   return {
-    type: "entry",
-    quantity: "1",
-    reason: movementReasonOptions.entry[0],
+    type: "",
+    quantity: "",
+    reason: "",
     note: "",
   };
 }
