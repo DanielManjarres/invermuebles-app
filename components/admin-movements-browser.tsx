@@ -114,6 +114,18 @@ function FilterMenu({
   );
 }
 
+function getSignedQuantity(movement: StockMovement) {
+  if (movement.type === "entry") {
+    return `+${movement.quantity}`;
+  }
+
+  if (movement.type === "exit") {
+    return `-${movement.quantity}`;
+  }
+
+  return movement.quantity;
+}
+
 export function AdminMovementsBrowser() {
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [query, setQuery] = useState("");
@@ -195,16 +207,52 @@ export function AdminMovementsBrowser() {
     });
   }, [activeDate, activeProduct, activeProductType, activeType, movements, query]);
 
+  const movementStats = useMemo(
+    () => ({
+      total: filteredMovements.length,
+      entry: filteredMovements.filter((movement) => movement.type === "entry")
+        .length,
+      exit: filteredMovements.filter((movement) => movement.type === "exit")
+        .length,
+      adjustment: filteredMovements.filter(
+        (movement) => movement.type === "adjustment"
+      ).length,
+    }),
+    [filteredMovements]
+  );
+
   return (
     <section className="tableSection movementSection">
-      <div className="sectionHeader">
+      <div className="sectionHeader movementSectionHeader">
         <div>
           <p className="eyebrow">Historial interno</p>
           <h2>Movimientos de inventario</h2>
+          <p className="sectionLead">
+            Revisa las entradas, salidas y ajustes realizados sobre el stock.
+          </p>
         </div>
       </div>
 
-      <div className="inventoryToolbar">
+      <div className="movementSummaryGrid" aria-label="Resumen de movimientos">
+        <article>
+          <span>Total movimientos</span>
+          <strong>{movementStats.total}</strong>
+        </article>
+        <article>
+          <span>Entradas</span>
+          <strong>{movementStats.entry}</strong>
+        </article>
+        <article>
+          <span>Salidas</span>
+          <strong>{movementStats.exit}</strong>
+        </article>
+        <article>
+          <span>Ajustes</span>
+          <strong>{movementStats.adjustment}</strong>
+        </article>
+      </div>
+
+      <div className="inventoryToolbar movementToolbar">
         <label className="searchBox">
           <Search size={18} />
           <input
@@ -217,7 +265,9 @@ export function AdminMovementsBrowser() {
 
         <div className="inventoryFilters" aria-label="Filtros de movimientos">
           <button
-            className={activeType === allTypes ? "filterButton active" : "filterButton"}
+            className={
+              activeType === allTypes ? "filterButton active" : "filterButton"
+            }
             type="button"
             onClick={() => setActiveType(allTypes)}
           >
@@ -225,12 +275,14 @@ export function AdminMovementsBrowser() {
           </button>
           {(Object.keys(movementLabels) as MovementType[]).map((type) => (
             <button
-              className={activeType === type ? "filterButton active" : "filterButton"}
+              className={
+                activeType === type ? "filterButton active" : "filterButton"
+              }
               key={type}
               type="button"
               onClick={() => setActiveType(type)}
             >
-            {movementLabels[type]}
+              {movementLabels[type]}
             </button>
           ))}
         </div>
@@ -299,60 +351,50 @@ export function AdminMovementsBrowser() {
           </p>
         </div>
       ) : (
-        <div className="tableWrap">
-          <table className="movementTable">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Producto</th>
-                <th>Tipo</th>
-                <th>Movimiento</th>
-                <th>Cantidad</th>
-                <th>Stock</th>
-                <th>Motivo</th>
-                <th>Usuario</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMovements.map((movement) => (
-                <tr key={movement.id}>
-                  <td>{movement.createdAt}</td>
-                  <td>
-                    <strong>{movement.productName}</strong>
-                    <span className="reference">{movement.productReference}</span>
-                  </td>
-                  <td>
+        <div className="movementList">
+          {filteredMovements.map((movement) => (
+            <article className="movementCard" key={movement.id}>
+              <div className="movementCardMain">
+                <span className={`movementBadge ${movement.type}`}>
+                  {movementLabels[movement.type]}
+                </span>
+                <div>
+                  <h3>{movement.productName}</h3>
+                  <p>
+                    {movement.productReference} ·{" "}
                     {movement.productCategory || "Sin tipo"}
-                    {movement.productClass ? (
-                      <span className="reference">{movement.productClass}</span>
-                    ) : null}
-                  </td>
-                  <td>
-                    <span className={`movementBadge ${movement.type}`}>
-                      {movementLabels[movement.type]}
-                    </span>
-                  </td>
-                  <td>
-                    {movement.type === "entry"
-                      ? `+${movement.quantity}`
-                      : movement.type === "exit"
-                        ? `-${movement.quantity}`
-                        : movement.quantity}
-                  </td>
-                  <td>
+                    {movement.productClass ? ` / ${movement.productClass}` : ""}
+                  </p>
+                </div>
+              </div>
+
+              <dl className="movementCardData">
+                <div>
+                  <dt>Fecha</dt>
+                  <dd>{movement.createdAt}</dd>
+                </div>
+                <div>
+                  <dt>Cantidad</dt>
+                  <dd>{getSignedQuantity(movement)}</dd>
+                </div>
+                <div>
+                  <dt>Stock</dt>
+                  <dd>
                     {movement.previousStock} → {movement.nextStock}
-                  </td>
-                  <td>
-                    <span className="movementReason">
-                      {movement.reason}
-                      {movement.note ? ` · ${movement.note}` : ""}
-                    </span>
-                  </td>
-                  <td>{movement.user}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Usuario</dt>
+                  <dd>{movement.user}</dd>
+                </div>
+              </dl>
+
+              <p className="movementReason">
+                <strong>{movement.reason}</strong>
+                {movement.note ? ` · ${movement.note}` : ""}
+              </p>
+            </article>
+          ))}
         </div>
       )}
     </section>
