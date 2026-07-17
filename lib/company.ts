@@ -3,7 +3,7 @@ export const company = {
   shortName: "Invermuebles",
   tagline: "Hogar, confort y calidad",
   location: "Quindío, Colombia",
-  whatsappNumber: "573000000000",
+  whatsappNumber: "573216417360",
   whatsappLabel: "WhatsApp de atención",
   schedule: "Atención en tienda y por WhatsApp",
   description:
