@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   Shapes,
+  Trash2,
   X,
 } from "lucide-react";
 import {
@@ -467,6 +468,181 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     setNotice(`${className} fue agregado a ${selectedType.name}.`);
   }
 
+  function handleRenameProductType(typeName: string) {
+    const currentName = cleanText(typeName);
+    const nextName = cleanText(
+      window.prompt("Nuevo nombre para este tipo", currentName) ?? ""
+    );
+
+    if (!nextName || normalizeName(nextName) === normalizeName(currentName)) {
+      return;
+    }
+
+    const exists = productTypes.some(
+      (productType) =>
+        normalizeName(productType.name) === normalizeName(nextName) &&
+        normalizeName(productType.name) !== normalizeName(currentName)
+    );
+
+    if (exists) {
+      setNotice("Ya existe un tipo con ese nombre.");
+      return;
+    }
+
+    const nextTypes = productTypes.map((productType) =>
+      normalizeName(productType.name) === normalizeName(currentName)
+        ? { ...productType, name: nextName }
+        : productType
+    );
+    const nextProducts = productList.map((product) =>
+      normalizeName(product.category) === normalizeName(currentName)
+        ? { ...product, category: nextName }
+        : product
+    );
+
+    persistProductTypes(nextTypes);
+    persistProducts(nextProducts);
+    setActiveCategory(
+      normalizeName(activeCategory) === normalizeName(currentName)
+        ? nextName
+        : activeCategory
+    );
+    setSelectedTypeName(
+      normalizeName(selectedTypeName) === normalizeName(currentName)
+        ? nextName
+        : selectedTypeName
+    );
+    setProductForm((currentForm) =>
+      normalizeName(currentForm.category) === normalizeName(currentName)
+        ? { ...currentForm, category: nextName }
+        : currentForm
+    );
+    setNotice(`${currentName} fue renombrado como ${nextName}.`);
+  }
+
+  function handleDeleteProductType(typeName: string, productCount: number) {
+    if (productCount > 0) {
+      setNotice("No puedes eliminar un tipo que tiene productos registrados.");
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Eliminar el tipo "${typeName}" y sus clases registradas?`
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    const nextTypes = productTypes.filter(
+      (productType) => normalizeName(productType.name) !== normalizeName(typeName)
+    );
+
+    persistProductTypes(nextTypes);
+    setSelectedTypeName(
+      normalizeName(selectedTypeName) === normalizeName(typeName)
+        ? ""
+        : selectedTypeName
+    );
+    setNotice(`${typeName} fue eliminado.`);
+  }
+
+  function handleRenameProductClass(typeName: string, className: string) {
+    const currentClass = cleanText(className);
+    const nextClass = cleanText(
+      window.prompt("Nuevo nombre para esta clase", currentClass) ?? ""
+    );
+
+    if (!nextClass || normalizeName(nextClass) === normalizeName(currentClass)) {
+      return;
+    }
+
+    const selectedType = productTypes.find(
+      (productType) => normalizeName(productType.name) === normalizeName(typeName)
+    );
+
+    if (!selectedType) {
+      setNotice("El tipo seleccionado no existe.");
+      return;
+    }
+
+    const exists = selectedType.classes.some(
+      (productClass) =>
+        normalizeName(productClass) === normalizeName(nextClass) &&
+        normalizeName(productClass) !== normalizeName(currentClass)
+    );
+
+    if (exists) {
+      setNotice("Ya existe una clase con ese nombre en este tipo.");
+      return;
+    }
+
+    const nextTypes = productTypes.map((productType) =>
+      normalizeName(productType.name) === normalizeName(typeName)
+        ? {
+            ...productType,
+            classes: productType.classes.map((productClass) =>
+              normalizeName(productClass) === normalizeName(currentClass)
+                ? nextClass
+                : productClass
+            ),
+          }
+        : productType
+    );
+    const nextProducts = productList.map((product) =>
+      normalizeName(product.category) === normalizeName(typeName) &&
+      normalizeName(product.productClass) === normalizeName(currentClass)
+        ? { ...product, productClass: nextClass }
+        : product
+    );
+
+    persistProductTypes(nextTypes);
+    persistProducts(nextProducts);
+    setProductForm((currentForm) =>
+      normalizeName(currentForm.category) === normalizeName(typeName) &&
+      normalizeName(currentForm.productClass) === normalizeName(currentClass)
+        ? { ...currentForm, productClass: nextClass }
+        : currentForm
+    );
+    setNotice(`${currentClass} fue renombrada como ${nextClass}.`);
+  }
+
+  function handleDeleteProductClass(typeName: string, className: string) {
+    const usedByProducts = productList.some(
+      (product) =>
+        normalizeName(product.category) === normalizeName(typeName) &&
+        normalizeName(product.productClass) === normalizeName(className)
+    );
+
+    if (usedByProducts) {
+      setNotice("No puedes eliminar una clase que tiene productos registrados.");
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Eliminar la clase "${className}" de ${typeName}?`
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    const nextTypes = productTypes.map((productType) =>
+      normalizeName(productType.name) === normalizeName(typeName)
+        ? {
+            ...productType,
+            classes: productType.classes.filter(
+              (productClass) =>
+                normalizeName(productClass) !== normalizeName(className)
+            ),
+          }
+        : productType
+    );
+
+    persistProductTypes(nextTypes);
+    setNotice(`${className} fue eliminada de ${typeName}.`);
+  }
+
   function openCreateForm() {
     setEditingProductId(null);
     setProductForm(createEmptyForm());
@@ -642,14 +818,78 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
           {productTypesWithCounts.map((productType) => (
             <article className="taxonomyCard" key={productType.name}>
               <div>
-                <strong>{productType.name}</strong>
-                <span>{productType.productCount} producto(s)</span>
+                <div>
+                  <strong>{productType.name}</strong>
+                  <span>{productType.productCount} producto(s)</span>
+                </div>
+                <div className="taxonomyActions">
+                  <button
+                    type="button"
+                    aria-label={`Editar tipo ${productType.name}`}
+                    title="Editar tipo"
+                    onClick={() => handleRenameProductType(productType.name)}
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Eliminar tipo ${productType.name}`}
+                    title="Eliminar tipo"
+                    onClick={() =>
+                      handleDeleteProductType(
+                        productType.name,
+                        productType.productCount
+                      )
+                    }
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
               </div>
               <div className="taxonomyChips">
                 {productType.classes.length > 0 ? (
-                  productType.classes.map((productClass) => (
-                    <span key={productClass}>{productClass}</span>
-                  ))
+                  productType.classes.map((productClass) => {
+                    const classProductCount = productList.filter(
+                      (product) =>
+                        normalizeName(product.category) ===
+                          normalizeName(productType.name) &&
+                        normalizeName(product.productClass) ===
+                          normalizeName(productClass)
+                    ).length;
+
+                    return (
+                      <div className="taxonomyChip" key={productClass}>
+                        <span>{productClass}</span>
+                        <small>{classProductCount}</small>
+                        <button
+                          type="button"
+                          aria-label={`Editar clase ${productClass}`}
+                          title="Editar clase"
+                          onClick={() =>
+                            handleRenameProductClass(
+                              productType.name,
+                              productClass
+                            )
+                          }
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Eliminar clase ${productClass}`}
+                          title="Eliminar clase"
+                          onClick={() =>
+                            handleDeleteProductClass(
+                              productType.name,
+                              productClass
+                            )
+                          }
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    );
+                  })
                 ) : (
                   <span>Sin clases registradas</span>
                 )}
