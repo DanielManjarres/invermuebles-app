@@ -1498,7 +1498,8 @@ th {
 .cartItemActions {
   align-items: center;
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .quantityControl {
@@ -1507,15 +1508,15 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: inline-flex;
-  min-height: 42px;
+  min-height: 38px;
   overflow: hidden;
 }
 
 .quantityControl span {
   color: var(--text);
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   font-weight: 900;
-  min-width: 40px;
+  min-width: 36px;
   text-align: center;
 }
 
@@ -1525,9 +1526,9 @@ th {
   border: 0;
   color: var(--primary);
   display: inline-flex;
-  height: 42px;
+  height: 38px;
   justify-content: center;
-  width: 40px;
+  width: 36px;
 }
 
 .quantityButton:hover {

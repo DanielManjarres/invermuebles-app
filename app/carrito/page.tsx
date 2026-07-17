@@ -24,6 +24,9 @@ export default function CartPage() {
     clearCart,
   } = useCart();
   const totalQuantity = items.reduce((total, item) => total + item.quantity, 0);
+  const unitText =
+    totalQuantity === 1 ? "unidad seleccionada" : "unidades seleccionadas";
+  const productText = items.length === 1 ? "producto" : "productos";
 
   const message = encodeURIComponent(
     `Hola, quiero recibir información sobre estos productos de Invermuebles del Quindío:\n\n${items
@@ -109,8 +112,7 @@ export default function CartPage() {
             <aside className="summaryPanel">
               <h2>Resumen</h2>
               <p>
-                {totalQuantity} unidad(es) en {items.length} producto(s)
-                seleccionado(s).
+                {totalQuantity} {unitText} en {items.length} {productText}.
               </p>
               <p>
                 El almacén confirmará precio, disponibilidad y forma de pago por
