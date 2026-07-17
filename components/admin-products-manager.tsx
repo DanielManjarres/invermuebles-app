@@ -7,6 +7,7 @@ import {
   EyeOff,
   PackagePlus,
   Pencil,
+  Plus,
   Search,
   Shapes,
   X,
@@ -36,11 +37,21 @@ type ProductFormState = {
   image: string;
 };
 
+type ProductType = {
+  name: string;
+  classes: string[];
+};
+
 const fallbackImage =
   "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80";
+const productTypesStorageKey = "invermuebles_product_types";
 
 function cleanText(value: string) {
   return value.trim().replace(/\s+/g, " ");
+}
+
+function normalizeName(value: string) {
+  return cleanText(value).toLowerCase();
 }
 
 function cleanReference(value: string) {
@@ -68,6 +79,97 @@ function isValidImageSource(value: string) {
   } catch {
     return false;
   }
+}
+
+function buildProductTypesFromProducts(products: Product[]): ProductType[] {
+  const productTypes = new Map<string, ProductType>();
+
+  products.forEach((product) => {
+    const typeName = cleanText(product.category);
+    const className = cleanText(product.productClass);
+
+    if (!typeName) {
+      return;
+    }
+
+    const currentType = productTypes.get(normalizeName(typeName)) ?? {
+      name: typeName,
+      classes: [],
+    };
+
+    if (
+      className &&
+      !currentType.classes.some(
+        (productClass) => normalizeName(productClass) === normalizeName(className)
+      )
+    ) {
+      currentType.classes.push(className);
+    }
+
+    productTypes.set(normalizeName(typeName), currentType);
+  });
+
+  return Array.from(productTypes.values());
+}
+
+function mergeProductTypes(baseTypes: ProductType[], storedTypes: ProductType[]) {
+  const productTypes = new Map<string, ProductType>();
+
+  [...baseTypes, ...storedTypes].forEach((productType) => {
+    const typeName = cleanText(productType.name);
+
+    if (!typeName) {
+      return;
+    }
+
+    const currentType = productTypes.get(normalizeName(typeName)) ?? {
+      name: typeName,
+      classes: [],
+    };
+
+    productType.classes.forEach((productClass) => {
+      const className = cleanText(productClass);
+
+      if (
+        className &&
+        !currentType.classes.some(
+          (currentClass) => normalizeName(currentClass) === normalizeName(className)
+        )
+      ) {
+        currentType.classes.push(className);
+      }
+    });
+
+    productTypes.set(normalizeName(typeName), currentType);
+  });
+
+  return Array.from(productTypes.values());
+}
+
+function readProductTypes(products: Product[]) {
+  const baseTypes = buildProductTypesFromProducts(products);
+
+  if (typeof window === "undefined") {
+    return baseTypes;
+  }
+
+  try {
+    const storedTypes = window.localStorage.getItem(productTypesStorageKey);
+    return mergeProductTypes(
+      baseTypes,
+      storedTypes ? (JSON.parse(storedTypes) as ProductType[]) : []
+    );
+  } catch {
+    return baseTypes;
+  }
+}
+
+function saveProductTypes(productTypes: ProductType[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(productTypesStorageKey, JSON.stringify(productTypes));
 }
 
 function validateProductForm(
@@ -181,8 +283,14 @@ function formToProduct(
 
 export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   const [productList, setProductList] = useState<Product[]>(products);
+  const [productTypes, setProductTypes] = useState<ProductType[]>(
+    buildProductTypesFromProducts(products)
+  );
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("Todos");
+  const [newTypeName, setNewTypeName] = useState("");
+  const [newClassName, setNewClassName] = useState("");
+  const [selectedTypeName, setSelectedTypeName] = useState("");
   const [productForm, setProductForm] = useState<ProductFormState>(
     createEmptyForm()
   );
@@ -192,17 +300,42 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    setProductList(readAdminProducts(products));
+    const storedProducts = readAdminProducts(products);
+    const storedTypes = readProductTypes(storedProducts);
+
+    setProductList(storedProducts);
+    setProductTypes(storedTypes);
+    setSelectedTypeName(storedTypes[0]?.name ?? "");
   }, [products]);
 
   const categories = useMemo(
-    () => ["Todos", ...Array.from(new Set(productList.map((product) => product.category)))],
-    [productList]
+    () => ["Todos", ...productTypes.map((productType) => productType.name)],
+    [productTypes]
   );
 
-  const productClasses = useMemo(
-    () => Array.from(new Set(productList.map((product) => product.productClass))),
-    [productList]
+  const productClasses = useMemo(() => {
+    const selectedType = productTypes.find(
+      (productType) =>
+        normalizeName(productType.name) === normalizeName(productForm.category)
+    );
+
+    if (selectedType) {
+      return selectedType.classes;
+    }
+
+    return Array.from(new Set(productList.map((product) => product.productClass)));
+  }, [productForm.category, productList, productTypes]);
+
+  const productTypesWithCounts = useMemo(
+    () =>
+      productTypes.map((productType) => ({
+        ...productType,
+        productCount: productList.filter(
+          (product) =>
+            normalizeName(product.category) === normalizeName(productType.name)
+        ).length,
+      })),
+    [productList, productTypes]
   );
 
   const formCost = Number(productForm.cost);
@@ -248,6 +381,81 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   function persistProducts(nextProducts: Product[]) {
     setProductList(nextProducts);
     saveAdminProducts(nextProducts);
+  }
+
+  function persistProductTypes(nextTypes: ProductType[]) {
+    setProductTypes(nextTypes);
+    saveProductTypes(nextTypes);
+  }
+
+  function handleAddProductType(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const typeName = cleanText(newTypeName);
+
+    if (!typeName) {
+      setNotice("Escribe el nombre del tipo que quieres agregar.");
+      return;
+    }
+
+    const exists = productTypes.some(
+      (productType) => normalizeName(productType.name) === normalizeName(typeName)
+    );
+
+    if (exists) {
+      setNotice("Ese tipo ya esta registrado.");
+      return;
+    }
+
+    const nextTypes = [...productTypes, { name: typeName, classes: [] }];
+
+    persistProductTypes(nextTypes);
+    setSelectedTypeName(typeName);
+    setNewTypeName("");
+    setNotice(`${typeName} fue agregado como tipo de producto.`);
+  }
+
+  function handleAddProductClass(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const typeName = cleanText(selectedTypeName);
+    const className = cleanText(newClassName);
+
+    if (!typeName || !className) {
+      setNotice("Selecciona un tipo y escribe la clase que quieres agregar.");
+      return;
+    }
+
+    const selectedType = productTypes.find(
+      (productType) => normalizeName(productType.name) === normalizeName(typeName)
+    );
+
+    if (!selectedType) {
+      setNotice("El tipo seleccionado no existe.");
+      return;
+    }
+
+    const exists = selectedType.classes.some(
+      (productClass) => normalizeName(productClass) === normalizeName(className)
+    );
+
+    if (exists) {
+      setNotice("Esa clase ya esta registrada en ese tipo.");
+      return;
+    }
+
+    const nextTypes = productTypes.map((productType) =>
+      normalizeName(productType.name) === normalizeName(typeName)
+        ? {
+            ...productType,
+            classes: [...productType.classes, className],
+          }
+        : productType
+    );
+
+    persistProductTypes(nextTypes);
+    setNewClassName("");
+    setNotice(`${className} fue agregado a ${selectedType.name}.`);
   }
 
   function openCreateForm() {
@@ -366,6 +574,86 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
         </div>
       </section>
 
+      {notice ? (
+        <p className="inventoryNotice taxonomyNotice" aria-live="polite">
+          <span>{notice}</span>
+        </p>
+      ) : null}
+
+      <section className="tableSection taxonomySection">
+        <div className="sectionHeader inventoryHeader productsSectionHeader">
+          <div>
+            <p className="eyebrow">Organizacion del catalogo</p>
+            <h2>Tipos y clases</h2>
+          </div>
+        </div>
+
+        <div className="taxonomyForms">
+          <form className="taxonomyForm" onSubmit={handleAddProductType}>
+            <label>
+              Nuevo tipo
+              <input
+                placeholder="Ej: Muebles"
+                value={newTypeName}
+                onChange={(event) => setNewTypeName(event.target.value)}
+              />
+            </label>
+            <button className="secondaryButton" type="submit">
+              <Plus size={17} />
+              Agregar tipo
+            </button>
+          </form>
+
+          <form className="taxonomyForm" onSubmit={handleAddProductClass}>
+            <label>
+              Tipo
+              <select
+                value={selectedTypeName}
+                onChange={(event) => setSelectedTypeName(event.target.value)}
+              >
+                {productTypes.map((productType) => (
+                  <option key={productType.name} value={productType.name}>
+                    {productType.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Nueva clase
+              <input
+                placeholder="Ej: Televisor"
+                value={newClassName}
+                onChange={(event) => setNewClassName(event.target.value)}
+              />
+            </label>
+            <button className="secondaryButton" type="submit">
+              <Plus size={17} />
+              Agregar clase
+            </button>
+          </form>
+        </div>
+
+        <div className="taxonomyGrid">
+          {productTypesWithCounts.map((productType) => (
+            <article className="taxonomyCard" key={productType.name}>
+              <div>
+                <strong>{productType.name}</strong>
+                <span>{productType.productCount} producto(s)</span>
+              </div>
+              <div className="taxonomyChips">
+                {productType.classes.length > 0 ? (
+                  productType.classes.map((productClass) => (
+                    <span key={productClass}>{productClass}</span>
+                  ))
+                ) : (
+                  <span>Sin clases registradas</span>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="tableSection productsSection">
         <div className="sectionHeader inventoryHeader productsSectionHeader">
           <div>
@@ -411,12 +699,6 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
             ))}
           </div>
         </div>
-
-        {notice ? (
-          <p className="inventoryNotice" aria-live="polite">
-            <span>{notice}</span>
-          </p>
-        ) : null}
 
         <div className="tableWrap">
           <table className="productAdminTable">
@@ -549,32 +831,40 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
               </label>
               <label>
                 Tipo / categoría
-                <input
-                  list="product-categories"
+                <select
                   required
-                  placeholder="Muebles, electrodomésticos..."
                   value={productForm.category}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const nextCategory = event.target.value;
+                    const nextType = productTypes.find(
+                      (productType) =>
+                        normalizeName(productType.name) === normalizeName(nextCategory)
+                    );
+                    const shouldKeepClass = nextType?.classes.some(
+                      (productClass) =>
+                        normalizeName(productClass) ===
+                        normalizeName(productForm.productClass)
+                    );
+
                     setProductForm({
                       ...productForm,
-                      category: event.target.value,
-                    })
-                  }
-                />
-                <datalist id="product-categories">
-                  {categories
-                    .filter((category) => category !== "Todos")
-                    .map((category) => (
-                      <option key={category} value={category} />
-                    ))}
-                </datalist>
+                      category: nextCategory,
+                      productClass: shouldKeepClass ? productForm.productClass : "",
+                    });
+                  }}
+                >
+                  <option value="">Selecciona un tipo</option>
+                  {productTypes.map((productType) => (
+                    <option key={productType.name} value={productType.name}>
+                      {productType.name}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label>
                 Clase
-                <input
-                  list="product-classes"
+                <select
                   required
-                  placeholder="Sala, televisor, nevera..."
                   value={productForm.productClass}
                   onChange={(event) =>
                     setProductForm({
@@ -582,12 +872,17 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                       productClass: event.target.value,
                     })
                   }
-                />
-                <datalist id="product-classes">
+                >
+                  <option value="">Selecciona una clase</option>
                   {productClasses.map((productClass) => (
-                    <option key={productClass} value={productClass} />
+                    <option key={productClass} value={productClass}>
+                      {productClass}
+                    </option>
                   ))}
-                </datalist>
+                </select>
+                <span className="fieldHint">
+                  Si no aparece la clase, agregala primero en Tipos y clases.
+                </span>
               </label>
               <label>
                 Costo

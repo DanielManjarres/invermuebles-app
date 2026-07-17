@@ -581,6 +581,111 @@ p {
   margin-top: 18px;
 }
 
+.taxonomyNotice {
+  margin: 0 auto 8px;
+  max-width: 1180px;
+  width: calc(100% - 10vw);
+}
+
+.taxonomySection {
+  padding-bottom: 20px;
+}
+
+.taxonomyForms {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  margin-bottom: 14px;
+}
+
+.taxonomyForm {
+  align-items: end;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 14px;
+}
+
+.taxonomyForm:nth-child(2) {
+  grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1fr) auto;
+}
+
+.taxonomyForm label {
+  color: var(--text);
+  display: grid;
+  font-size: 0.84rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.taxonomyForm input,
+.taxonomyForm select {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.taxonomyForm input:focus,
+.taxonomyForm select:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.taxonomyGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.taxonomyCard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.taxonomyCard > div:first-child {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.taxonomyCard strong {
+  color: var(--primary);
+  font-size: 1.03rem;
+}
+
+.taxonomyCard > div:first-child span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.taxonomyChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.taxonomyChips span {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 6px 10px;
+}
+
 .pageHeaderRow {
   align-items: flex-start;
   display: flex;
@@ -1919,6 +2024,13 @@ th {
   .catalogTools {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .taxonomyForms,
+  .taxonomyForm,
+  .taxonomyForm:nth-child(2),
+  .taxonomyGrid {
+    grid-template-columns: 1fr;
   }
 
   .whatsappHint {
