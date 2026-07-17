@@ -1488,23 +1488,50 @@ th {
   margin-bottom: 6px;
 }
 
-.quantityBadge {
-  background: var(--surface-strong);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--primary);
-  display: inline-flex;
-  font-size: 0.78rem;
-  font-weight: 900;
-  margin: 2px 0 8px;
-  padding: 6px 10px;
-}
-
 .summaryPanel {
   display: grid;
   gap: 12px;
   position: sticky;
   top: 116px;
+}
+
+.cartItemActions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.quantityControl {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: inline-flex;
+  min-height: 42px;
+  overflow: hidden;
+}
+
+.quantityControl span {
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 900;
+  min-width: 40px;
+  text-align: center;
+}
+
+.quantityButton {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  color: var(--primary);
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 40px;
+}
+
+.quantityButton:hover {
+  background: #e3f0df;
 }
 
 .emptyState {
@@ -1960,7 +1987,7 @@ th {
     grid-template-columns: 88px minmax(0, 1fr);
   }
 
-  .cartItem .iconButton {
+  .cartItemActions {
     grid-column: 2;
     justify-self: start;
   }

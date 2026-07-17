@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Send, Trash2 } from "lucide-react";
 import { useCart } from "@/components/use-cart";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -16,7 +16,13 @@ function summarizeDetails(details?: string) {
 }
 
 export default function CartPage() {
-  const { items, removeItem, clearCart } = useCart();
+  const {
+    items,
+    removeItem,
+    increaseItemQuantity,
+    decreaseItemQuantity,
+    clearCart,
+  } = useCart();
   const totalQuantity = items.reduce((total, item) => total + item.quantity, 0);
 
   const message = encodeURIComponent(
@@ -64,17 +70,38 @@ export default function CartPage() {
                     {item.category ? <span className="tag">{item.category}</span> : null}
                     <h2>{item.name}</h2>
                     <span className="reference">{item.reference}</span>
-                    <span className="quantityBadge">Cantidad: {item.quantity}</span>
                     {item.details ? <p>{summarizeDetails(item.details)}</p> : null}
                   </div>
-                  <button
-                    className="iconButton"
-                    type="button"
-                    title="Quitar producto"
-                    onClick={() => removeItem(item.id)}
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="cartItemActions">
+                    <div className="quantityControl" aria-label="Cambiar cantidad">
+                      <button
+                        className="quantityButton"
+                        type="button"
+                        aria-label="Bajar cantidad"
+                        disabled={item.quantity === 1}
+                        onClick={() => decreaseItemQuantity(item.id)}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        className="quantityButton"
+                        type="button"
+                        aria-label="Subir cantidad"
+                        onClick={() => increaseItemQuantity(item.id)}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                    <button
+                      className="iconButton"
+                      type="button"
+                      title="Quitar producto"
+                      onClick={() => removeItem(item.id)}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>

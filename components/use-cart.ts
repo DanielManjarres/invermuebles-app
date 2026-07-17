@@ -89,7 +89,33 @@ export function useCart() {
   }
 
   function removeItem(id: string) {
-    saveCart(items.filter((item) => item.id !== id));
+    saveCart(readCart().filter((item) => item.id !== id));
+  }
+
+  function increaseItemQuantity(id: string) {
+    const nextItems = readCart().map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            quantity: item.quantity + 1,
+          }
+        : item,
+    );
+
+    saveCart(nextItems);
+  }
+
+  function decreaseItemQuantity(id: string) {
+    const nextItems = readCart().map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            quantity: Math.max(1, item.quantity - 1),
+          }
+        : item,
+    );
+
+    saveCart(nextItems);
   }
 
   function clearCart() {
@@ -100,6 +126,8 @@ export function useCart() {
     items,
     addItem,
     removeItem,
+    increaseItemQuantity,
+    decreaseItemQuantity,
     clearCart,
   };
 }
