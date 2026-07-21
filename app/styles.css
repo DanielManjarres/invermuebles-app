@@ -384,6 +384,8 @@ p {
   border-radius: 8px;
   box-shadow: var(--shadow);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   transition:
     border-color 160ms ease,
@@ -418,8 +420,10 @@ p {
 .productInfo {
   display: grid;
   gap: 14px;
-  min-height: 218px;
+  grid-template-rows: 1fr auto;
+  min-height: 238px;
   padding: 16px;
+  height: 100%;
 }
 
 .productInfo h2 {
@@ -2583,7 +2587,7 @@ th {
 
   .productInfo {
     gap: 10px;
-    min-height: 190px;
+    min-height: 205px;
     padding: 12px;
   }
 
