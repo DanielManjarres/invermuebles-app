@@ -1479,6 +1479,36 @@ th {
   line-height: 1.35;
 }
 
+.uploadImageControl {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--primary-dark);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 900;
+  gap: 8px;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 12px;
+  width: fit-content;
+}
+
+.uploadImageControl:hover {
+  border-color: rgba(7, 85, 42, 0.32);
+}
+
+.uploadImageControl:has(input:disabled) {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.uploadImageControl input {
+  display: none;
+}
+
 .adminFormWide {
   grid-column: 1 / -1;
 }

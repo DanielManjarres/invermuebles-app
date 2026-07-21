@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import {
   ChevronDown,
   Eye,
@@ -11,6 +11,7 @@ import {
   Search,
   Shapes,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import {
@@ -324,6 +325,7 @@ export function AdminProductsManager({
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
   const [isProductSaving, setIsProductSaving] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
   const [isTaxonomySaving, setIsTaxonomySaving] = useState(false);
 
   useEffect(() => {
@@ -850,6 +852,60 @@ export function AdminProductsManager({
     setEditingProductId(null);
     setProductForm(createEmptyForm());
     setFormError("");
+    setIsImageUploading(false);
+  }
+
+  async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setFormError("Selecciona un archivo de imagen.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setFormError("La imagen no puede pesar mas de 5 MB.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    setFormError("");
+    setIsImageUploading(true);
+
+    const response = await fetch("/api/product-images", {
+      method: "POST",
+      body: formData,
+    }).catch(() => null);
+
+    setIsImageUploading(false);
+
+    if (!response) {
+      setFormError("No se pudo subir la imagen.");
+      return;
+    }
+
+    const result = (await response.json().catch(() => ({}))) as {
+      imageUrl?: string;
+      message?: string;
+    };
+
+    if (!response.ok || !result.imageUrl) {
+      setFormError(result.message ?? "No se pudo subir la imagen.");
+      return;
+    }
+
+    setProductForm((currentForm) => ({
+      ...currentForm,
+      image: result.imageUrl ?? currentForm.image,
+    }));
+    setNotice("Imagen subida correctamente.");
   }
 
   async function toggleVisibility(product: Product) {
@@ -1449,8 +1505,18 @@ export function AdminProductsManager({
                     setProductForm({ ...productForm, image: event.target.value })
                   }
                 />
+                <label className="uploadImageControl">
+                  <Upload size={16} />
+                  {isImageUploading ? "Subiendo imagen..." : "Subir imagen propia"}
+                  <input
+                    accept="image/png,image/jpeg,image/webp"
+                    disabled={isImageUploading}
+                    type="file"
+                    onChange={handleImageUpload}
+                  />
+                </label>
                 <span className="fieldHint">
-                  Puede ser una URL externa o una ruta interna guardada en public.
+                  Puede ser una URL externa o una imagen subida al almacenamiento.
                 </span>
               </label>
               <label className="adminFormWide">
@@ -1493,7 +1559,7 @@ export function AdminProductsManager({
               <button
                 className="primaryButton"
                 type="submit"
-                disabled={isProductSaving}
+                disabled={isProductSaving || isImageUploading}
               >
                 {isProductSaving ? "Guardando..." : "Guardar producto"}
               </button>
