@@ -1,3 +1,4 @@
+import { StockMovementType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -15,10 +16,17 @@ export async function DELETE(_request: Request, context: RouteContext) {
     select: {
       id: true,
       name: true,
+      stockMovements: {
+        select: {
+          id: true,
+          note: true,
+          reason: true,
+          type: true,
+        },
+      },
       _count: {
         select: {
           orderItems: true,
-          stockMovements: true,
         },
       },
     },
@@ -31,19 +39,45 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   }
 
-  if (product._count.stockMovements > 0 || product._count.orderItems > 0) {
+  if (product._count.orderItems > 0) {
     return NextResponse.json(
       {
         message:
-          "Este producto ya tiene historial. Para conservar los registros, ocultalo del catalogo en vez de eliminarlo.",
+          "Este producto ya tiene pedidos registrados. Para conservar el historial, ocultalo del catalogo en vez de eliminarlo.",
       },
       { status: 409 }
     );
   }
 
-  await prisma.product.delete({
-    where: { id },
-  });
+  const hasOnlyInitialMovement = product.stockMovements.every(
+    (movement) =>
+      movement.type === StockMovementType.ADJUSTMENT &&
+      movement.reason === "Inventario inicial" &&
+      movement.note === "Producto creado desde gestion de productos"
+  );
 
-  return NextResponse.json({ id: product.id, name: product.name });
+  if (!hasOnlyInitialMovement) {
+    return NextResponse.json(
+      {
+        message:
+          "Este producto ya tiene movimientos de inventario. Para conservar el historial, ocultalo del catalogo en vez de eliminarlo.",
+      },
+      { status: 409 }
+    );
+  }
+
+  await prisma.$transaction([
+    prisma.stockMovement.deleteMany({
+      where: { productId: id },
+    }),
+    prisma.product.delete({
+      where: { id },
+    }),
+  ]);
+
+  return NextResponse.json({
+    deletedInitialMovements: product.stockMovements.length,
+    id: product.id,
+    name: product.name,
+  });
 }
