@@ -14,7 +14,7 @@ function createSummary(details: string) {
   const firstSentence = details.split(".")[0]?.trim();
   const summary = firstSentence && firstSentence.length >= 35 ? firstSentence : details;
 
-  return summary.length > 120 ? `${summary.slice(0, 117).trim()}...` : summary;
+  return summary.length > 90 ? `${summary.slice(0, 87).trim()}...` : summary;
 }
 
 export function ProductCard({

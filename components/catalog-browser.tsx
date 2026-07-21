@@ -12,15 +12,21 @@ type CatalogBrowserProps = {
 };
 
 const allCategories = "Todos";
+const productsPerPage = 20;
 
 export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProps) {
   const isAdmin = mode === "admin";
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
   const [activeCategory, setActiveCategory] = useState(allCategories);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setCatalogProducts(products);
   }, [products]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, catalogProducts]);
 
   const availableProducts = useMemo(
     () => catalogProducts.filter((product) => product.visible && product.stock > 0),
@@ -39,6 +45,11 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
     activeCategory === allCategories
       ? availableProducts
       : availableProducts.filter((product) => product.category === activeCategory);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
+  );
 
   return (
     <section className="catalogSection">
@@ -51,7 +62,10 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
               }
               key={category}
               type="button"
-              onClick={() => setActiveCategory(category)}
+              onClick={() => {
+                setActiveCategory(category);
+                setCurrentPage(1);
+              }}
             >
               {category}
             </button>
@@ -71,7 +85,7 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
       </div>
 
       <div className="productGrid">
-        {filteredProducts.map((product) => (
+        {paginatedProducts.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
@@ -79,6 +93,35 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
           />
         ))}
       </div>
+
+      {filteredProducts.length > productsPerPage ? (
+        <div className="catalogPagination">
+          <span>
+            Mostrando {paginatedProducts.length} de {filteredProducts.length} productos
+          </span>
+          <div className="paginationControls">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            >
+              Anterior
+            </button>
+            <span>
+              Página {currentPage} de {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() =>
+                setCurrentPage((page) => Math.min(totalPages, page + 1))
+              }
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

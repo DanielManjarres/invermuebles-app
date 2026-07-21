@@ -374,8 +374,8 @@ p {
 
 .productGrid {
   display: grid;
-  gap: 22px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .productCard {
@@ -403,7 +403,7 @@ p {
 }
 
 .productImage {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 5 / 4;
   background: var(--surface-strong);
   position: relative;
 }
@@ -417,14 +417,15 @@ p {
 
 .productInfo {
   display: grid;
-  gap: 20px;
-  min-height: 250px;
-  padding: 20px;
+  gap: 14px;
+  min-height: 218px;
+  padding: 16px;
 }
 
 .productInfo h2 {
-  font-size: 1.18rem;
-  margin: 10px 0 4px;
+  font-size: 1rem;
+  line-height: 1.18;
+  margin: 8px 0 3px;
 }
 
 .reference {
@@ -432,7 +433,25 @@ p {
   display: block;
   font-size: 0.86rem;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+.productInfo p {
+  color: var(--muted);
+  display: -webkit-box;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.productFooter {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .detailsHint {
@@ -457,6 +476,15 @@ p {
 .cartItem p {
   color: var(--muted);
   line-height: 1.6;
+}
+
+.productCard .productInfo p {
+  line-height: 1.45;
+}
+
+.productCard .iconTextButton {
+  min-height: 40px;
+  padding: 0 12px;
 }
 
 .tag,
@@ -891,6 +919,18 @@ p {
   min-height: 42px;
   padding: 0 14px;
   white-space: nowrap;
+}
+
+.catalogPagination {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+  font-weight: 800;
+  gap: 14px;
+  justify-content: space-between;
+  margin-top: 22px;
 }
 
 .statsGrid {
@@ -2382,12 +2422,15 @@ th {
 }
 
 @media (max-width: 900px) {
-  .productGrid,
   .statsGrid,
   .cartLayout,
   .aboutBand,
   .footerMain {
     grid-template-columns: 1fr;
+  }
+
+  .productGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hero {
@@ -2528,6 +2571,55 @@ th {
   .sectionHeader {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .productGrid {
+    gap: 12px;
+  }
+
+  .productImage {
+    aspect-ratio: 1 / 1;
+  }
+
+  .productInfo {
+    gap: 10px;
+    min-height: 190px;
+    padding: 12px;
+  }
+
+  .productInfo h2 {
+    font-size: 0.92rem;
+  }
+
+  .productCard .productInfo p {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .productFooter {
+    gap: 7px;
+  }
+
+  .tag,
+  .available,
+  .unavailable {
+    font-size: 0.68rem;
+    padding: 5px 8px;
+  }
+
+  .productCard .iconTextButton {
+    font-size: 0.8rem;
+    min-height: 36px;
+    padding: 0 9px;
+  }
+
+  .catalogPagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalogPagination .paginationControls {
+    justify-content: space-between;
   }
 
   .modalOverlay {
