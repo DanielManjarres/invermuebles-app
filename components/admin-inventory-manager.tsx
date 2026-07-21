@@ -10,15 +10,12 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { readAdminProducts, saveAdminProducts } from "@/lib/admin-products";
 import { SelectMenu } from "@/components/select-menu";
 import type { Product } from "@/lib/products";
 import {
   createMovementForm,
-  createStockMovement,
   movementLabels,
   movementReasonOptions,
-  saveStockMovement,
   type MovementType,
   type StockMovementFormState,
 } from "@/lib/stock-movements";
@@ -70,10 +67,11 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   const [stockMovementForm, setStockMovementForm] =
     useState<StockMovementFormState>(createMovementForm());
   const [stockError, setStockError] = useState("");
+  const [stockSaving, setStockSaving] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    setInventory(readAdminProducts(products));
+    setInventory(products);
   }, [products]);
 
   const totalProducts = inventory.length;
@@ -175,7 +173,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     setStockError("");
   }
 
-  function handleStockSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleStockSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!stockProduct) {
@@ -206,25 +204,53 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       return;
     }
 
-    const movement = createStockMovement({
-      product: stockProduct,
-      type: stockMovementForm.type,
-      quantity,
-      previousStock,
-      nextStock,
-      reason: stockMovementForm.reason,
-      note: stockMovementForm.note.trim(),
-    });
+    let result: { message?: string; nextStock?: number } = {};
+    let response: Response;
+
+    try {
+      setStockSaving(true);
+      response = await fetch("/api/stock-movements", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: stockProduct.id,
+          type: stockMovementForm.type,
+          quantity,
+          reason: stockMovementForm.reason,
+          note: stockMovementForm.note.trim(),
+        }),
+      });
+
+      result = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        nextStock?: number;
+      };
+    } catch {
+      setStockError("No se pudo conectar con la base de datos.");
+      setStockSaving(false);
+      return;
+    }
+
+    setStockSaving(false);
+
+    if (!response.ok || typeof result.nextStock !== "number") {
+      setStockError(
+        result.message ?? "No se pudo guardar el movimiento. Intenta de nuevo."
+      );
+      return;
+    }
 
     const nextInventory = inventory.map((product) =>
-      product.id === stockProduct.id ? { ...product, stock: nextStock } : product
+      product.id === stockProduct.id
+        ? { ...product, stock: result.nextStock ?? nextStock }
+        : product
     );
 
     setInventory(nextInventory);
-    saveAdminProducts(nextInventory);
-    saveStockMovement(movement);
     setNotice(
-      `${movementLabels[movement.type]} registrada para ${stockProduct.name}. Stock actual: ${nextStock}.`
+      `${movementLabels[stockMovementForm.type]} registrada para ${stockProduct.name}. Stock actual: ${result.nextStock}.`
     );
     setStockProduct(null);
   }
@@ -516,11 +542,12 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                 className="secondaryButton"
                 type="button"
                 onClick={closeStockForm}
+                disabled={stockSaving}
               >
                 Cancelar
               </button>
-              <button className="primaryButton" type="submit">
-                Guardar movimiento
+              <button className="primaryButton" type="submit" disabled={stockSaving}>
+                {stockSaving ? "Guardando..." : "Guardar movimiento"}
               </button>
             </div>
           </form>

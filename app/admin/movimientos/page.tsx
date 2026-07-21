@@ -1,8 +1,13 @@
 import { AdminMovementsBrowser } from "@/components/admin-movements-browser";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
+import { getStockMovements } from "@/lib/database-products";
 
-export default function AdminMovementsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminMovementsPage() {
+  const movements = await getStockMovements();
+
   return (
     <main>
       <SiteHeader active="movimientos" variant="admin" />
@@ -21,7 +26,7 @@ export default function AdminMovementsPage() {
         </div>
       </section>
 
-      <AdminMovementsBrowser />
+      <AdminMovementsBrowser movements={movements} />
     </main>
   );
 }

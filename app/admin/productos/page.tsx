@@ -1,9 +1,13 @@
 import { AdminProductsManager } from "@/components/admin-products-manager";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
-import { products } from "@/lib/products";
+import { getProducts } from "@/lib/database-products";
 
-export default function AdminProductsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminProductsPage() {
+  const products = await getProducts();
+
   return (
     <main>
       <SiteHeader active="productos" variant="admin" />

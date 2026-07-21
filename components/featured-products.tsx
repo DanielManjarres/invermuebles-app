@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { readAdminProducts } from "@/lib/admin-products";
 import type { Product } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 
@@ -13,7 +12,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
 
   useEffect(() => {
-    setCatalogProducts(readAdminProducts(products));
+    setCatalogProducts(products);
   }, [products]);
 
   const featured = useMemo(

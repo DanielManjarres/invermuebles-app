@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import {
   createProductId,
-  readAdminProducts,
   saveAdminProducts,
 } from "@/lib/admin-products";
 import { SelectMenu } from "@/components/select-menu";
@@ -334,7 +333,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    const storedProducts = readAdminProducts(products);
+    const storedProducts = products;
     const storedTypes = readProductTypes(storedProducts);
 
     setProductList(storedProducts);

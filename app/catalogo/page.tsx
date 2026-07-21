@@ -1,9 +1,13 @@
-import { products } from "@/lib/products";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { getProducts } from "@/lib/database-products";
 
-export default function CatalogPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CatalogPage() {
+  const products = await getProducts({ availableOnly: true, visibleOnly: true });
+
   return (
     <main>
       <SiteHeader active="catalogo" />

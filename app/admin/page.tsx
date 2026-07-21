@@ -1,9 +1,13 @@
-import { products } from "@/lib/products";
 import { AdminInventoryManager } from "@/components/admin-inventory-manager";
 import { SiteHeader } from "@/components/site-header";
 import { LogoutButton } from "@/components/logout-button";
+import { getProducts } from "@/lib/database-products";
 
-export default function AdminPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const products = await getProducts();
+
   return (
     <main>
       <SiteHeader active="admin" variant="admin" />

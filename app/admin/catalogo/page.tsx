@@ -1,9 +1,13 @@
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
-import { products } from "@/lib/products";
+import { getProducts } from "@/lib/database-products";
 
-export default function AdminCatalogPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminCatalogPage() {
+  const products = await getProducts({ availableOnly: true, visibleOnly: true });
+
   return (
     <main>
       <SiteHeader active="adminCatalogo" variant="admin" />

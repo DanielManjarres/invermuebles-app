@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import {
   movementLabels,
-  readStockMovements,
   type MovementType,
   type StockMovement,
 } from "@/lib/stock-movements";
@@ -127,8 +126,14 @@ function getSignedQuantity(movement: StockMovement) {
   return movement.quantity;
 }
 
-export function AdminMovementsBrowser() {
-  const [movements, setMovements] = useState<StockMovement[]>([]);
+type AdminMovementsBrowserProps = {
+  movements: StockMovement[];
+};
+
+export function AdminMovementsBrowser({
+  movements: initialMovements,
+}: AdminMovementsBrowserProps) {
+  const [movements, setMovements] = useState<StockMovement[]>(initialMovements);
   const [query, setQuery] = useState("");
   const [activeType, setActiveType] = useState<MovementType | typeof allTypes>(
     allTypes
@@ -140,8 +145,8 @@ export function AdminMovementsBrowser() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    setMovements(readStockMovements());
-  }, []);
+    setMovements(initialMovements);
+  }, [initialMovements]);
 
   useEffect(() => {
     setCurrentPage(1);

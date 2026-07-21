@@ -1,12 +1,16 @@
 import { ArrowRight, MessageCircle, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { products } from "@/lib/products";
 import { FeaturedProducts } from "@/components/featured-products";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { company, whatsappUrl } from "@/lib/company";
+import { getProducts } from "@/lib/database-products";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const products = await getProducts({ availableOnly: true, visibleOnly: true });
+
   return (
     <main>
       <SiteHeader />

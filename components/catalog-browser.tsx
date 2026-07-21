@@ -5,7 +5,6 @@ import { MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 import { whatsappUrl } from "@/lib/company";
-import { readAdminProducts } from "@/lib/admin-products";
 
 type CatalogBrowserProps = {
   mode?: "public" | "admin";
@@ -20,7 +19,7 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
   const [activeCategory, setActiveCategory] = useState(allCategories);
 
   useEffect(() => {
-    setCatalogProducts(readAdminProducts(products));
+    setCatalogProducts(products);
   }, [products]);
 
   const availableProducts = useMemo(
