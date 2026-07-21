@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const sessionCookie = "invermuebles_session";
-const sessionValue = "demo-admin";
+const sessionValue = "admin-authenticated";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

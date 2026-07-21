@@ -1,6 +1,16 @@
 import { PrismaClient, StockMovementType, UserRole } from "@prisma/client";
+import { randomBytes, scryptSync } from "crypto";
 
 const prisma = new PrismaClient();
+const adminPassword = process.env.ADMIN_PASSWORD ?? "invermuebles2026";
+const keyLength = 64;
+
+function hashPassword(password) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, keyLength).toString("hex");
+
+  return `scrypt:${salt}:${hash}`;
+}
 
 const initialProducts = [
   {
@@ -178,12 +188,14 @@ async function main() {
     where: { email: "admin@invermuebles.com" },
     update: {
       name: "Administrador",
+      passwordHash: hashPassword(adminPassword),
       role: UserRole.ADMIN,
       active: true,
     },
     create: {
       email: "admin@invermuebles.com",
       name: "Administrador",
+      passwordHash: hashPassword(adminPassword),
       role: UserRole.ADMIN,
       active: true,
     },

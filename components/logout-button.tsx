@@ -6,9 +6,8 @@ import { useRouter } from "next/navigation";
 export function LogoutButton() {
   const router = useRouter();
 
-  function handleLogout() {
-    document.cookie =
-      "invermuebles_session=; path=/; max-age=0; SameSite=Lax";
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     router.push("/login");
   }
 

@@ -16,9 +16,6 @@ import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { company } from "@/lib/company";
 
-const demoUser = "admin";
-const demoPassword = "invermuebles2026";
-
 export default function LoginPage() {
   const router = useRouter();
   const [user, setUser] = useState("");
@@ -26,17 +23,32 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    if (user !== demoUser || password !== demoPassword) {
-      setError("Usuario o contraseña incorrectos.");
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password, user }),
+    }).catch(() => null);
+
+    if (!response) {
+      setError("No se pudo conectar con el servidor.");
       return;
     }
 
-    document.cookie =
-      "invermuebles_session=demo-admin; path=/; max-age=28800; SameSite=Lax";
+    const result = (await response.json().catch(() => ({}))) as {
+      message?: string;
+    };
+
+    if (!response.ok) {
+      setError(result.message ?? "Usuario o contraseña incorrectos.");
+      return;
+    }
+
     const nextPath = new URLSearchParams(window.location.search).get("next");
     router.push(nextPath || "/admin");
   }
