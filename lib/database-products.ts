@@ -11,6 +11,11 @@ type ProductFilters = {
   visibleOnly?: boolean;
 };
 
+export type DatabaseProductType = {
+  name: string;
+  classes: string[];
+};
+
 function mapMovementType(type: StockMovementType): MovementType {
   if (type === "ENTRY") {
     return "entry";
@@ -84,5 +89,21 @@ export async function getStockMovements(): Promise<StockMovement[]> {
     }),
     createdAtISO: movement.createdAt.toISOString(),
     user: movement.user?.name ?? "Administrador",
+  }));
+}
+
+export async function getProductTypes(): Promise<DatabaseProductType[]> {
+  const productTypes = await prisma.productType.findMany({
+    include: {
+      classes: {
+        orderBy: { name: "asc" },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return productTypes.map((productType) => ({
+    name: productType.name,
+    classes: productType.classes.map((productClass) => productClass.name),
   }));
 }

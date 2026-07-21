@@ -1,12 +1,15 @@
 import { AdminProductsManager } from "@/components/admin-products-manager";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
-import { getProducts } from "@/lib/database-products";
+import { getProducts, getProductTypes } from "@/lib/database-products";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
-  const products = await getProducts();
+  const [products, productTypes] = await Promise.all([
+    getProducts(),
+    getProductTypes(),
+  ]);
 
   return (
     <main>
@@ -26,7 +29,7 @@ export default async function AdminProductsPage() {
         </div>
       </section>
 
-      <AdminProductsManager products={products} />
+      <AdminProductsManager productTypes={productTypes} products={products} />
     </main>
   );
 }

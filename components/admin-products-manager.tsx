@@ -18,8 +18,10 @@ import {
 } from "@/lib/admin-products";
 import { SelectMenu } from "@/components/select-menu";
 import type { Product } from "@/lib/products";
+import type { DatabaseProductType } from "@/lib/database-products";
 
 type AdminProductsManagerProps = {
+  productTypes: DatabaseProductType[];
   products: Product[];
 };
 
@@ -67,8 +69,6 @@ type TaxonomyDialog =
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80";
-const productTypesStorageKey = "invermuebles_product_types";
-
 function cleanText(value: string) {
   return value.trim().replace(/\s+/g, " ");
 }
@@ -169,30 +169,21 @@ function mergeProductTypes(baseTypes: ProductType[], storedTypes: ProductType[])
   return Array.from(productTypes.values());
 }
 
-function readProductTypes(products: Product[]) {
-  const baseTypes = buildProductTypesFromProducts(products);
+async function saveTaxonomyAction(body: Record<string, string>) {
+  const response = await fetch("/api/product-taxonomy", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const result = (await response.json().catch(() => ({}))) as {
+    message?: string;
+  };
 
-  if (typeof window === "undefined") {
-    return baseTypes;
+  if (!response.ok) {
+    throw new Error(result.message ?? "No se pudo guardar el cambio.");
   }
-
-  try {
-    const storedTypes = window.localStorage.getItem(productTypesStorageKey);
-    return mergeProductTypes(
-      baseTypes,
-      storedTypes ? (JSON.parse(storedTypes) as ProductType[]) : []
-    );
-  } catch {
-    return baseTypes;
-  }
-}
-
-function saveProductTypes(productTypes: ProductType[]) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.setItem(productTypesStorageKey, JSON.stringify(productTypes));
 }
 
 function validateProductForm(
@@ -308,10 +299,13 @@ function formToProduct(
   };
 }
 
-export function AdminProductsManager({ products }: AdminProductsManagerProps) {
+export function AdminProductsManager({
+  productTypes: initialProductTypes,
+  products,
+}: AdminProductsManagerProps) {
   const [productList, setProductList] = useState<Product[]>(products);
   const [productTypes, setProductTypes] = useState<ProductType[]>(
-    buildProductTypesFromProducts(products)
+    initialProductTypes
   );
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("Todos");
@@ -330,15 +324,19 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
   const [isProductSaving, setIsProductSaving] = useState(false);
+  const [isTaxonomySaving, setIsTaxonomySaving] = useState(false);
 
   useEffect(() => {
     const storedProducts = products;
-    const storedTypes = readProductTypes(storedProducts);
+    const storedTypes = mergeProductTypes(
+      buildProductTypesFromProducts(storedProducts),
+      initialProductTypes
+    );
 
     setProductList(storedProducts);
     setProductTypes(storedTypes);
     setSelectedTypeName("");
-  }, [products]);
+  }, [initialProductTypes, products]);
 
   const categories = useMemo(
     () => ["Todos", ...productTypes.map((productType) => productType.name)],
@@ -420,10 +418,9 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
 
   function persistProductTypes(nextTypes: ProductType[]) {
     setProductTypes(nextTypes);
-    saveProductTypes(nextTypes);
   }
 
-  function handleAddProductType(event: FormEvent<HTMLFormElement>) {
+  async function handleAddProductType(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const typeName = cleanText(newTypeName);
@@ -442,15 +439,26 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
       return;
     }
 
-    const nextTypes = [...productTypes, { name: typeName, classes: [] }];
+    setIsTaxonomySaving(true);
+    try {
+      await saveTaxonomyAction({ action: "createType", typeName });
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : "No se pudo agregar el tipo."
+      );
+      setIsTaxonomySaving(false);
+      return;
+    }
+    setIsTaxonomySaving(false);
 
+    const nextTypes = [...productTypes, { name: typeName, classes: [] }];
     persistProductTypes(nextTypes);
     setSelectedTypeName("");
     setNewTypeName("");
     setNotice(`${typeName} fue agregado como tipo de producto.`);
   }
 
-  function handleAddProductClass(event: FormEvent<HTMLFormElement>) {
+  async function handleAddProductClass(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const typeName = cleanText(selectedTypeName);
@@ -478,6 +486,22 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
       setNotice("Esa clase ya esta registrada en ese tipo.");
       return;
     }
+
+    setIsTaxonomySaving(true);
+    try {
+      await saveTaxonomyAction({
+        action: "createClass",
+        className,
+        typeName: selectedType.name,
+      });
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : "No se pudo agregar la clase."
+      );
+      setIsTaxonomySaving(false);
+      return;
+    }
+    setIsTaxonomySaving(false);
 
     const nextTypes = productTypes.map((productType) =>
       normalizeName(productType.name) === normalizeName(typeName)
@@ -556,7 +580,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     setTaxonomyError("");
   }
 
-  function handleTaxonomyDialogSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleTaxonomyDialogSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!taxonomyDialog) {
@@ -587,6 +611,22 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
         setTaxonomyError("Ya existe un tipo con ese nombre.");
         return;
       }
+
+      setIsTaxonomySaving(true);
+      try {
+        await saveTaxonomyAction({
+          action: "renameType",
+          nextTypeName: nextName,
+          typeName: currentName,
+        });
+      } catch (error) {
+        setTaxonomyError(
+          error instanceof Error ? error.message : "No se pudo renombrar el tipo."
+        );
+        setIsTaxonomySaving(false);
+        return;
+      }
+      setIsTaxonomySaving(false);
 
       const nextTypes = productTypes.map((productType) =>
         normalizeName(productType.name) === normalizeName(currentName)
@@ -622,6 +662,21 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     }
 
     if (taxonomyDialog.mode === "deleteType") {
+      setIsTaxonomySaving(true);
+      try {
+        await saveTaxonomyAction({
+          action: "deleteType",
+          typeName: taxonomyDialog.typeName,
+        });
+      } catch (error) {
+        setTaxonomyError(
+          error instanceof Error ? error.message : "No se pudo eliminar el tipo."
+        );
+        setIsTaxonomySaving(false);
+        return;
+      }
+      setIsTaxonomySaving(false);
+
       const nextTypes = productTypes.filter(
         (productType) =>
           normalizeName(productType.name) !== normalizeName(taxonomyDialog.typeName)
@@ -683,6 +738,23 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
         return;
       }
 
+      setIsTaxonomySaving(true);
+      try {
+        await saveTaxonomyAction({
+          action: "renameClass",
+          className: currentClass,
+          nextClassName: nextClass,
+          typeName: taxonomyDialog.typeName,
+        });
+      } catch (error) {
+        setTaxonomyError(
+          error instanceof Error ? error.message : "No se pudo renombrar la clase."
+        );
+        setIsTaxonomySaving(false);
+        return;
+      }
+      setIsTaxonomySaving(false);
+
       const nextTypes = productTypes.map((productType) =>
         normalizeName(productType.name) === normalizeName(taxonomyDialog.typeName)
           ? {
@@ -715,6 +787,22 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
       closeTaxonomyDialog();
       return;
     }
+
+    setIsTaxonomySaving(true);
+    try {
+      await saveTaxonomyAction({
+        action: "deleteClass",
+        className: taxonomyDialog.className,
+        typeName: taxonomyDialog.typeName,
+      });
+    } catch (error) {
+      setTaxonomyError(
+        error instanceof Error ? error.message : "No se pudo eliminar la clase."
+      );
+      setIsTaxonomySaving(false);
+      return;
+    }
+    setIsTaxonomySaving(false);
 
     const nextTypes = productTypes.map((productType) =>
       normalizeName(productType.name) === normalizeName(taxonomyDialog.typeName)
@@ -936,9 +1024,13 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 onChange={(event) => setNewTypeName(event.target.value)}
               />
             </label>
-            <button className="secondaryButton" type="submit">
+            <button
+              className="secondaryButton"
+              type="submit"
+              disabled={isTaxonomySaving}
+            >
               <Plus size={17} />
-              Agregar tipo
+              {isTaxonomySaving ? "Guardando..." : "Agregar tipo"}
             </button>
           </form>
 
@@ -963,9 +1055,13 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 onChange={(event) => setNewClassName(event.target.value)}
               />
             </label>
-            <button className="secondaryButton" type="submit">
+            <button
+              className="secondaryButton"
+              type="submit"
+              disabled={isTaxonomySaving}
+            >
               <Plus size={17} />
-              Agregar clase
+              {isTaxonomySaving ? "Guardando..." : "Agregar clase"}
             </button>
           </form>
         </div>
@@ -1461,14 +1557,20 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
                 className="secondaryButton"
                 type="button"
                 onClick={closeTaxonomyDialog}
+                disabled={isTaxonomySaving}
               >
                 Cancelar
               </button>
               <button
                 className={isDeleteTaxonomyDialog ? "dangerButton" : "primaryButton"}
                 type="submit"
+                disabled={isTaxonomySaving}
               >
-                {isDeleteTaxonomyDialog ? "Eliminar" : "Guardar cambios"}
+                {isTaxonomySaving
+                  ? "Guardando..."
+                  : isDeleteTaxonomyDialog
+                    ? "Eliminar"
+                    : "Guardar cambios"}
               </button>
             </div>
           </form>
