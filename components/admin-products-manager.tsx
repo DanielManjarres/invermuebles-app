@@ -318,6 +318,7 @@ export function AdminProductsManager({
   );
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [taxonomyDialog, setTaxonomyDialog] = useState<TaxonomyDialog | null>(
     null
   );
@@ -326,6 +327,7 @@ export function AdminProductsManager({
   const [formError, setFormError] = useState("");
   const [isProductSaving, setIsProductSaving] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isProductDeleting, setIsProductDeleting] = useState(false);
   const [isTaxonomySaving, setIsTaxonomySaving] = useState(false);
 
   useEffect(() => {
@@ -847,6 +849,18 @@ export function AdminProductsManager({
     setFormError("");
   }
 
+  function openDeleteProduct(product: Product) {
+    setProductToDelete(product);
+    setNotice("");
+    setFormError("");
+  }
+
+  function closeDeleteProduct() {
+    setProductToDelete(null);
+    setFormError("");
+    setIsProductDeleting(false);
+  }
+
   function closeProductForm() {
     setIsProductFormOpen(false);
     setEditingProductId(null);
@@ -942,6 +956,43 @@ export function AdminProductsManager({
         ? `${product.name} quedó oculto del catálogo.`
         : `${product.name} quedó visible en el catálogo.`
     );
+  }
+
+  async function handleDeleteProduct(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!productToDelete) {
+      return;
+    }
+
+    setFormError("");
+    setIsProductDeleting(true);
+
+    const response = await fetch(`/api/products/${productToDelete.id}`, {
+      method: "DELETE",
+    }).catch(() => null);
+
+    setIsProductDeleting(false);
+
+    if (!response) {
+      setFormError("No se pudo conectar con la base de datos.");
+      return;
+    }
+
+    const result = (await response.json().catch(() => ({}))) as {
+      message?: string;
+    };
+
+    if (!response.ok) {
+      setFormError(result.message ?? "No se pudo eliminar el producto.");
+      return;
+    }
+
+    persistProducts(
+      productList.filter((product) => product.id !== productToDelete.id)
+    );
+    setNotice(`${productToDelete.name} fue eliminado.`);
+    closeDeleteProduct();
   }
 
   async function handleProductSubmit(event: FormEvent<HTMLFormElement>) {
@@ -1310,6 +1361,14 @@ export function AdminProductsManager({
                           {product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
                           {product.visible ? "Ocultar de la web" : "Publicar en la web"}
                         </button>
+                        <button
+                          className="rowActionMenuItem dangerMenuItem"
+                          type="button"
+                          onClick={() => openDeleteProduct(product)}
+                        >
+                          <Trash2 size={16} />
+                          Eliminar producto
+                        </button>
                       </div>
                     </details>
                   </td>
@@ -1562,6 +1621,62 @@ export function AdminProductsManager({
                 disabled={isProductSaving || isImageUploading}
               >
                 {isProductSaving ? "Guardando..." : "Guardar producto"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      {productToDelete ? (
+        <div className="modalOverlay" role="dialog" aria-modal="true">
+          <form
+            className="adminModal smallModal taxonomyDialog"
+            onSubmit={handleDeleteProduct}
+          >
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Gestion de productos</p>
+                <h2>Eliminar producto</h2>
+              </div>
+              <button
+                className="modalClose"
+                type="button"
+                aria-label="Cerrar"
+                onClick={closeDeleteProduct}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="formHint">
+              Esta accion elimina el producto del panel y del catalogo. Si el
+              producto ya tiene movimientos de inventario o pedidos registrados,
+              el sistema no lo eliminara para conservar el historial.
+            </p>
+
+            <div className="deleteSummary">
+              <span>Producto seleccionado</span>
+              <strong>{productToDelete.name}</strong>
+              <span>{productToDelete.reference}</span>
+            </div>
+
+            {formError ? <p className="formError">{formError}</p> : null}
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={closeDeleteProduct}
+                disabled={isProductDeleting}
+              >
+                Cancelar
+              </button>
+              <button
+                className="dangerButton"
+                type="submit"
+                disabled={isProductDeleting}
+              >
+                {isProductDeleting ? "Eliminando..." : "Eliminar producto"}
               </button>
             </div>
           </form>

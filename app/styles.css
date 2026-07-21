@@ -1157,6 +1157,15 @@ th {
   color: var(--primary);
 }
 
+.dangerMenuItem {
+  color: #9b2924;
+}
+
+.dangerMenuItem:hover {
+  background: #fae4df;
+  color: #7d1f1b;
+}
+
 .inventoryGroups {
   display: grid;
   gap: 22px;
