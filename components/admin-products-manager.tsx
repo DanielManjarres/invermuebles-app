@@ -15,11 +15,9 @@ import {
 } from "lucide-react";
 import {
   createProductId,
-  saveAdminProducts,
 } from "@/lib/admin-products";
 import { SelectMenu } from "@/components/select-menu";
 import type { Product } from "@/lib/products";
-import { createStockMovement, saveStockMovement } from "@/lib/stock-movements";
 
 type AdminProductsManagerProps = {
   products: Product[];
@@ -331,6 +329,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
   const [taxonomyError, setTaxonomyError] = useState("");
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
+  const [isProductSaving, setIsProductSaving] = useState(false);
 
   useEffect(() => {
     const storedProducts = products;
@@ -417,7 +416,6 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
 
   function persistProducts(nextProducts: Product[]) {
     setProductList(nextProducts);
-    saveAdminProducts(nextProducts);
   }
 
   function persistProductTypes(nextTypes: ProductType[]) {
@@ -766,12 +764,35 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     setFormError("");
   }
 
-  function toggleVisibility(product: Product) {
+  async function toggleVisibility(product: Product) {
     const nextProducts = productList.map((item) =>
-      item.id === product.id ? { ...item, visible: !item.visible } : item
+      item.id === product.id ? { ...item, visible: !product.visible } : item
     );
 
     persistProducts(nextProducts);
+    try {
+      const response = await fetch(`/api/products/${product.id}/visibility`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ visible: !product.visible }),
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        persistProducts(productList);
+        setNotice(result.message ?? "No se pudo actualizar la visibilidad.");
+        return;
+      }
+    } catch {
+      persistProducts(productList);
+      setNotice("No se pudo conectar con la base de datos.");
+      return;
+    }
+
     setNotice(
       product.visible
         ? `${product.name} quedó oculto del catálogo.`
@@ -779,7 +800,7 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     );
   }
 
-  function handleProductSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleProductSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const validationError = validateProductForm(
@@ -805,6 +826,30 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
       ? { ...savedProduct, stock: previousProduct?.stock ?? savedProduct.stock }
       : savedProduct;
 
+    setIsProductSaving(true);
+    const response = await fetch("/api/products", {
+      method: editingProductId ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(productToSave),
+    }).catch(() => null);
+    setIsProductSaving(false);
+
+    if (!response) {
+      setFormError("No se pudo conectar con la base de datos.");
+      return;
+    }
+
+    const result = (await response.json().catch(() => ({}))) as {
+      message?: string;
+    };
+
+    if (!response.ok) {
+      setFormError(result.message ?? "No se pudo guardar el producto.");
+      return;
+    }
+
     if (editingProductId) {
       persistProducts(
         productList.map((product) =>
@@ -815,21 +860,6 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
     } else {
       persistProducts([productToSave, ...productList]);
       setActiveCategory(productToSave.category);
-
-      if (productToSave.stock > 0) {
-        saveStockMovement(
-          createStockMovement({
-            product: productToSave,
-            type: "adjustment",
-            quantity: productToSave.stock,
-            previousStock: 0,
-            nextStock: productToSave.stock,
-            reason: "Inventario inicial",
-            note: "Producto creado desde gestión de productos",
-          })
-        );
-      }
-
       setNotice(`${productToSave.name} fue agregado a productos.`);
     }
 
@@ -1356,11 +1386,20 @@ export function AdminProductsManager({ products }: AdminProductsManagerProps) {
             {formError ? <p className="formError">{formError}</p> : null}
 
             <div className="modalActions">
-              <button className="secondaryButton" type="button" onClick={closeProductForm}>
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={closeProductForm}
+                disabled={isProductSaving}
+              >
                 Cancelar
               </button>
-              <button className="primaryButton" type="submit">
-                Guardar producto
+              <button
+                className="primaryButton"
+                type="submit"
+                disabled={isProductSaving}
+              >
+                {isProductSaving ? "Guardando..." : "Guardar producto"}
               </button>
             </div>
           </form>
