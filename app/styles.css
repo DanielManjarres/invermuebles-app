@@ -384,8 +384,9 @@ p {
   border-radius: 8px;
   box-shadow: var(--shadow);
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 180px minmax(228px, 1fr);
+  height: 100%;
   overflow: hidden;
   transition:
     border-color 160ms ease,
@@ -405,8 +406,9 @@ p {
 }
 
 .productImage {
-  aspect-ratio: 5 / 4;
   background: var(--surface-strong);
+  height: 180px;
+  overflow: hidden;
   position: relative;
 }
 
@@ -421,9 +423,12 @@ p {
   display: grid;
   gap: 14px;
   grid-template-rows: 1fr auto;
-  min-height: 238px;
+  min-height: 228px;
   padding: 16px;
-  height: 100%;
+}
+
+.productInfo > div:first-child {
+  min-width: 0;
 }
 
 .productInfo h2 {
@@ -453,6 +458,7 @@ p {
 
 .productFooter {
   align-items: center;
+  align-self: end;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -2581,8 +2587,12 @@ th {
     gap: 12px;
   }
 
+  .productCard {
+    grid-template-rows: 136px minmax(210px, 1fr);
+  }
+
   .productImage {
-    aspect-ratio: 1 / 1;
+    height: 136px;
   }
 
   .productInfo {
