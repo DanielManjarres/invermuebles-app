@@ -367,6 +367,18 @@ export function AdminProductsManager({
     };
   }, []);
 
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setNotice("");
+    }, 3600);
+
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   const categories = useMemo(
     () => ["Todos", ...productTypes.map((productType) => productType.name)],
     [productTypes]
