@@ -152,6 +152,30 @@ export function AdminMovementsBrowser({
     setCurrentPage(1);
   }, [activeDate, activeProduct, activeProductType, activeType, query]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+
+      if (!target.closest(".filterMenu")) {
+        setOpenFilter(null);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenFilter(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
   const productTypes = useMemo(
     () =>
       Array.from(
