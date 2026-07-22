@@ -1717,9 +1717,10 @@ export function AdminProductsManager({
             </div>
 
             <p className="formHint">
-              Esta accion elimina el producto del panel y del catalogo. Si el
-              producto ya tiene movimientos de inventario o pedidos registrados,
-              el sistema no lo eliminara para conservar el historial.
+              Esta accion elimina el producto del panel y del catalogo. Solo se
+              permite cuando no tiene pedidos y sus movimientos son unicamente
+              de carga inicial. Si ya tuvo entradas, salidas o ajustes, ocultalo
+              del catalogo para conservar el historial.
             </p>
 
             <div className="deleteSummary">
