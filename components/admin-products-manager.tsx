@@ -319,6 +319,7 @@ export function AdminProductsManager({
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const [taxonomyDialog, setTaxonomyDialog] = useState<TaxonomyDialog | null>(
     null
   );
@@ -341,6 +342,30 @@ export function AdminProductsManager({
     setProductTypes(storedTypes);
     setSelectedTypeName("");
   }, [initialProductTypes, products]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+
+      if (!target.closest(".rowActionMenu")) {
+        setOpenActionMenuId(null);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenActionMenuId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   const categories = useMemo(
     () => ["Todos", ...productTypes.map((productType) => productType.name)],
@@ -842,6 +867,7 @@ export function AdminProductsManager({
   }
 
   function openEditForm(product: Product) {
+    setOpenActionMenuId(null);
     setEditingProductId(product.id);
     setProductForm(productToForm(product));
     setIsProductFormOpen(true);
@@ -850,6 +876,7 @@ export function AdminProductsManager({
   }
 
   function openDeleteProduct(product: Product) {
+    setOpenActionMenuId(null);
     setProductToDelete(product);
     setNotice("");
     setFormError("");
@@ -923,6 +950,7 @@ export function AdminProductsManager({
   }
 
   async function toggleVisibility(product: Product) {
+    setOpenActionMenuId(null);
     const nextProducts = productList.map((item) =>
       item.id === product.id ? { ...item, visible: !product.visible } : item
     );
@@ -1339,8 +1367,18 @@ export function AdminProductsManager({
                     </span>
                   </td>
                   <td className="actionsCell productActionsCell">
-                    <details className="rowActionMenu">
-                      <summary>
+                    <details
+                      className="rowActionMenu"
+                      open={openActionMenuId === product.id}
+                    >
+                      <summary
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setOpenActionMenuId((currentId) =>
+                            currentId === product.id ? null : product.id
+                          );
+                        }}
+                      >
                         Gestionar
                         <ChevronDown size={15} />
                       </summary>
