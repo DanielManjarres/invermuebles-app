@@ -648,9 +648,9 @@ p {
 
 .taxonomyForms {
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  margin-bottom: 14px;
+  gap: 10px;
+  grid-template-columns: minmax(280px, 0.74fr) minmax(420px, 1fr);
+  margin-bottom: 12px;
 }
 
 .taxonomyForm {
@@ -659,13 +659,13 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: minmax(0, 1fr) auto;
-  padding: 14px;
+  padding: 12px;
 }
 
 .taxonomyForm:nth-child(2) {
-  grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(170px, 0.78fr) minmax(190px, 1fr) auto;
 }
 
 .taxonomyForm label {
@@ -682,8 +682,19 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--text);
-  min-height: 42px;
+  min-height: 40px;
   padding: 0 12px;
+}
+
+.taxonomyForm .selectMenuButton,
+.taxonomyForm .secondaryButton {
+  min-height: 40px;
+}
+
+.taxonomyForm .secondaryButton {
+  font-size: 0.9rem;
+  padding: 0 13px;
+  white-space: nowrap;
 }
 
 .taxonomyForm input:focus,
@@ -694,7 +705,7 @@ p {
 
 .taxonomyGrid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -703,8 +714,8 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 14px;
 }
 
 .taxonomyCard > div:first-child {
@@ -716,12 +727,12 @@ p {
 
 .taxonomyCard > div:first-child > div:first-child {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
 .taxonomyCard strong {
   color: var(--primary);
-  font-size: 1.03rem;
+  font-size: 0.98rem;
 }
 
 .taxonomyCard > div:first-child span {
@@ -733,7 +744,7 @@ p {
 .taxonomyChips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 8px 10px;
 }
 
 .taxonomyChips > span,
@@ -746,8 +757,9 @@ p {
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 800;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 5px;
+  min-height: 32px;
+  padding: 4px 8px 4px 10px;
 }
 
 .taxonomyActions {
@@ -764,10 +776,10 @@ p {
   border-radius: 999px;
   color: var(--muted);
   display: inline-flex;
-  height: 28px;
+  height: 26px;
   justify-content: center;
   padding: 0;
-  width: 28px;
+  width: 26px;
 }
 
 .taxonomyActions button:hover,
