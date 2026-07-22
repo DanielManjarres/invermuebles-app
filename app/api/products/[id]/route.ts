@@ -2,6 +2,11 @@ import { StockMovementType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const initialInventoryNotes = [
+  "Carga inicial de productos",
+  "Producto creado desde gestion de productos",
+];
+
 type RouteContext = {
   params: Promise<{
     id: string;
@@ -53,7 +58,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     (movement) =>
       movement.type === StockMovementType.ADJUSTMENT &&
       movement.reason === "Inventario inicial" &&
-      movement.note === "Producto creado desde gestion de productos"
+      initialInventoryNotes.includes(movement.note ?? "")
   );
 
   if (!hasOnlyInitialMovement) {
