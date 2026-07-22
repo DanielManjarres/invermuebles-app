@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { requireAdminSession } from "@/lib/admin-session";
 import {
   getProductImageExtension,
   getProductImageUploadDir,
@@ -11,6 +12,11 @@ import {
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const formData = await request.formData();
   const file = formData.get("image");
 

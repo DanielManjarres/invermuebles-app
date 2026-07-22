@@ -1,5 +1,6 @@
 import { StockMovementType } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 
 const initialInventoryNotes = [
@@ -14,6 +15,11 @@ type RouteContext = {
 };
 
 export async function DELETE(_request: Request, context: RouteContext) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const { id } = await context.params;
 
   const product = await prisma.product.findUnique({

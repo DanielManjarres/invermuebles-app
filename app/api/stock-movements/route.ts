@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { StockMovementType, UserRole } from "@prisma/client";
+import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 
 type StockMovementRequest = {
@@ -27,6 +28,11 @@ function toDatabaseMovementType(type: StockMovementRequest["type"]) {
 }
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const body = (await request.json()) as StockMovementRequest;
   const movementType = toDatabaseMovementType(body.type);
   const quantity = Number(body.quantity);

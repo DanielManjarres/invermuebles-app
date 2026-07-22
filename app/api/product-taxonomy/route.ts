@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 
 type TaxonomyAction =
@@ -28,6 +29,11 @@ async function findType(typeName: string) {
 }
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const body = (await request.json()) as TaxonomyRequest;
   const typeName = cleanText(body.typeName);
   const className = cleanText(body.className);
@@ -57,6 +63,25 @@ export async function POST(request: Request) {
       );
     }
 
+    const existingClass = await prisma.productClass.findFirst({
+      where: {
+        name: {
+          equals: typeName,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (existingClass) {
+      return NextResponse.json(
+        {
+          message:
+            "Ese nombre ya esta registrado como clase. Agregalo dentro de un tipo, no como tipo nuevo.",
+        },
+        { status: 409 }
+      );
+    }
+
     await prisma.productType.create({ data: { name: typeName } });
     return NextResponse.json({ ok: true }, { status: 201 });
   }
@@ -74,6 +99,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { message: "El tipo seleccionado no existe." },
         { status: 404 }
+      );
+    }
+
+    if (productType.name.toLowerCase() === className.toLowerCase()) {
+      return NextResponse.json(
+        { message: "La clase no puede tener el mismo nombre del tipo." },
+        { status: 400 }
       );
     }
 

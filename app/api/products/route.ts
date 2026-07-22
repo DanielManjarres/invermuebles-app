@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { StockMovementType, UserRole } from "@prisma/client";
+import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 
 type ProductRequest = {
@@ -92,6 +93,11 @@ async function getAdminUserId() {
 }
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const body = (await request.json()) as ProductRequest;
   const validationError = validateProduct(body);
 
@@ -154,6 +160,11 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const body = (await request.json()) as ProductRequest;
   const validationError = validateProduct(body, true);
 
