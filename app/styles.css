@@ -665,7 +665,8 @@ p {
 }
 
 .taxonomyForm:nth-child(2) {
-  grid-template-columns: minmax(170px, 0.78fr) minmax(190px, 1fr) auto;
+  column-gap: 14px;
+  grid-template-columns: minmax(210px, 0.9fr) minmax(240px, 1.1fr) 176px;
 }
 
 .taxonomyForm label {
@@ -695,6 +696,7 @@ p {
   font-size: 0.9rem;
   padding: 0 13px;
   white-space: nowrap;
+  width: 100%;
 }
 
 .taxonomyForm input:focus,
