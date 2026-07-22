@@ -480,6 +480,19 @@ export function AdminProductsManager({
       return;
     }
 
+    const existsAsClass = productTypes.some((productType) =>
+      productType.classes.some(
+        (productClass) => normalizeName(productClass) === normalizeName(typeName)
+      )
+    );
+
+    if (existsAsClass) {
+      setNotice(
+        "Ese nombre ya esta registrado como clase. Agregalo dentro de un tipo, no como tipo nuevo."
+      );
+      return;
+    }
+
     setIsTaxonomySaving(true);
     try {
       await saveTaxonomyAction({ action: "createType", typeName });
@@ -516,6 +529,11 @@ export function AdminProductsManager({
 
     if (!selectedType) {
       setNotice("El tipo seleccionado no existe.");
+      return;
+    }
+
+    if (normalizeName(selectedType.name) === normalizeName(className)) {
+      setNotice("La clase no puede tener el mismo nombre del tipo.");
       return;
     }
 
