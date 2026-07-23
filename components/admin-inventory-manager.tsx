@@ -19,6 +19,7 @@ import {
   type MovementType,
   type StockMovementFormState,
 } from "@/lib/stock-movements";
+import { calculateNextStock } from "@/lib/stock-calculator";
 
 type AdminInventoryManagerProps = {
   products: Product[];
@@ -130,11 +131,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     movementQuantity > 0;
   const projectedStock =
     stockProduct && stockMovementForm.type && hasValidMovementQuantity
-      ? stockMovementForm.type === "entry"
-        ? stockProduct.stock + movementQuantity
-        : stockMovementForm.type === "exit"
-          ? stockProduct.stock - movementQuantity
-          : movementQuantity
+      ? calculateNextStock(stockProduct.stock, stockMovementForm.type, movementQuantity)
       : null;
   const isInvalidExit =
     stockMovementForm.type === "exit" &&

@@ -1,12 +1,7 @@
-import { StockMovementType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
+import { canDeleteProduct } from "@/lib/product-delete-policy";
 import { prisma } from "@/lib/prisma";
-
-const initialInventoryNotes = [
-  "Carga inicial de productos",
-  "Producto creado desde gestion de productos",
-];
 
 type RouteContext = {
   params: Promise<{
@@ -60,19 +55,14 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   }
 
-  const hasOnlyInitialMovement = product.stockMovements.every(
-    (movement) =>
-      movement.type === StockMovementType.ADJUSTMENT &&
-      movement.reason === "Inventario inicial" &&
-      initialInventoryNotes.includes(movement.note ?? "")
-  );
+  const deletePolicy = canDeleteProduct({
+    orderItemsCount: product._count.orderItems,
+    stockMovements: product.stockMovements,
+  });
 
-  if (!hasOnlyInitialMovement) {
+  if (!deletePolicy.allowed) {
     return NextResponse.json(
-      {
-        message:
-          "Este producto ya tiene movimientos de inventario. Para conservar el historial, ocultalo del catalogo en vez de eliminarlo.",
-      },
+      { message: deletePolicy.reason },
       { status: 409 }
     );
   }

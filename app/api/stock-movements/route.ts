@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { StockMovementType, UserRole } from "@prisma/client";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { calculateNextStock, isValidStockQuantity } from "@/lib/stock-calculator";
 
 type StockMovementRequest = {
   note?: string;
@@ -45,9 +46,9 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!Number.isFinite(quantity) || quantity <= 0) {
+  if (!isValidStockQuantity(quantity)) {
     return NextResponse.json(
-      { message: "La cantidad debe ser mayor a cero." },
+      { message: "La cantidad debe ser un numero entero mayor a cero." },
       { status: 400 }
     );
   }
@@ -74,12 +75,11 @@ export async function POST(request: Request) {
       }
 
       const previousStock = product.stock;
-      const nextStock =
-        movementType === StockMovementType.ENTRY
-          ? previousStock + quantity
-          : movementType === StockMovementType.EXIT
-            ? previousStock - quantity
-            : quantity;
+      const nextStock = calculateNextStock(
+        previousStock,
+        body.type ?? "adjustment",
+        quantity,
+      );
 
       if (nextStock < 0) {
         throw new Error("NEGATIVE_STOCK");

@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "test": "npm run test:unit && npm run test:integration && npm run test:system",
+    "test:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/unit/*.test.mjs",
+    "test:integration": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/integration/*.test.mjs",
+    "test:system": "next build"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"

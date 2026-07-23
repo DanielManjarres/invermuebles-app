@@ -1,0 +1,45 @@
+name: Validacion del proyecto
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    name: Pruebas y build
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/invermuebles_test
+      ADMIN_EMAIL: admin@invermuebles.com
+      ADMIN_PASSWORD: invermuebles2026
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar cliente Prisma
+        run: npx prisma generate
+
+      - name: Ejecutar pruebas unitarias
+        run: npm run test:unit
+
+      - name: Ejecutar pruebas de integracion
+        run: npm run test:integration
+
+      - name: Ejecutar prueba de sistema
+        run: npm run test:system
