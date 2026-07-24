@@ -2117,7 +2117,21 @@ th {
 }
 
 .ordersSection {
-  padding-top: 64px;
+  padding-top: 38px;
+}
+
+.ordersIntro {
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.ordersIntro h2 {
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  max-width: 760px;
+}
+
+.ordersIntro .sectionLead {
+  max-width: 620px;
 }
 
 .orderToast {

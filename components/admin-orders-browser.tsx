@@ -161,7 +161,7 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
 
   return (
     <section className="tableSection ordersSection">
-      <div className="sectionHeader movementSectionHeader">
+      <div className="sectionHeader movementSectionHeader ordersIntro">
         <div>
           <p className="eyebrow">Seguimiento comercial</p>
           <h2>Solicitudes por WhatsApp</h2>
