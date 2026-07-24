@@ -2483,6 +2483,10 @@ th {
   color: #fff;
 }
 
+.footerItem a:hover {
+  color: #d8b47a;
+}
+
 .footerAccess {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin: 32px auto 0;

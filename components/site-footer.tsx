@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock, MapPin, MessageCircle, PackageCheck } from "lucide-react";
+import { Clock, CreditCard, MapPin, MessageCircle, PackageCheck } from "lucide-react";
 import { company } from "@/lib/company";
 
 export function SiteFooter() {
@@ -17,13 +17,15 @@ export function SiteFooter() {
             <MapPin size={20} />
             <span>
               <strong>Ubicación</strong>
-              {company.location}
+              <a href={company.mapsUrl} target="_blank" rel="noreferrer">
+                {company.location}
+              </a>
             </span>
           </div>
           <div className="footerItem">
             <MessageCircle size={20} />
             <span>
-              <strong>Contacto</strong>
+              <strong>WhatsApp</strong>
               {company.whatsappLabel}
             </span>
           </div>
@@ -39,6 +41,13 @@ export function SiteFooter() {
             <span>
               <strong>Productos</strong>
               Muebles, electrodomésticos, colchones, audio y video
+            </span>
+          </div>
+          <div className="footerItem">
+            <CreditCard size={20} />
+            <span>
+              <strong>Formas de compra</strong>
+              {company.paymentOptions.join(", ")}
             </span>
           </div>
         </div>

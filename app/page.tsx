@@ -22,7 +22,8 @@ export default async function HomePage() {
           <p>
             Explora el catálogo de {company.name}, selecciona los
             productos que te interesan y continúa la venta directamente por
-            WhatsApp.
+            WhatsApp. El almacén confirma precio, disponibilidad y forma de
+            pago antes de cerrar el pedido.
           </p>
           <div className="heroActions">
             <Link className="primaryButton" href="/catalogo">
@@ -53,25 +54,24 @@ export default async function HomePage() {
             <h2>Soluciones para vestir y equipar tu hogar</h2>
           </div>
           <p>
-            En {company.name} acompañamos a las familias en la elección de
-            muebles, electrodomésticos y productos para el hogar. Nuestro
-            objetivo es ofrecer opciones cómodas, funcionales y de calidad,
-            facilitando la consulta de productos y la atención por medios
-            digitales.
+            En {company.name} ofrecemos muebles, electrodomésticos y productos
+            para el hogar en {company.city}. Nuestro objetivo es que las
+            personas puedan conocer los productos disponibles, armar su
+            solicitud y continuar la atención directamente por WhatsApp.
           </p>
         </div>
         <div className="aboutHighlights">
           <article>
             <strong>Muebles</strong>
-            <span>Salas, comedores, muebles para TV y artículos para el hogar.</span>
+            <span>Salas, comedores, muebles para TV, poltronas y productos para renovar el hogar.</span>
           </article>
           <article>
             <strong>Electrodomésticos</strong>
             <span>Neveras, lavadoras, estufas, televisores y más productos.</span>
           </article>
           <article>
-            <strong>Atención asistida</strong>
-            <span>Seleccionas productos en la web y continúas por WhatsApp.</span>
+            <strong>Opciones de compra</strong>
+            <span>Atención para compras de contado, crédito, separado, credicontado y Sistecrédito.</span>
           </article>
         </div>
       </section>
