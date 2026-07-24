@@ -228,7 +228,7 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
       </div>
 
       {notice ? (
-        <div className="taxonomyNotice successNotice">
+        <div className="orderToast" role="status">
           <span>{notice}</span>
         </div>
       ) : null}
@@ -256,11 +256,12 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
             {paginatedOrders.map((order) => (
               <article className="orderCard" key={order.id}>
                 <div className="orderCardHeader">
-                  <div>
-                    <span className={`orderBadge ${order.status.toLowerCase()}`}>
-                      {statusIcons[order.status]}
-                      {orderStatusLabels[order.status]}
-                    </span>
+                  <span className={`orderBadge ${order.status.toLowerCase()}`}>
+                    {statusIcons[order.status]}
+                    {orderStatusLabels[order.status]}
+                  </span>
+
+                  <div className="orderTitleBlock">
                     <h3>Pedido #{order.shortId}</h3>
                     <p>
                       {order.createdAt} · {orderChannelLabels[order.channel]} ·{" "}
@@ -268,7 +269,7 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
                     </p>
                   </div>
 
-                  <label>
+                  <label className="orderStatusControl">
                     Estado
                     <select
                       value={order.status}
@@ -286,10 +287,6 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
                   </label>
                 </div>
 
-                <p className="orderDescription">
-                  {orderStatusDescriptions[order.status]}
-                </p>
-
                 <div className="orderItems">
                   {order.items.map((item) => (
                     <div key={item.id}>
@@ -303,22 +300,24 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
                   ))}
                 </div>
 
-                <label className="orderNotes">
-                  Observaciones
-                  <textarea
-                    rows={2}
-                    value={draftNotes[order.id] ?? ""}
-                    placeholder="Ej: Cliente contactado, pendiente confirmar forma de pago."
-                    onChange={(event) =>
-                      setDraftNotes((currentNotes) => ({
-                        ...currentNotes,
-                        [order.id]: event.target.value,
-                      }))
-                    }
-                  />
-                </label>
-
-                <div className="orderCardActions">
+                <div className="orderFollowUp">
+                  <p className="orderDescription">
+                    {orderStatusDescriptions[order.status]}
+                  </p>
+                  <label className="orderNotes">
+                    Observaciones
+                    <textarea
+                      rows={1}
+                      value={draftNotes[order.id] ?? ""}
+                      placeholder="Ej: Cliente contactado, pendiente confirmar forma de pago."
+                      onChange={(event) =>
+                        setDraftNotes((currentNotes) => ({
+                          ...currentNotes,
+                          [order.id]: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
                   <button
                     className="secondaryButton"
                     disabled={savingOrderId === order.id}
