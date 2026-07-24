@@ -2134,6 +2134,18 @@ th {
   max-width: 620px;
 }
 
+.ordersSection .movementToolbar {
+  grid-template-columns: minmax(320px, 0.8fr) minmax(650px, 1fr);
+}
+
+.ordersSection .inventoryFilters {
+  flex-wrap: nowrap;
+}
+
+.ordersSection .filterButton {
+  white-space: nowrap;
+}
+
 .orderToast {
   align-items: center;
   background: #e4f3df;
@@ -2778,7 +2790,9 @@ th {
     grid-template-columns: 1fr;
   }
 
-  .inventoryFilters {
+  .inventoryFilters,
+  .ordersSection .inventoryFilters {
+    flex-wrap: wrap;
     justify-content: flex-start;
   }
 
