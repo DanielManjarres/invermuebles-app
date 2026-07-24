@@ -2117,7 +2117,7 @@ th {
 }
 
 .ordersSection {
-  padding-top: 42px;
+  padding-top: 64px;
 }
 
 .orderToast {
@@ -2148,15 +2148,15 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 12px;
+  padding: 14px 16px;
 }
 
 .orderCardHeader {
   align-items: center;
   display: grid;
-  gap: 12px;
-  grid-template-columns: max-content minmax(0, 1fr) 190px;
+  gap: 14px;
+  grid-template-columns: max-content minmax(0, 1fr) 178px;
 }
 
 .orderCardHeader h3 {
@@ -2193,8 +2193,17 @@ th {
 }
 
 .orderStatusControl select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
   min-height: 38px;
-  padding: 0 10px;
+  padding: 0 34px 0 12px;
 }
 
 .orderNotes textarea {
@@ -2244,7 +2253,7 @@ th {
 
 .orderItems {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -2274,8 +2283,8 @@ th {
 .orderFollowUp {
   align-items: end;
   display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(180px, 0.55fr) minmax(280px, 1fr) auto;
+  gap: 12px;
+  grid-template-columns: minmax(190px, 0.5fr) minmax(320px, 1fr) auto;
 }
 
 .orderFollowUp .secondaryButton {
