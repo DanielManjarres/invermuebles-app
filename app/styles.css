@@ -2313,9 +2313,33 @@ th {
   grid-template-columns: minmax(190px, 0.5fr) minmax(320px, 1fr) auto;
 }
 
-.orderFollowUp .secondaryButton {
+.orderActionGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.orderFollowUp .secondaryButton,
+.futureSaleButton {
   min-height: 42px;
   white-space: nowrap;
+}
+
+.futureSaleButton {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: inline-flex;
+  font-weight: 900;
+  gap: 8px;
+  justify-content: center;
+  padding: 0 14px;
+}
+
+.futureSaleButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.78;
 }
 
 .cartLayout {
@@ -3029,7 +3053,8 @@ th {
 
   .orderStatusControl,
   .orderStatusControl select,
-  .orderFollowUp .secondaryButton {
+  .orderFollowUp .secondaryButton,
+  .futureSaleButton {
     width: 100%;
   }
 

@@ -2,7 +2,14 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, MessageCircle, Search, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  MessageCircle,
+  ReceiptText,
+  Search,
+  XCircle,
+} from "lucide-react";
 import {
   orderChannelLabels,
   orderStatusDescriptions,
@@ -318,14 +325,28 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
                       }
                     />
                   </label>
-                  <button
-                    className="secondaryButton"
-                    disabled={savingOrderId === order.id}
-                    type="button"
-                    onClick={() => updateOrder(order)}
-                  >
-                    Guardar observación
-                  </button>
+                  <div className="orderActionGroup">
+                    <button
+                      className="secondaryButton"
+                      disabled={savingOrderId === order.id}
+                      type="button"
+                      onClick={() => updateOrder(order)}
+                    >
+                      Guardar observación
+                    </button>
+
+                    {order.status === "CONFIRMED" ? (
+                      <button
+                        className="futureSaleButton"
+                        disabled
+                        title="Esta acción se activará cuando exista el módulo de ventas."
+                        type="button"
+                      >
+                        <ReceiptText size={18} />
+                        Crear venta
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               </article>
             ))}
