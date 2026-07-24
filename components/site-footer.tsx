@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Clock, CreditCard, MapPin, MessageCircle, PackageCheck } from "lucide-react";
-import { company } from "@/lib/company";
+import { company, whatsappUrl } from "@/lib/company";
 
 export function SiteFooter() {
   return (
@@ -26,7 +26,9 @@ export function SiteFooter() {
             <MessageCircle size={20} />
             <span>
               <strong>WhatsApp</strong>
-              {company.whatsappLabel}
+              <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                {company.whatsappLabel}
+              </a>
             </span>
           </div>
           <div className="footerItem">
