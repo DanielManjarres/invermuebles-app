@@ -1,5 +1,6 @@
 import type { Product } from "@/lib/products";
 import { prisma } from "@/lib/prisma";
+import type { AdminOrder } from "@/lib/orders";
 import type { MovementType, StockMovement } from "@/lib/stock-movements";
 import type { StockMovementType } from "@prisma/client";
 
@@ -106,4 +107,54 @@ export async function getProductTypes(): Promise<DatabaseProductType[]> {
     name: productType.name,
     classes: productType.classes.map((productClass) => productClass.name),
   }));
+}
+
+export async function getOrders(): Promise<AdminOrder[]> {
+  const orders = await prisma.order.findMany({
+    include: {
+      items: {
+        include: {
+          product: {
+            include: {
+              productClass: true,
+              productType: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return orders.map((order) => {
+    const items = order.items.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      productName: item.product.name,
+      productReference: item.product.reference,
+      productCategory: item.product.productType.name,
+      productClass: item.product.productClass.name,
+      quantity: item.quantity,
+    }));
+
+    return {
+      id: order.id,
+      shortId: order.id.slice(-6).toUpperCase(),
+      status: order.status,
+      channel: order.channel,
+      notes: order.notes ?? "",
+      createdAt: order.createdAt.toLocaleString("es-CO", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }),
+      createdAtISO: order.createdAt.toISOString(),
+      updatedAt: order.updatedAt.toLocaleString("es-CO", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }),
+      items,
+      totalQuantity: items.reduce((total, item) => total + item.quantity, 0),
+    };
+  });
 }

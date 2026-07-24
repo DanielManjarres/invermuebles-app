@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Minus, Plus, Send, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { useCart } from "@/components/use-cart";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -16,6 +17,9 @@ function summarizeDetails(details?: string) {
 }
 
 export default function CartPage() {
+  const [isSending, setIsSending] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [sentOrderId, setSentOrderId] = useState("");
   const {
     items,
     removeItem,
@@ -27,9 +31,19 @@ export default function CartPage() {
   const unitText =
     totalQuantity === 1 ? "unidad seleccionada" : "unidades seleccionadas";
   const productText = items.length === 1 ? "producto" : "productos";
+  const orderAlreadySent = sentOrderId.length > 0;
 
-  const message = encodeURIComponent(
-    `Hola, quiero consultar información y disponibilidad de estos productos de Invermuebles del Quindío:\n\n${items
+  function handleCartChange(action: () => void) {
+    setSentOrderId("");
+    setFeedback("");
+    action();
+  }
+
+  function buildWhatsappMessage(orderId?: string) {
+    return encodeURIComponent(
+      `Hola, quiero consultar información y disponibilidad de estos productos de Invermuebles del Quindío:${
+        orderId ? `\nSolicitud web: #${orderId.slice(-6).toUpperCase()}` : ""
+      }\n\n${items
       .map(
         (item, index) =>
           `${index + 1}. ${item.name}\nReferencia: ${item.reference}${
@@ -37,8 +51,48 @@ export default function CartPage() {
           }\nCantidad solicitada: ${item.quantity}`
       )
       .join("\n\n")}\n\nQuedo atento(a) para confirmar precio, disponibilidad y forma de pago.`
-  );
-  const cartWhatsappUrl = `${whatsappUrl}?text=${message}`;
+    );
+  }
+
+  async function handleSendOrder() {
+    if (items.length === 0 || isSending || orderAlreadySent) {
+      return;
+    }
+
+    setIsSending(true);
+    setFeedback("");
+
+    try {
+      const response = await fetch("/api/orders", {
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            productId: item.id,
+            quantity: item.quantity,
+          })),
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const result = (await response.json()) as {
+        id?: string;
+        message?: string;
+      };
+
+      if (!response.ok || !result.id) {
+        setFeedback(result.message ?? "No se pudo registrar el pedido.");
+        return;
+      }
+
+      const cartWhatsappUrl = `${whatsappUrl}?text=${buildWhatsappMessage(result.id)}`;
+      window.open(cartWhatsappUrl, "_blank", "noopener,noreferrer");
+      setSentOrderId(result.id);
+      setFeedback("Pedido registrado. Se abrió WhatsApp para continuar la atención.");
+    } catch {
+      setFeedback("No se pudo conectar con el sistema. Intenta de nuevo.");
+    } finally {
+      setIsSending(false);
+    }
+  }
 
   return (
     <main>
@@ -82,7 +136,9 @@ export default function CartPage() {
                         type="button"
                         aria-label="Bajar cantidad"
                         disabled={item.quantity === 1}
-                        onClick={() => decreaseItemQuantity(item.id)}
+                        onClick={() =>
+                          handleCartChange(() => decreaseItemQuantity(item.id))
+                        }
                       >
                         <Minus size={16} />
                       </button>
@@ -91,7 +147,9 @@ export default function CartPage() {
                         className="quantityButton"
                         type="button"
                         aria-label="Subir cantidad"
-                        onClick={() => increaseItemQuantity(item.id)}
+                        onClick={() =>
+                          handleCartChange(() => increaseItemQuantity(item.id))
+                        }
                       >
                         <Plus size={16} />
                       </button>
@@ -100,7 +158,7 @@ export default function CartPage() {
                       className="iconButton"
                       type="button"
                       title="Quitar producto"
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => handleCartChange(() => removeItem(item.id))}
                     >
                       <Trash2 size={18} />
                     </button>
@@ -118,20 +176,28 @@ export default function CartPage() {
                 El almacén confirmará precio, disponibilidad y forma de pago por
                 WhatsApp.
               </p>
-              <a
+              {feedback ? <p className="cartFeedbackMessage">{feedback}</p> : null}
+              <button
                 className="primaryButton fullWidth"
-                href={cartWhatsappUrl}
-                target="_blank"
-                rel="noreferrer"
+                disabled={isSending || orderAlreadySent}
+                onClick={handleSendOrder}
+                type="button"
               >
                 <Send size={18} />
-                Enviar pedido por WhatsApp
-              </a>
+                {isSending
+                  ? "Registrando pedido..."
+                  : orderAlreadySent
+                    ? "Pedido registrado"
+                    : "Enviar pedido por WhatsApp"}
+              </button>
               <Link className="secondaryButton fullWidth" href="/catalogo">
                 <ArrowLeft size={18} />
                 Seguir viendo catálogo
               </Link>
-              <button className="secondaryButton fullWidth" onClick={clearCart}>
+              <button
+                className="secondaryButton fullWidth"
+                onClick={() => handleCartChange(clearCart)}
+              >
                 Vaciar carrito
               </button>
             </aside>

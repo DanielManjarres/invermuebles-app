@@ -252,6 +252,18 @@ p {
   line-height: 1.25;
 }
 
+.cartFeedbackMessage {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--primary-dark);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.45;
+  margin: 0;
+  padding: 10px 12px;
+}
+
 .productDetailFeedback {
   margin-top: -4px;
 }
@@ -2104,6 +2116,147 @@ th {
   max-width: 680px;
 }
 
+.ordersSection {
+  padding-top: 42px;
+}
+
+.ordersList {
+  display: grid;
+  gap: 10px;
+}
+
+.orderCard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.orderCardHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.orderCardHeader h3 {
+  font-size: 1.18rem;
+  line-height: 1.15;
+  margin: 8px 0 4px;
+}
+
+.orderCardHeader p,
+.orderDescription {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.orderCardHeader label,
+.orderNotes {
+  color: var(--text);
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 900;
+  gap: 6px;
+}
+
+.orderCardHeader select,
+.orderNotes textarea {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.orderCardHeader select {
+  min-height: 40px;
+  min-width: 180px;
+  padding: 0 10px;
+}
+
+.orderNotes textarea {
+  line-height: 1.45;
+  min-height: 76px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.orderCardHeader select:focus,
+.orderNotes textarea:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.orderBadge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.orderBadge.pending {
+  background: #fff1d8;
+  color: #7c4d05;
+}
+
+.orderBadge.contacted {
+  background: #e4f3df;
+  color: var(--primary);
+}
+
+.orderBadge.confirmed {
+  background: #dff1ff;
+  color: #195577;
+}
+
+.orderBadge.cancelled {
+  background: #fae4df;
+  color: #9b2924;
+}
+
+.orderItems {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.orderItems div {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.orderItems strong {
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.orderItems span,
+.orderItems small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.orderCardActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .cartLayout {
   align-items: start;
   display: grid;
@@ -2567,6 +2720,10 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .orderItems {
+    grid-template-columns: 1fr;
+  }
+
   .inventoryFilters {
     justify-content: flex-start;
   }
@@ -2789,6 +2946,16 @@ th {
   .movementCardData,
   .movementCardMain {
     grid-template-columns: 1fr;
+  }
+
+  .orderCardHeader {
+    flex-direction: column;
+  }
+
+  .orderCardHeader label,
+  .orderCardHeader select,
+  .orderCardActions .secondaryButton {
+    width: 100%;
   }
 
   .modalActions {
