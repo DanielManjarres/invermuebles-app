@@ -2414,16 +2414,17 @@ th {
 
 .customersSection .movementSummaryGrid {
   gap: 10px;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
   margin-bottom: 0;
 }
 
 .customersSection .movementSummaryGrid article {
-  min-height: 82px;
-  padding: 14px 16px;
+  min-height: 76px;
+  padding: 12px 14px;
 }
 
 .customersSection .movementSummaryGrid strong {
-  font-size: 1.55rem;
+  font-size: 1.45rem;
 }
 
 .customersHeader {
@@ -2436,14 +2437,15 @@ th {
 }
 
 .customersHeader .primaryButton {
-  min-height: 46px;
-  padding-inline: 18px;
+  align-self: center;
+  min-height: 44px;
+  padding-inline: 16px;
 }
 
 .customerToolbar {
   align-items: center;
   gap: 12px;
-  grid-template-columns: minmax(320px, 0.75fr) minmax(430px, 1fr);
+  grid-template-columns: minmax(340px, 0.78fr) minmax(420px, 1fr);
   margin-bottom: 0;
   padding: 12px;
 }
@@ -2465,12 +2467,11 @@ th {
   display: grid;
   gap: 12px;
   grid-template-columns:
-    minmax(230px, 1.25fr)
-    minmax(120px, 0.66fr)
-    minmax(190px, 1fr)
-    minmax(115px, 0.58fr)
+    minmax(240px, 1.4fr)
+    minmax(140px, 0.8fr)
+    minmax(130px, 0.7fr)
     minmax(90px, auto)
-    minmax(128px, auto);
+    minmax(136px, auto);
   padding: 14px 16px;
   text-align: left;
   text-decoration: none;
@@ -2509,7 +2510,8 @@ th {
 .customerProfileButton {
   justify-self: end;
   min-height: 38px;
-  padding-inline: 12px;
+  padding-inline: 14px;
+  white-space: nowrap;
 }
 
 .customerStatus {

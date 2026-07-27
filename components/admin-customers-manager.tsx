@@ -287,7 +287,7 @@ export function AdminCustomersManager({
           <Search size={18} />
           <input
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por cedula, nombre, telefono o ciudad"
+            placeholder="Buscar por cedula, nombre o telefono"
             type="search"
             value={query}
           />
@@ -336,10 +336,6 @@ export function AdminCustomersManager({
                 <span className="customerDirectoryMeta">
                   <small>Telefono</small>
                   <strong>{customer.phone}</strong>
-                </span>
-                <span className="customerDirectoryMeta">
-                  <small>Correo</small>
-                  <strong>{customer.email || "Sin registrar"}</strong>
                 </span>
                 <span className="customerDirectoryMeta">
                   <small>Ciudad</small>
