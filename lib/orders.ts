@@ -13,6 +13,9 @@ export type AdminOrderItem = {
 export type AdminOrder = {
   id: string;
   shortId: string;
+  customerId: string;
+  customerName: string;
+  customerDocument: string;
   status: OrderStatus;
   channel: OrderChannel;
   notes: string;

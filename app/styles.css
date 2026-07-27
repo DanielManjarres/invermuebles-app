@@ -2248,6 +2248,57 @@ th {
   outline: 3px solid rgba(7, 85, 42, 0.12);
 }
 
+.orderStatusControl .selectMenu,
+.orderCustomerControl .selectMenu {
+  width: 100%;
+}
+
+.orderStatusControl .selectMenuButton,
+.orderCustomerControl .selectMenuButton {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.orderCustomerPanel {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(320px, 1fr);
+}
+
+.orderCustomerInfo {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.orderCustomerInfo span,
+.orderCustomerControl {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.orderCustomerInfo strong {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.orderCustomerInfo small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.orderCustomerControl {
+  display: grid;
+  gap: 6px;
+}
+
 .orderBadge {
   align-items: center;
   border-radius: 999px;
@@ -3008,6 +3059,7 @@ th {
   }
 
   .orderCardHeader,
+  .orderCustomerPanel,
   .orderFollowUp {
     grid-template-columns: 1fr;
   }
@@ -3257,6 +3309,7 @@ th {
 
   .orderStatusControl,
   .orderStatusControl select,
+  .orderCustomerControl,
   .orderFollowUp .secondaryButton,
   .futureSaleButton {
     width: 100%;

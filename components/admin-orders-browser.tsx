@@ -16,6 +16,8 @@ import {
   orderStatusLabels,
   type AdminOrder,
 } from "@/lib/orders";
+import type { AdminCustomer } from "@/lib/customers";
+import { SelectMenu } from "@/components/select-menu";
 
 const allStatuses = "all";
 const ordersPerPage = 8;
@@ -28,6 +30,11 @@ const statusOptions: AdminOrder["status"][] = [
   "CONFIRMED",
   "CANCELLED",
 ];
+
+const statusMenuOptions = statusOptions.map((status) => ({
+  label: orderStatusLabels[status],
+  value: status,
+}));
 
 const statusIcons: Record<AdminOrder["status"], ReactNode> = {
   PENDING: <Clock3 size={16} />,
@@ -42,6 +49,8 @@ function getOrderSearchText(order: AdminOrder) {
     order.status,
     order.channel,
     order.notes,
+    order.customerName,
+    order.customerDocument,
     ...order.items.flatMap((item) => [
       item.productName,
       item.productReference,
@@ -54,10 +63,14 @@ function getOrderSearchText(order: AdminOrder) {
 }
 
 type AdminOrdersBrowserProps = {
+  customers: AdminCustomer[];
   orders: AdminOrder[];
 };
 
-export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowserProps) {
+export function AdminOrdersBrowser({
+  customers,
+  orders: initialOrders,
+}: AdminOrdersBrowserProps) {
   const [orders, setOrders] = useState(initialOrders);
   const [query, setQuery] = useState("");
   const [activeStatus, setActiveStatus] =
@@ -69,11 +82,22 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
     () =>
       Object.fromEntries(initialOrders.map((order) => [order.id, order.notes]))
   );
+  const [draftCustomerIds, setDraftCustomerIds] = useState<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        initialOrders.map((order) => [order.id, order.customerId])
+      )
+  );
 
   useEffect(() => {
     setOrders(initialOrders);
     setDraftNotes(
       Object.fromEntries(initialOrders.map((order) => [order.id, order.notes]))
+    );
+    setDraftCustomerIds(
+      Object.fromEntries(
+        initialOrders.map((order) => [order.id, order.customerId])
+      )
     );
   }, [initialOrders]);
 
@@ -122,18 +146,38 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
     (currentPage - 1) * ordersPerPage,
     currentPage * ordersPerPage
   );
+  const customerOptions = useMemo(
+    () =>
+      customers.map((customer) => ({
+        label: customer.document
+          ? `${customer.fullName} - CC ${customer.document}`
+          : customer.fullName,
+        value: customer.id,
+      })),
+    [customers]
+  );
+
+  function findCustomer(customerId: string) {
+    return (
+      customers.find((currentCustomer) => currentCustomer.id === customerId) ??
+      null
+    );
+  }
 
   async function updateOrder(
     order: AdminOrder,
     nextStatus = order.status,
-    nextNotes = draftNotes[order.id] ?? ""
+    nextNotes = draftNotes[order.id] ?? "",
+    nextCustomerId = draftCustomerIds[order.id] ?? ""
   ) {
     setSavingOrderId(order.id);
     setNotice("");
+    const selectedCustomer = findCustomer(nextCustomerId);
 
     try {
       const response = await fetch(`/api/orders/${order.id}`, {
         body: JSON.stringify({
+          customerId: nextCustomerId || null,
           notes: nextNotes,
           status: nextStatus,
         }),
@@ -152,6 +196,9 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
           currentOrder.id === order.id
             ? {
                 ...currentOrder,
+                customerId: nextCustomerId,
+                customerName: selectedCustomer?.fullName ?? "",
+                customerDocument: selectedCustomer?.document ?? "",
                 notes: nextNotes,
                 status: nextStatus,
               }
@@ -278,19 +325,15 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
 
                   <label className="orderStatusControl">
                     Estado
-                    <select
-                      value={order.status}
+                    <SelectMenu
                       disabled={savingOrderId === order.id}
-                      onChange={(event) =>
-                        updateOrder(order, event.target.value as AdminOrder["status"])
+                      onChange={(value) =>
+                        updateOrder(order, value as AdminOrder["status"])
                       }
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {orderStatusLabels[status]}
-                        </option>
-                      ))}
-                    </select>
+                      options={statusMenuOptions}
+                      placeholder="Selecciona estado"
+                      value={order.status}
+                    />
                   </label>
                 </div>
 
@@ -305,6 +348,45 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
                       <small>Cantidad: {item.quantity}</small>
                     </div>
                   ))}
+                </div>
+
+                <div className="orderCustomerPanel">
+                  <div className="orderCustomerInfo">
+                    <span>Cliente asociado</span>
+                    {order.customerName ? (
+                      <>
+                        <strong>{order.customerName}</strong>
+                        <small>
+                          {order.customerDocument
+                            ? `CC ${order.customerDocument}`
+                            : "Sin cedula registrada"}
+                        </small>
+                      </>
+                    ) : (
+                      <>
+                        <strong>Sin cliente asociado</strong>
+                        <small>
+                          Selecciona un cliente antes de crear la venta.
+                        </small>
+                      </>
+                    )}
+                  </div>
+
+                  <label className="orderCustomerControl">
+                    Asociar cliente
+                    <SelectMenu
+                      disabled={savingOrderId === order.id}
+                      onChange={(value) =>
+                        setDraftCustomerIds((currentCustomerIds) => ({
+                          ...currentCustomerIds,
+                          [order.id]: value,
+                        }))
+                      }
+                      options={customerOptions}
+                      placeholder="Sin cliente asociado"
+                      value={draftCustomerIds[order.id] ?? ""}
+                    />
+                  </label>
                 </div>
 
                 <div className="orderFollowUp">
@@ -338,7 +420,7 @@ export function AdminOrdersBrowser({ orders: initialOrders }: AdminOrdersBrowser
                     {order.status === "CONFIRMED" ? (
                       <button
                         className="futureSaleButton"
-                        disabled
+                        disabled={!order.customerId}
                         title="Esta acción se activará cuando exista el módulo de ventas."
                         type="button"
                       >

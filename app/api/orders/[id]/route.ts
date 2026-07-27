@@ -4,6 +4,7 @@ import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 
 type OrderUpdateRequest = {
+  customerId?: string | null;
   notes?: string;
   status?: OrderStatus;
 };
@@ -34,10 +35,25 @@ export async function PUT(
     );
   }
 
+  if (body.customerId) {
+    const customer = await prisma.customer.findUnique({
+      where: { id: body.customerId },
+    });
+
+    if (!customer) {
+      return NextResponse.json(
+        { message: "Selecciona un cliente valido para el pedido." },
+        { status: 400 }
+      );
+    }
+  }
+
   try {
     const order = await prisma.order.update({
       where: { id },
       data: {
+        customerId:
+          body.customerId === undefined ? undefined : body.customerId || null,
         notes: body.notes?.trim() || null,
         status: body.status,
       },

@@ -1,12 +1,13 @@
 import { AdminOrdersBrowser } from "@/components/admin-orders-browser";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
+import { getCustomers } from "@/lib/database-customers";
 import { getOrders } from "@/lib/database-products";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage() {
-  const orders = await getOrders();
+  const [orders, customers] = await Promise.all([getOrders(), getCustomers()]);
 
   return (
     <main>
@@ -26,7 +27,7 @@ export default async function AdminOrdersPage() {
         </div>
       </section>
 
-      <AdminOrdersBrowser orders={orders} />
+      <AdminOrdersBrowser customers={customers} orders={orders} />
     </main>
   );
 }

@@ -112,6 +112,7 @@ export async function getProductTypes(): Promise<DatabaseProductType[]> {
 export async function getOrders(): Promise<AdminOrder[]> {
   const orders = await prisma.order.findMany({
     include: {
+      customer: true,
       items: {
         include: {
           product: {
@@ -141,6 +142,9 @@ export async function getOrders(): Promise<AdminOrder[]> {
     return {
       id: order.id,
       shortId: order.id.slice(-6).toUpperCase(),
+      customerId: order.customerId ?? "",
+      customerName: order.customer?.fullName ?? "",
+      customerDocument: order.customer?.document ?? "",
       status: order.status,
       channel: order.channel,
       notes: order.notes ?? "",
