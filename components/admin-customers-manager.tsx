@@ -19,6 +19,7 @@ import {
   customerStatusLabels,
   type AdminCustomer,
 } from "@/lib/customers";
+import { SelectMenu } from "@/components/select-menu";
 
 type CustomerFormState = {
   address: string;
@@ -58,6 +59,11 @@ const customerStatuses: AdminCustomer["status"][] = [
   "INACTIVE",
   "BLOCKED",
 ];
+
+const customerStatusOptions = customerStatuses.map((status) => ({
+  label: customerStatusLabels[status],
+  value: status,
+}));
 
 function cleanText(value: string) {
   return value.trim().replace(/\s+/g, " ");
@@ -535,21 +541,17 @@ export function AdminCustomersManager({
               </label>
               <label>
                 Estado
-                <select
+                <SelectMenu
+                  options={customerStatusOptions}
+                  placeholder="Selecciona un estado"
                   value={form.status}
-                  onChange={(event) =>
+                  onChange={(value) =>
                     setForm((current) => ({
                       ...current,
-                      status: event.target.value as AdminCustomer["status"],
+                      status: (value || "ACTIVE") as AdminCustomer["status"],
                     }))
                   }
-                >
-                  {customerStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {customerStatusLabels[status]}
-                    </option>
-                  ))}
-                </select>
+                />
               </label>
               <label>
                 Direccion
