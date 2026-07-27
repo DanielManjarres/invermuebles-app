@@ -124,6 +124,11 @@ export async function getOrders(): Promise<AdminOrder[]> {
         },
         orderBy: { createdAt: "asc" },
       },
+      sale: {
+        select: {
+          id: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -157,6 +162,8 @@ export async function getOrders(): Promise<AdminOrder[]> {
         dateStyle: "short",
         timeStyle: "short",
       }),
+      saleId: order.sale?.id ?? "",
+      saleShortId: order.sale?.id.slice(-6).toUpperCase() ?? "",
       items,
       totalQuantity: items.reduce((total, item) => total + item.quantity, 0),
     };

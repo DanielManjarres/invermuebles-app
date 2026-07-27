@@ -22,6 +22,8 @@ export type AdminOrder = {
   createdAt: string;
   createdAtISO: string;
   updatedAt: string;
+  saleId: string;
+  saleShortId: string;
   items: AdminOrderItem[];
   totalQuantity: number;
 };

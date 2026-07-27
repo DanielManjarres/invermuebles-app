@@ -213,6 +213,57 @@ export function AdminOrdersBrowser({
     }
   }
 
+  async function createSaleFromOrder(order: AdminOrder) {
+    if (order.saleId || savingOrderId === order.id) {
+      return;
+    }
+
+    if (!order.customerId) {
+      setNotice("Asocia un cliente antes de crear la venta.");
+      return;
+    }
+
+    setSavingOrderId(order.id);
+    setNotice("");
+
+    try {
+      const response = await fetch("/api/sales", {
+        body: JSON.stringify({
+          customerId: order.customerId,
+          notes: draftNotes[order.id] || "Venta creada desde pedido web.",
+          orderId: order.id,
+          type: "CASH",
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const result = (await response.json()) as { id?: string; message?: string };
+
+      if (!response.ok || !result.id) {
+        setNotice(result.message ?? "No se pudo crear la venta.");
+        return;
+      }
+
+      const saleShortId = result.id.slice(-6).toUpperCase();
+      setOrders((currentOrders) =>
+        currentOrders.map((currentOrder) =>
+          currentOrder.id === order.id
+            ? {
+                ...currentOrder,
+                saleId: result.id ?? "",
+                saleShortId,
+              }
+            : currentOrder
+        )
+      );
+      setNotice(`Venta #${saleShortId} creada desde el pedido #${order.shortId}.`);
+    } catch {
+      setNotice("No se pudo conectar con el sistema.");
+    } finally {
+      setSavingOrderId("");
+    }
+  }
+
   return (
     <section className="tableSection ordersSection">
       <div className="sectionHeader movementSectionHeader ordersIntro">
@@ -419,13 +470,32 @@ export function AdminOrdersBrowser({
 
                     {order.status === "CONFIRMED" ? (
                       <button
-                        className="futureSaleButton"
-                        disabled={!order.customerId}
-                        title="Esta acción se activará cuando exista el módulo de ventas."
+                        className={
+                          order.saleId
+                            ? "futureSaleButton saleCreatedButton"
+                            : "futureSaleButton"
+                        }
+                        disabled={
+                          !order.customerId ||
+                          savingOrderId === order.id ||
+                          Boolean(order.saleId)
+                        }
+                        title={
+                          order.saleId
+                            ? "Este pedido ya tiene venta creada."
+                            : !order.customerId
+                              ? "Asocia un cliente antes de crear la venta."
+                              : "Crear venta desde este pedido confirmado."
+                        }
                         type="button"
+                        onClick={() => createSaleFromOrder(order)}
                       >
                         <ReceiptText size={18} />
-                        Crear venta
+                        {order.saleId
+                          ? `Venta #${order.saleShortId}`
+                          : savingOrderId === order.id
+                            ? "Creando venta..."
+                            : "Crear venta"}
                       </button>
                     ) : null}
                   </div>

@@ -2405,6 +2405,207 @@ th {
   opacity: 0.78;
 }
 
+.saleCreatedButton {
+  background: #dff1ff;
+  border-color: #b6d7ec;
+  color: #195577;
+}
+
+.salesSection {
+  display: grid;
+  gap: 18px;
+  max-width: 1180px;
+  padding-top: 34px;
+}
+
+.salesLayout {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.72fr);
+}
+
+.localSalePanel,
+.salesHistoryPanel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.localSalePanel .sectionHeader,
+.salesHistoryPanel .sectionHeader {
+  margin-bottom: 0;
+}
+
+.localSalePanel h2,
+.salesHistoryPanel h2 {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  margin: 0;
+}
+
+.saleFormGrid,
+.saleProductPicker {
+  display: grid;
+  gap: 12px;
+}
+
+.saleFormGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.saleProductPicker {
+  align-items: end;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.saleFormGrid label,
+.saleProductPicker label,
+.saleNotes {
+  color: var(--text);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 900;
+  gap: 7px;
+}
+
+.saleNotes textarea {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 76px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.saleNotes textarea:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.saleCartList,
+.salesList {
+  display: grid;
+  gap: 10px;
+}
+
+.saleCartItem {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  padding: 10px;
+}
+
+.saleCartItem div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.saleCartItem strong {
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.saleCartItem span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.saleSummaryBar {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding-top: 14px;
+}
+
+.saleSummaryBar > div {
+  display: grid;
+  gap: 3px;
+}
+
+.saleSummaryBar span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.saleSummaryBar strong {
+  font-size: 1.35rem;
+}
+
+.inlineNotice {
+  background: #e4f3df;
+  border: 1px solid #b9deb0;
+  border-radius: 8px;
+  color: var(--primary-dark);
+  font-size: 0.88rem;
+  font-weight: 900;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.compactEmptyState {
+  box-shadow: none;
+  padding: 16px;
+}
+
+.saleHistoryCard {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.saleHistoryCard h3 {
+  font-size: 1rem;
+  margin: 6px 0 4px;
+}
+
+.saleHistoryCard p,
+.saleHistoryCard span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.saleBadge {
+  background: #dff1ff;
+  border-radius: 999px;
+  color: #195577 !important;
+  display: inline-flex;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  padding: 5px 9px;
+}
+
+.saleHistoryItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.saleHistoryItems span {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 8px;
+}
+
 .customersSection {
   display: grid;
   gap: 20px;
@@ -3124,7 +3325,13 @@ th {
 
   .orderCardHeader,
   .orderCustomerPanel,
-  .orderFollowUp {
+  .orderFollowUp,
+  .salesLayout,
+  .saleFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .saleProductPicker {
     grid-template-columns: 1fr;
   }
 
@@ -3398,8 +3605,20 @@ th {
   .orderStatusControl select,
   .orderCustomerControl,
   .orderFollowUp .secondaryButton,
-  .futureSaleButton {
+  .futureSaleButton,
+  .saleSummaryBar .primaryButton,
+  .saleProductPicker .secondaryButton {
     width: 100%;
+  }
+
+  .saleCartItem {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .saleSummaryBar {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .customerDataGrid {

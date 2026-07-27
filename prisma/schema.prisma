@@ -62,6 +62,7 @@ model Product {
 
   stockMovements StockMovement[]
   orderItems     OrderItem[]
+  saleItems      SaleItem[]
 }
 
 model StockMovement {
@@ -98,6 +99,7 @@ model Customer {
 
   orders  Order[]
   credits Credit[]
+  sales   Sale[]
 }
 
 model Order {
@@ -111,6 +113,7 @@ model Order {
   updatedAt  DateTime     @updatedAt
 
   items OrderItem[]
+  sale  Sale?
 }
 
 model OrderItem {
@@ -121,6 +124,40 @@ model OrderItem {
   productId String
   quantity  Int
   createdAt DateTime @default(now())
+}
+
+model Sale {
+  id         String     @id @default(cuid())
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerId String?
+  order      Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId    String?    @unique
+  source     SaleSource @default(LOCAL)
+  type       SaleType   @default(CASH)
+  status     SaleStatus @default(COMPLETED)
+  notes      String?
+  total      Decimal    @default(0) @db.Decimal(12, 2)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  items SaleItem[]
+}
+
+model SaleItem {
+  id               String   @id @default(cuid())
+  sale             Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId           String
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productId        String
+  productName      String
+  productReference String
+  productCategory  String
+  productClass     String
+  quantity         Int
+  unitPrice        Decimal  @db.Decimal(12, 2)
+  cost             Decimal  @db.Decimal(12, 2)
+  lineTotal        Decimal  @db.Decimal(12, 2)
+  createdAt        DateTime @default(now())
 }
 
 model Credit {
@@ -166,6 +203,24 @@ enum OrderStatus {
 enum OrderChannel {
   WHATSAPP
   STORE
+}
+
+enum SaleSource {
+  LOCAL
+  ORDER
+}
+
+enum SaleType {
+  CASH
+  CREDIT
+  RESERVED
+  CREDIT_CASH
+  SISTECREDITO
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
 }
 
 enum CustomerStatus {
