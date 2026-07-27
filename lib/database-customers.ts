@@ -38,6 +38,7 @@ export async function getCustomers(): Promise<AdminCustomer[]> {
     fullName: customer.fullName,
     document: customer.document ?? "",
     phone: customer.phone,
+    email: customer.email ?? "",
     address: customer.address ?? "",
     neighborhood: customer.neighborhood ?? "",
     city: customer.city ?? "",

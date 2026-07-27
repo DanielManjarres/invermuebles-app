@@ -84,6 +84,7 @@ model Customer {
   fullName          String
   document          String?        @unique
   phone             String
+  email             String?
   address           String?
   neighborhood      String?
   city              String?

@@ -7,6 +7,7 @@ type CustomerRequest = {
   address?: string;
   city?: string;
   document?: string;
+  email?: string;
   fullName?: string;
   id?: string;
   neighborhood?: string;
@@ -33,6 +34,11 @@ function cleanDocument(value?: string) {
   return cleanText(value).replace(/\D/g, "");
 }
 
+function isValidEmail(value?: string) {
+  const email = cleanText(value);
+  return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function validateCustomer(body: CustomerRequest) {
   if (!cleanText(body.fullName)) {
     return "Escribe el nombre completo del cliente.";
@@ -44,6 +50,10 @@ function validateCustomer(body: CustomerRequest) {
 
   if (!cleanText(body.phone)) {
     return "Escribe el telefono del cliente.";
+  }
+
+  if (!isValidEmail(body.email)) {
+    return "Escribe un correo valido para el cliente.";
   }
 
   if (body.status && !validStatuses.has(body.status)) {
@@ -58,6 +68,7 @@ function buildCustomerData(body: CustomerRequest) {
     address: cleanText(body.address) || null,
     city: cleanText(body.city) || null,
     document: cleanDocument(body.document),
+    email: cleanText(body.email).toLowerCase() || null,
     fullName: cleanText(body.fullName),
     neighborhood: cleanText(body.neighborhood) || null,
     notes: cleanText(body.notes) || null,

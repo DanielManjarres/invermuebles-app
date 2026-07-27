@@ -5,6 +5,7 @@ export type AdminCustomer = {
   fullName: string;
   document: string;
   phone: string;
+  email: string;
   address: string;
   neighborhood: string;
   city: string;

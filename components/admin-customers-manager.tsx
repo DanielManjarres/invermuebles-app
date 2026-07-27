@@ -25,6 +25,7 @@ type CustomerFormState = {
   address: string;
   city: string;
   document: string;
+  email: string;
   fullName: string;
   neighborhood: string;
   notes: string;
@@ -43,6 +44,7 @@ const emptyCustomerForm: CustomerFormState = {
   address: "",
   city: "",
   document: "",
+  email: "",
   fullName: "",
   neighborhood: "",
   notes: "",
@@ -81,6 +83,7 @@ function createFormFromCustomer(customer: AdminCustomer): CustomerFormState {
     address: customer.address,
     city: customer.city,
     document: customer.document,
+    email: customer.email,
     fullName: customer.fullName,
     neighborhood: customer.neighborhood,
     notes: customer.notes,
@@ -113,6 +116,7 @@ function buildCustomerFromForm(
     referenceName: cleanText(form.referenceName),
     referencePhone: cleanText(form.referencePhone),
     referenceRelation: cleanText(form.referenceRelation),
+    email: cleanText(form.email).toLowerCase(),
     status: form.status,
     notes: cleanText(form.notes),
     createdAt: base?.createdAt ?? now,
@@ -168,6 +172,7 @@ export function AdminCustomersManager({
           customer.fullName,
           customer.document,
           customer.phone,
+          customer.email,
           customer.address,
           customer.neighborhood,
           customer.city,
@@ -415,6 +420,11 @@ export function AdminCustomersManager({
                 <strong>{selectedCustomer.phone}</strong>
               </div>
               <div>
+                <FileText size={18} />
+                <span>Correo</span>
+                <strong>{selectedCustomer.email || "Sin registrar"}</strong>
+              </div>
+              <div>
                 <MapPin size={18} />
                 <span>Direccion</span>
                 <strong>{selectedCustomer.address || "Sin registrar"}</strong>
@@ -535,6 +545,20 @@ export function AdminCustomersManager({
                     setForm((current) => ({
                       ...current,
                       phone: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Correo
+                <input
+                  placeholder="Ej: cliente@correo.com"
+                  type="email"
+                  value={form.email}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      email: event.target.value,
                     }))
                   }
                 />
