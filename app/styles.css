@@ -2357,59 +2357,63 @@ th {
   grid-template-columns: minmax(320px, 0.85fr) minmax(520px, 1fr);
 }
 
-.customersLayout {
-  align-items: start;
-  display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
-}
-
-.customersList {
+.customerDirectory {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  max-height: 680px;
-  overflow: auto;
-  padding: 8px;
+  overflow: hidden;
 }
 
-.customerListItem {
+.customerDirectoryItem {
   align-items: center;
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--line);
   color: var(--text);
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  padding: 13px 10px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns:
+    minmax(210px, 1.1fr)
+    minmax(130px, 0.7fr)
+    minmax(170px, 0.9fr)
+    minmax(120px, 0.7fr)
+    auto
+    auto;
+  padding: 16px;
   text-align: left;
+  text-decoration: none;
 }
 
-.customerListItem:last-child {
+.customerDirectoryItem:last-child {
   border-bottom: 0;
 }
 
-.customerListItem:hover,
-.customerListItem.active {
+.customerDirectoryItem:hover {
   background: var(--surface-strong);
 }
 
-.customerListItem span:first-child {
+.customerDirectoryName,
+.customerDirectoryMeta {
   display: grid;
   gap: 4px;
   min-width: 0;
 }
 
-.customerListItem strong {
+.customerDirectoryItem strong {
   font-size: 0.95rem;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
-.customerListItem small {
+.customerDirectoryItem small {
   color: var(--muted);
   font-weight: 800;
+}
+
+.customerProfileButton {
+  justify-self: end;
+  min-height: 42px;
 }
 
 .customerStatus {
@@ -2457,10 +2461,28 @@ th {
   justify-content: space-between;
 }
 
+.customerProfileHeader h2,
 .customerProfileHeader h3 {
   font-size: clamp(1.45rem, 3vw, 2rem);
   line-height: 1.08;
   margin: 0 0 10px;
+}
+
+.customerDetailProfile {
+  margin-top: 18px;
+}
+
+.backLink {
+  align-items: center;
+  color: var(--primary);
+  display: inline-flex;
+  font-weight: 900;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
 }
 
 .customerDataGrid,
@@ -2991,7 +3013,7 @@ th {
   }
 
   .customerToolbar,
-  .customersLayout,
+  .customerDirectoryItem,
   .customerHistoryGrid {
     grid-template-columns: 1fr;
   }
@@ -3244,13 +3266,17 @@ th {
     grid-template-columns: 1fr;
   }
 
-  .customerProfileHeader,
-  .customerListItem {
+  .customerProfileHeader {
     align-items: flex-start;
     flex-direction: column;
   }
 
+  .customerDirectoryItem {
+    align-items: flex-start;
+  }
+
   .customerProfileHeader .secondaryButton,
+  .customerProfileButton,
   .customerToolbar .searchBox {
     width: 100%;
   }

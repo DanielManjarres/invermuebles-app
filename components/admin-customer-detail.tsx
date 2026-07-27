@@ -1,14 +1,21 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Eye,
-  Plus,
-  Search,
+  ArrowLeft,
+  BadgeCheck,
+  Ban,
+  CreditCard,
+  Edit3,
+  FileText,
+  MapPin,
+  Phone,
+  UserRound,
 } from "lucide-react";
 import {
+  customerStatusDescriptions,
   customerStatusLabels,
   type AdminCustomer,
 } from "@/lib/customers";
@@ -29,23 +36,8 @@ type CustomerFormState = {
   status: AdminCustomer["status"];
 };
 
-type AdminCustomersManagerProps = {
-  customers: AdminCustomer[];
-};
-
-const emptyCustomerForm: CustomerFormState = {
-  address: "",
-  city: "",
-  document: "",
-  email: "",
-  fullName: "",
-  neighborhood: "",
-  notes: "",
-  phone: "",
-  referenceName: "",
-  referencePhone: "",
-  referenceRelation: "",
-  status: "ACTIVE",
+type AdminCustomerDetailProps = {
+  customer: AdminCustomer;
 };
 
 const customerStatuses: AdminCustomer["status"][] = [
@@ -64,64 +56,57 @@ function cleanText(value: string) {
   return value.trim().replace(/\s+/g, " ");
 }
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+function createFormFromCustomer(customer: AdminCustomer): CustomerFormState {
+  return {
+    address: customer.address,
+    city: customer.city,
+    document: customer.document,
+    email: customer.email,
+    fullName: customer.fullName,
+    neighborhood: customer.neighborhood,
+    notes: customer.notes,
+    phone: customer.phone,
+    referenceName: customer.referenceName,
+    referencePhone: customer.referencePhone,
+    referenceRelation: customer.referenceRelation,
+    status: customer.status,
+  };
 }
 
 function buildCustomerFromForm(
   form: CustomerFormState,
-  id: string,
-  base?: AdminCustomer
+  base: AdminCustomer
 ): AdminCustomer {
-  const now = new Date().toLocaleString("es-CO", {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
-
   return {
-    id,
-    fullName: cleanText(form.fullName),
-    document: cleanText(form.document).replace(/\D/g, ""),
-    phone: cleanText(form.phone),
+    ...base,
     address: cleanText(form.address),
-    neighborhood: cleanText(form.neighborhood),
     city: cleanText(form.city),
+    document: cleanText(form.document).replace(/\D/g, ""),
+    email: cleanText(form.email).toLowerCase(),
+    fullName: cleanText(form.fullName),
+    neighborhood: cleanText(form.neighborhood),
+    notes: cleanText(form.notes),
+    phone: cleanText(form.phone),
     referenceName: cleanText(form.referenceName),
     referencePhone: cleanText(form.referencePhone),
     referenceRelation: cleanText(form.referenceRelation),
-    email: cleanText(form.email).toLowerCase(),
     status: form.status,
-    notes: cleanText(form.notes),
-    createdAt: base?.createdAt ?? now,
-    updatedAt: now,
-    ordersCount: base?.ordersCount ?? 0,
-    creditsCount: base?.creditsCount ?? 0,
-    activeCreditsCount: base?.activeCreditsCount ?? 0,
-    lastOrderAt: base?.lastOrderAt ?? "Sin registros",
+    updatedAt: new Date().toLocaleString("es-CO", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }),
   };
 }
 
-export function AdminCustomersManager({
-  customers: initialCustomers,
-}: AdminCustomersManagerProps) {
-  const [customers, setCustomers] = useState(initialCustomers);
-  const [query, setQuery] = useState("");
-  const [activeStatus, setActiveStatus] = useState<AdminCustomer["status"] | "ALL">(
-    "ALL"
+export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
+  const [currentCustomer, setCurrentCustomer] = useState(customer);
+  const [form, setForm] = useState<CustomerFormState>(
+    createFormFromCustomer(customer)
   );
-  const [form, setForm] = useState<CustomerFormState>(emptyCustomerForm);
-  const [editingCustomerId, setEditingCustomerId] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
-
-  useEffect(() => {
-    setCustomers(initialCustomers);
-  }, [initialCustomers]);
 
   useEffect(() => {
     if (!notice) {
@@ -132,50 +117,8 @@ export function AdminCustomersManager({
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const filteredCustomers = useMemo(() => {
-    const normalizedQuery = normalize(query.trim());
-
-    return customers.filter((customer) => {
-      const matchesStatus =
-        activeStatus === "ALL" || customer.status === activeStatus;
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        [
-          customer.fullName,
-          customer.document,
-          customer.phone,
-          customer.email,
-          customer.address,
-          customer.neighborhood,
-          customer.city,
-          customer.referenceName,
-          customer.referenceRelation,
-          customer.referencePhone,
-        ]
-          .join(" ")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .includes(normalizedQuery);
-
-      return matchesStatus && matchesQuery;
-    });
-  }, [activeStatus, customers, query]);
-
-  const customerStats = useMemo(
-    () => ({
-      total: customers.length,
-      active: customers.filter((customer) => customer.status === "ACTIVE").length,
-      overdue: customers.filter((customer) => customer.status === "OVERDUE").length,
-      withCredits: customers.filter((customer) => customer.activeCreditsCount > 0)
-        .length,
-    }),
-    [customers]
-  );
-
-  function openCreateForm() {
-    setForm(emptyCustomerForm);
-    setEditingCustomerId("");
+  function openEditForm() {
+    setForm(createFormFromCustomer(currentCustomer));
     setFormError("");
     setIsFormOpen(true);
   }
@@ -204,10 +147,10 @@ export function AdminCustomersManager({
     const response = await fetch("/api/customers", {
       body: JSON.stringify({
         ...form,
-        id: editingCustomerId || undefined,
+        id: currentCustomer.id,
       }),
       headers: { "Content-Type": "application/json" },
-      method: editingCustomerId ? "PUT" : "POST",
+      method: "PUT",
     });
     const result = (await response.json()) as { id?: string; message?: string };
 
@@ -218,156 +161,124 @@ export function AdminCustomersManager({
       return;
     }
 
-    const existingCustomer = customers.find(
-      (customer) => customer.id === editingCustomerId
-    );
-    const savedCustomer = buildCustomerFromForm(
-      form,
-      result.id,
-      existingCustomer
-    );
-
-    setCustomers((currentCustomers) => {
-      if (editingCustomerId) {
-        return currentCustomers.map((customer) =>
-          customer.id === editingCustomerId ? savedCustomer : customer
-        );
-      }
-
-      return [savedCustomer, ...currentCustomers];
-    });
+    const savedCustomer = buildCustomerFromForm(form, currentCustomer);
+    setCurrentCustomer(savedCustomer);
     setIsFormOpen(false);
-    setNotice(
-      editingCustomerId
-        ? `${savedCustomer.fullName} fue actualizado.`
-        : `${savedCustomer.fullName} fue registrado.`
-    );
+    setNotice(`${savedCustomer.fullName} fue actualizado.`);
   }
 
   return (
     <section className="tableSection customersSection">
-      <div className="movementSummaryGrid" aria-label="Resumen de clientes">
-        <article>
-          <span>Total clientes</span>
-          <strong>{customerStats.total}</strong>
-        </article>
-        <article>
-          <span>Activos</span>
-          <strong>{customerStats.active}</strong>
-        </article>
-        <article>
-          <span>En mora</span>
-          <strong>{customerStats.overdue}</strong>
-        </article>
-        <article>
-          <span>Creditos activos</span>
-          <strong>{customerStats.withCredits}</strong>
-        </article>
-      </div>
-
-      <div className="sectionHeader customersHeader">
-        <div>
-          <p className="eyebrow">Gestion comercial</p>
-          <h2>Clientes registrados</h2>
-        </div>
-        <button className="primaryButton" type="button" onClick={openCreateForm}>
-          <Plus size={20} />
-          Nuevo cliente
-        </button>
-      </div>
-
       {notice ? (
-        <div className="orderToast" role="status">
+        <div className="orderToast floatingToast" role="status">
           <span>{notice}</span>
         </div>
       ) : null}
 
-      <div className="inventoryToolbar customerToolbar">
-        <label className="searchBox">
-          <Search size={18} />
-          <input
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por cedula, nombre, telefono o ciudad"
-            type="search"
-            value={query}
-          />
-        </label>
+      <Link className="backLink" href="/admin/clientes">
+        <ArrowLeft size={18} />
+        Volver a clientes
+      </Link>
 
-        <div className="inventoryFilters" aria-label="Filtros de clientes">
-          <button
-            className={activeStatus === "ALL" ? "filterButton active" : "filterButton"}
-            type="button"
-            onClick={() => setActiveStatus("ALL")}
-          >
-            Todos
+      <article className="customerProfile customerDetailProfile">
+        <div className="customerProfileHeader">
+          <div>
+            <p className="eyebrow">Perfil del cliente</p>
+            <h2>{currentCustomer.fullName}</h2>
+            <span className={`customerStatus ${currentCustomer.status.toLowerCase()}`}>
+              {customerStatusLabels[currentCustomer.status]}
+            </span>
+          </div>
+          <button className="secondaryButton" type="button" onClick={openEditForm}>
+            <Edit3 size={18} />
+            Editar
           </button>
-          {customerStatuses.map((status) => (
-            <button
-              className={
-                activeStatus === status ? "filterButton active" : "filterButton"
-              }
-              key={status}
-              type="button"
-              onClick={() => setActiveStatus(status)}
-            >
-              {customerStatusLabels[status]}
-            </button>
-          ))}
         </div>
-      </div>
 
-      <div className="customerDirectory" aria-label="Lista de clientes">
-          {filteredCustomers.length === 0 ? (
-            <div className="emptyState">
-              <h2>No hay clientes registrados</h2>
-              <p>Cuando registres clientes, apareceran en esta pantalla.</p>
-            </div>
-          ) : (
-            filteredCustomers.map((customer) => (
-              <Link
-                className="customerDirectoryItem"
-                href={`/admin/clientes/${customer.id}`}
-                key={customer.id}
-              >
-                <span className="customerDirectoryName">
-                  <strong>{customer.fullName}</strong>
-                  <small>CC {customer.document}</small>
-                </span>
-                <span className="customerDirectoryMeta">
-                  <small>Telefono</small>
-                  <strong>{customer.phone}</strong>
-                </span>
-                <span className="customerDirectoryMeta">
-                  <small>Correo</small>
-                  <strong>{customer.email || "Sin registrar"}</strong>
-                </span>
-                <span className="customerDirectoryMeta">
-                  <small>Ciudad</small>
-                  <strong>{customer.city || "Sin registrar"}</strong>
-                </span>
-                <span className={`customerStatus ${customer.status.toLowerCase()}`}>
-                  {customerStatusLabels[customer.status]}
-                </span>
-                <span className="secondaryButton customerProfileButton">
-                  <Eye size={17} />
-                  Ver perfil
-                </span>
-              </Link>
-            ))
-          )}
-      </div>
+        <div className="customerDataGrid">
+          <div>
+            <FileText size={18} />
+            <span>Cedula</span>
+            <strong>{currentCustomer.document}</strong>
+          </div>
+          <div>
+            <Phone size={18} />
+            <span>Telefono</span>
+            <strong>{currentCustomer.phone}</strong>
+          </div>
+          <div>
+            <FileText size={18} />
+            <span>Correo</span>
+            <strong>{currentCustomer.email || "Sin registrar"}</strong>
+          </div>
+          <div>
+            <MapPin size={18} />
+            <span>Direccion</span>
+            <strong>{currentCustomer.address || "Sin registrar"}</strong>
+          </div>
+          <div>
+            <UserRound size={18} />
+            <span>Barrio / ciudad</span>
+            <strong>
+              {[currentCustomer.neighborhood, currentCustomer.city]
+                .filter(Boolean)
+                .join(" - ") || "Sin registrar"}
+            </strong>
+          </div>
+        </div>
+
+        <div className="customerNotes">
+          <strong>Contacto de referencia</strong>
+          <p>
+            {currentCustomer.referenceName
+              ? [
+                  currentCustomer.referenceName,
+                  currentCustomer.referenceRelation,
+                  currentCustomer.referencePhone,
+                ]
+                  .filter(Boolean)
+                  .join(" - ")
+              : "Sin contacto de referencia registrado."}
+          </p>
+        </div>
+
+        <div className="customerNotes">
+          <strong>Observaciones</strong>
+          <p>
+            {currentCustomer.notes ||
+              customerStatusDescriptions[currentCustomer.status]}
+          </p>
+        </div>
+
+        <div className="customerHistoryGrid">
+          <article>
+            <BadgeCheck size={20} />
+            <span>Compras / pedidos</span>
+            <strong>{currentCustomer.ordersCount}</strong>
+            <small>Ultimo pedido: {currentCustomer.lastOrderAt}</small>
+          </article>
+          <article>
+            <CreditCard size={20} />
+            <span>Creditos registrados</span>
+            <strong>{currentCustomer.creditsCount}</strong>
+            <small>Activos o en mora: {currentCustomer.activeCreditsCount}</small>
+          </article>
+          <article>
+            <Ban size={20} />
+            <span>Pagos y cartera</span>
+            <strong>Proxima fase</strong>
+            <small>Aqui se veran cuotas, pagos y atrasos.</small>
+          </article>
+        </div>
+      </article>
 
       {isFormOpen ? (
         <div className="modalOverlay" role="presentation">
           <form className="adminModal customerModal" onSubmit={handleCustomerSubmit}>
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">
-                  {editingCustomerId ? "Editar cliente" : "Nuevo cliente"}
-                </p>
-                <h2>
-                  {editingCustomerId ? "Actualizar cliente" : "Registrar cliente"}
-                </h2>
+                <p className="eyebrow">Editar cliente</p>
+                <h2>Actualizar cliente</h2>
               </div>
               <button
                 aria-label="Cerrar formulario"
