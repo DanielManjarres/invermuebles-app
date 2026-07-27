@@ -80,13 +80,18 @@ model StockMovement {
 }
 
 model Customer {
-  id        String   @id @default(cuid())
-  fullName  String
-  document  String?
-  phone     String
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String         @id @default(cuid())
+  fullName          String
+  document          String?        @unique
+  phone             String
+  address           String?
+  neighborhood      String?
+  city              String?
+  contactReferences String?
+  status            CustomerStatus @default(ACTIVE)
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   orders  Order[]
   credits Credit[]
@@ -158,6 +163,13 @@ enum OrderStatus {
 enum OrderChannel {
   WHATSAPP
   STORE
+}
+
+enum CustomerStatus {
+  ACTIVE
+  OVERDUE
+  INACTIVE
+  BLOCKED
 }
 
 enum CreditStatus {

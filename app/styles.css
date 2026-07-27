@@ -1501,7 +1501,8 @@ th {
 .adminFormGrid input,
 .adminFormGrid select,
 .adminFormGrid textarea,
-.adminFormSingle input {
+.adminFormSingle input,
+.adminFormSingle textarea {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1510,7 +1511,8 @@ th {
   padding: 0 12px;
 }
 
-.adminFormGrid textarea {
+.adminFormGrid textarea,
+.adminFormSingle textarea {
   min-height: 82px;
   padding: 12px;
   resize: vertical;
@@ -1519,7 +1521,8 @@ th {
 .adminFormGrid input:focus,
 .adminFormGrid select:focus,
 .adminFormGrid textarea:focus,
-.adminFormSingle input:focus {
+.adminFormSingle input:focus,
+.adminFormSingle textarea:focus {
   border-color: var(--primary);
   outline: 3px solid rgba(7, 85, 42, 0.12);
 }
@@ -2342,6 +2345,179 @@ th {
   opacity: 0.78;
 }
 
+.customersSection {
+  padding-top: 42px;
+}
+
+.customersHeader {
+  align-items: center;
+}
+
+.customerToolbar {
+  grid-template-columns: minmax(320px, 0.85fr) minmax(520px, 1fr);
+}
+
+.customersLayout {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
+}
+
+.customersList {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  max-height: 680px;
+  overflow: auto;
+  padding: 8px;
+}
+
+.customerListItem {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 13px 10px;
+  text-align: left;
+}
+
+.customerListItem:last-child {
+  border-bottom: 0;
+}
+
+.customerListItem:hover,
+.customerListItem.active {
+  background: var(--surface-strong);
+}
+
+.customerListItem span:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.customerListItem strong {
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.customerListItem small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.customerStatus {
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 6px 10px;
+}
+
+.customerStatus.active {
+  background: #e4f3df;
+  color: var(--primary);
+}
+
+.customerStatus.overdue {
+  background: #fff1d8;
+  color: #7c4d05;
+}
+
+.customerStatus.inactive {
+  background: #edf0ed;
+  color: var(--muted);
+}
+
+.customerStatus.blocked {
+  background: #fae4df;
+  color: #9b2924;
+}
+
+.customerProfile {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.customerProfileHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.customerProfileHeader h3 {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.08;
+  margin: 0 0 10px;
+}
+
+.customerDataGrid,
+.customerHistoryGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.customerHistoryGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.customerDataGrid div,
+.customerHistoryGrid article,
+.customerNotes {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.customerDataGrid svg,
+.customerHistoryGrid svg {
+  color: var(--primary);
+}
+
+.customerDataGrid span,
+.customerHistoryGrid span,
+.customerNotes strong {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.customerDataGrid strong,
+.customerHistoryGrid strong {
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.customerHistoryGrid small,
+.customerNotes p {
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.customerModal {
+  max-width: 860px;
+  width: min(100%, 860px);
+}
+
 .cartLayout {
   align-items: start;
   display: grid;
@@ -2814,6 +2990,12 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .customerToolbar,
+  .customersLayout,
+  .customerHistoryGrid {
+    grid-template-columns: 1fr;
+  }
+
   .inventoryFilters,
   .ordersSection .inventoryFilters {
     flex-wrap: wrap;
@@ -3055,6 +3237,21 @@ th {
   .orderStatusControl select,
   .orderFollowUp .secondaryButton,
   .futureSaleButton {
+    width: 100%;
+  }
+
+  .customerDataGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .customerProfileHeader,
+  .customerListItem {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .customerProfileHeader .secondaryButton,
+  .customerToolbar .searchBox {
     width: 100%;
   }
 
