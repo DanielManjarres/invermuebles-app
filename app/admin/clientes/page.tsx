@@ -18,8 +18,8 @@ export default async function AdminCustomersPage() {
             <p className="eyebrow">Panel administrativo</p>
             <h1>Clientes</h1>
             <p>
-              Consulta, registra y actualiza la informacion de los clientes del
-              almacen.
+              Consulta, registra y actualiza la información de los clientes del
+              almacén.
             </p>
           </div>
           <LogoutButton />

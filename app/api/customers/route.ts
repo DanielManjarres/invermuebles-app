@@ -45,11 +45,11 @@ function validateCustomer(body: CustomerRequest) {
   }
 
   if (!cleanDocument(body.document)) {
-    return "Escribe la cedula del cliente.";
+    return "Escribe la cédula del cliente.";
   }
 
   if (!cleanText(body.phone)) {
-    return "Escribe el telefono del cliente.";
+    return "Escribe el teléfono del cliente.";
   }
 
   if (!isValidEmail(body.email)) {
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
 
   if (existingCustomer) {
     return NextResponse.json(
-      { message: "Ya existe un cliente con esa cedula." },
+      { message: "Ya existe un cliente con esa cédula." },
       { status: 409 }
     );
   }
@@ -135,7 +135,7 @@ export async function PUT(request: Request) {
 
   if (customerWithSameDocument && customerWithSameDocument.id !== body.id) {
     return NextResponse.json(
-      { message: "Ya existe otro cliente con esa cedula." },
+      { message: "Ya existe otro cliente con esa cédula." },
       { status: 409 }
     );
   }

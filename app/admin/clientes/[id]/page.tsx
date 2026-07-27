@@ -32,7 +32,7 @@ export default async function AdminCustomerDetailPage({
             <p className="eyebrow">Panel administrativo</p>
             <h1>Perfil del cliente</h1>
             <p>
-              Consulta la informacion completa del cliente y actualiza sus datos
+              Consulta la información completa del cliente y actualiza sus datos
               cuando sea necesario.
             </p>
           </div>

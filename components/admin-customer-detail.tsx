@@ -133,12 +133,12 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
     }
 
     if (!cleanText(form.document).replace(/\D/g, "")) {
-      setFormError("Escribe la cedula del cliente.");
+      setFormError("Escribe la cédula del cliente.");
       return;
     }
 
     if (!cleanText(form.phone)) {
-      setFormError("Escribe el telefono del cliente.");
+      setFormError("Escribe el teléfono del cliente.");
       return;
     }
 
@@ -198,12 +198,12 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
         <div className="customerDataGrid">
           <div>
             <FileText size={18} />
-            <span>Cedula</span>
+            <span>Cédula</span>
             <strong>{currentCustomer.document}</strong>
           </div>
           <div>
             <Phone size={18} />
-            <span>Telefono</span>
+            <span>Teléfono</span>
             <strong>{currentCustomer.phone}</strong>
           </div>
           <div>
@@ -213,7 +213,7 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
           </div>
           <div>
             <MapPin size={18} />
-            <span>Direccion</span>
+            <span>Dirección</span>
             <strong>{currentCustomer.address || "Sin registrar"}</strong>
           </div>
           <div>
@@ -255,19 +255,19 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
             <BadgeCheck size={20} />
             <span>Compras / pedidos</span>
             <strong>{currentCustomer.ordersCount}</strong>
-            <small>Ultimo pedido: {currentCustomer.lastOrderAt}</small>
+            <small>Último pedido: {currentCustomer.lastOrderAt}</small>
           </article>
           <article>
             <CreditCard size={20} />
-            <span>Creditos registrados</span>
+            <span>Créditos registrados</span>
             <strong>{currentCustomer.creditsCount}</strong>
             <small>Activos o en mora: {currentCustomer.activeCreditsCount}</small>
           </article>
           <article>
             <Ban size={20} />
             <span>Pagos y cartera</span>
-            <strong>Proxima fase</strong>
-            <small>Aqui se veran cuotas, pagos y atrasos.</small>
+            <strong>Próxima fase</strong>
+            <small>Aquí se verán cuotas, pagos y atrasos.</small>
           </article>
         </div>
       </article>
@@ -362,7 +362,7 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
                 />
               </label>
               <label>
-                Direccion
+                Dirección
                 <input
                   placeholder="Ej: Carrera 25 #33-44"
                   value={form.address}

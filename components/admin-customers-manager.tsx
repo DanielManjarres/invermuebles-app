@@ -190,12 +190,12 @@ export function AdminCustomersManager({
     }
 
     if (!cleanText(form.document).replace(/\D/g, "")) {
-      setFormError("Escribe la cedula del cliente.");
+      setFormError("Escribe la cédula del cliente.");
       return;
     }
 
     if (!cleanText(form.phone)) {
-      setFormError("Escribe el telefono del cliente.");
+      setFormError("Escribe el teléfono del cliente.");
       return;
     }
 
@@ -260,14 +260,14 @@ export function AdminCustomersManager({
           <strong>{customerStats.overdue}</strong>
         </article>
         <article>
-          <span>Creditos activos</span>
+          <span>Créditos activos</span>
           <strong>{customerStats.withCredits}</strong>
         </article>
       </div>
 
       <div className="sectionHeader customersHeader">
         <div>
-          <p className="eyebrow">Gestion comercial</p>
+          <p className="eyebrow">Gestión comercial</p>
           <h2>Clientes registrados</h2>
         </div>
         <button className="primaryButton" type="button" onClick={openCreateForm}>
@@ -287,7 +287,7 @@ export function AdminCustomersManager({
           <Search size={18} />
           <input
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por cedula, nombre o telefono"
+            placeholder="Buscar por cédula, nombre o teléfono"
             type="search"
             value={query}
           />
@@ -447,7 +447,7 @@ export function AdminCustomersManager({
                 />
               </label>
               <label>
-                Direccion
+                Dirección
                 <input
                   placeholder="Ej: Carrera 25 #33-44"
                   value={form.address}
