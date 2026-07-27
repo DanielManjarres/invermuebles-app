@@ -8,7 +8,9 @@ export type AdminCustomer = {
   address: string;
   neighborhood: string;
   city: string;
-  contactReferences: string;
+  referenceName: string;
+  referenceRelation: string;
+  referencePhone: string;
   status: CustomerStatus;
   notes: string;
   createdAt: string;

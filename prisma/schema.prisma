@@ -87,7 +87,9 @@ model Customer {
   address           String?
   neighborhood      String?
   city              String?
-  contactReferences String?
+  referenceName     String?
+  referenceRelation String?
+  referencePhone    String?
   status            CustomerStatus @default(ACTIVE)
   notes             String?
   createdAt         DateTime       @default(now())

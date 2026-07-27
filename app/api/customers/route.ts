@@ -6,13 +6,15 @@ import { prisma } from "@/lib/prisma";
 type CustomerRequest = {
   address?: string;
   city?: string;
-  contactReferences?: string;
   document?: string;
   fullName?: string;
   id?: string;
   neighborhood?: string;
   notes?: string;
   phone?: string;
+  referenceName?: string;
+  referencePhone?: string;
+  referenceRelation?: string;
   status?: CustomerStatus;
 };
 
@@ -55,12 +57,14 @@ function buildCustomerData(body: CustomerRequest) {
   return {
     address: cleanText(body.address) || null,
     city: cleanText(body.city) || null,
-    contactReferences: cleanText(body.contactReferences) || null,
     document: cleanDocument(body.document),
     fullName: cleanText(body.fullName),
     neighborhood: cleanText(body.neighborhood) || null,
     notes: cleanText(body.notes) || null,
     phone: cleanText(body.phone),
+    referenceName: cleanText(body.referenceName) || null,
+    referencePhone: cleanText(body.referencePhone) || null,
+    referenceRelation: cleanText(body.referenceRelation) || null,
     status: body.status && validStatuses.has(body.status) ? body.status : "ACTIVE",
   };
 }

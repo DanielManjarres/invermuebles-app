@@ -23,12 +23,14 @@ import {
 type CustomerFormState = {
   address: string;
   city: string;
-  contactReferences: string;
   document: string;
   fullName: string;
   neighborhood: string;
   notes: string;
   phone: string;
+  referenceName: string;
+  referencePhone: string;
+  referenceRelation: string;
   status: AdminCustomer["status"];
 };
 
@@ -39,12 +41,14 @@ type AdminCustomersManagerProps = {
 const emptyCustomerForm: CustomerFormState = {
   address: "",
   city: "",
-  contactReferences: "",
   document: "",
   fullName: "",
   neighborhood: "",
   notes: "",
   phone: "",
+  referenceName: "",
+  referencePhone: "",
+  referenceRelation: "",
   status: "ACTIVE",
 };
 
@@ -70,12 +74,14 @@ function createFormFromCustomer(customer: AdminCustomer): CustomerFormState {
   return {
     address: customer.address,
     city: customer.city,
-    contactReferences: customer.contactReferences,
     document: customer.document,
     fullName: customer.fullName,
     neighborhood: customer.neighborhood,
     notes: customer.notes,
     phone: customer.phone,
+    referenceName: customer.referenceName,
+    referencePhone: customer.referencePhone,
+    referenceRelation: customer.referenceRelation,
     status: customer.status,
   };
 }
@@ -98,7 +104,9 @@ function buildCustomerFromForm(
     address: cleanText(form.address),
     neighborhood: cleanText(form.neighborhood),
     city: cleanText(form.city),
-    contactReferences: cleanText(form.contactReferences),
+    referenceName: cleanText(form.referenceName),
+    referencePhone: cleanText(form.referencePhone),
+    referenceRelation: cleanText(form.referenceRelation),
     status: form.status,
     notes: cleanText(form.notes),
     createdAt: base?.createdAt ?? now,
@@ -157,6 +165,9 @@ export function AdminCustomersManager({
           customer.address,
           customer.neighborhood,
           customer.city,
+          customer.referenceName,
+          customer.referenceRelation,
+          customer.referencePhone,
         ]
           .join(" ")
           .normalize("NFD")
@@ -414,8 +425,18 @@ export function AdminCustomersManager({
             </div>
 
             <div className="customerNotes">
-              <strong>Referencias de contacto</strong>
-              <p>{selectedCustomer.contactReferences || "Sin referencias registradas."}</p>
+              <strong>Contacto de referencia</strong>
+              <p>
+                {selectedCustomer.referenceName
+                  ? [
+                      selectedCustomer.referenceName,
+                      selectedCustomer.referenceRelation,
+                      selectedCustomer.referencePhone,
+                    ]
+                      .filter(Boolean)
+                      .join(" - ")
+                  : "Sin contacto de referencia registrado."}
+              </p>
             </div>
 
             <div className="customerNotes">
@@ -570,14 +591,40 @@ export function AdminCustomersManager({
                 />
               </label>
               <label>
-                Referencias de contacto
+                Nombre del contacto de referencia
                 <input
-                  placeholder="Ej: Familiar, vecino o contacto alterno"
-                  value={form.contactReferences}
+                  placeholder="Ej: Maria Gomez"
+                  value={form.referenceName}
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      contactReferences: event.target.value,
+                      referenceName: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Relacion con el cliente
+                <input
+                  placeholder="Ej: Madre, hermano, vecino"
+                  value={form.referenceRelation}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      referenceRelation: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Telefono del contacto
+                <input
+                  placeholder="Ej: 310 555 1234"
+                  value={form.referencePhone}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      referencePhone: event.target.value,
                     }))
                   }
                 />
