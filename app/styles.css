@@ -2444,10 +2444,25 @@ th {
 
 .customerToolbar {
   align-items: center;
-  gap: 12px;
-  grid-template-columns: minmax(340px, 0.78fr) minmax(420px, 1fr);
+  gap: 14px;
+  grid-template-columns: minmax(300px, 0.58fr) minmax(610px, 1fr);
   margin-bottom: 0;
   padding: 12px;
+}
+
+.customerToolbar .searchBox {
+  max-width: 430px;
+}
+
+.customerToolbar .inventoryFilters {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.customerToolbar .filterButton {
+  min-height: 40px;
+  padding: 0 14px;
+  white-space: nowrap;
 }
 
 .customerDirectory {
@@ -2509,8 +2524,8 @@ th {
 
 .customerProfileButton {
   justify-self: end;
-  min-height: 38px;
-  padding-inline: 14px;
+  min-height: 36px;
+  padding-inline: 12px;
   white-space: nowrap;
 }
 
@@ -3133,9 +3148,14 @@ th {
   }
 
   .inventoryFilters,
-  .ordersSection .inventoryFilters {
+  .ordersSection .inventoryFilters,
+  .customerToolbar .inventoryFilters {
     flex-wrap: wrap;
     justify-content: flex-start;
+  }
+
+  .customerToolbar .searchBox {
+    max-width: none;
   }
 
   .inventoryShortcut {
