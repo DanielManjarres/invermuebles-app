@@ -12,7 +12,7 @@ export default async function AdminCustomersPage() {
     <main>
       <SiteHeader active="clientes" variant="admin" />
 
-      <section className="pageHeader">
+      <section className="pageHeader customersPageHeader">
         <div className="pageHeaderRow">
           <div>
             <p className="eyebrow">Panel administrativo</p>

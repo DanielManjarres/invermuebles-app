@@ -631,6 +631,15 @@ p {
   max-width: 850px;
 }
 
+.customersPageHeader {
+  padding-bottom: 36px;
+  padding-top: 36px;
+}
+
+.customersPageHeader h1 {
+  font-size: clamp(2rem, 4vw, 2.7rem);
+}
+
 .inventoryHeader {
   align-items: flex-end;
 }
@@ -2397,15 +2406,46 @@ th {
 }
 
 .customersSection {
-  padding-top: 42px;
+  display: grid;
+  gap: 20px;
+  max-width: 1100px;
+  padding-top: 34px;
+}
+
+.customersSection .movementSummaryGrid {
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.customersSection .movementSummaryGrid article {
+  min-height: 82px;
+  padding: 14px 16px;
+}
+
+.customersSection .movementSummaryGrid strong {
+  font-size: 1.55rem;
 }
 
 .customersHeader {
-  align-items: center;
+  align-items: end;
+  margin-bottom: 0;
+}
+
+.customersHeader h2 {
+  font-size: clamp(2rem, 4vw, 2.65rem);
+}
+
+.customersHeader .primaryButton {
+  min-height: 46px;
+  padding-inline: 18px;
 }
 
 .customerToolbar {
-  grid-template-columns: minmax(320px, 0.85fr) minmax(520px, 1fr);
+  align-items: center;
+  gap: 12px;
+  grid-template-columns: minmax(320px, 0.75fr) minmax(430px, 1fr);
+  margin-bottom: 0;
+  padding: 12px;
 }
 
 .customerDirectory {
@@ -2423,15 +2463,15 @@ th {
   border-bottom: 1px solid var(--line);
   color: var(--text);
   display: grid;
-  gap: 16px;
+  gap: 12px;
   grid-template-columns:
-    minmax(210px, 1.1fr)
-    minmax(130px, 0.7fr)
-    minmax(170px, 0.9fr)
-    minmax(120px, 0.7fr)
-    auto
-    auto;
-  padding: 16px;
+    minmax(230px, 1.25fr)
+    minmax(120px, 0.66fr)
+    minmax(190px, 1fr)
+    minmax(115px, 0.58fr)
+    minmax(90px, auto)
+    minmax(128px, auto);
+  padding: 14px 16px;
   text-align: left;
   text-decoration: none;
 }
@@ -2447,24 +2487,29 @@ th {
 .customerDirectoryName,
 .customerDirectoryMeta {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 
 .customerDirectoryItem strong {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .customerDirectoryItem small {
   color: var(--muted);
+  font-size: 0.78rem;
   font-weight: 800;
+  line-height: 1.25;
 }
 
 .customerProfileButton {
   justify-self: end;
-  min-height: 42px;
+  min-height: 38px;
+  padding-inline: 12px;
 }
 
 .customerStatus {
@@ -2473,6 +2518,7 @@ th {
   flex: 0 0 auto;
   font-size: 0.76rem;
   font-weight: 900;
+  justify-self: start;
   padding: 6px 10px;
 }
 
@@ -3068,6 +3114,20 @@ th {
   .customerDirectoryItem,
   .customerHistoryGrid {
     grid-template-columns: 1fr;
+  }
+
+  .customersSection {
+    max-width: 760px;
+  }
+
+  .customerDirectoryItem {
+    gap: 10px;
+  }
+
+  .customerDirectoryItem strong {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .inventoryFilters,
