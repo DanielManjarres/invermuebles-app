@@ -290,7 +290,7 @@ export function AdminCustomersManager({
           <strong>{customerStats.overdue}</strong>
         </article>
         <article>
-          <span>Con creditos</span>
+          <span>Creditos activos</span>
           <strong>{customerStats.withCredits}</strong>
         </article>
       </div>
@@ -453,7 +453,7 @@ export function AdminCustomersManager({
               </article>
               <article>
                 <CreditCard size={20} />
-                <span>Creditos</span>
+                <span>Creditos registrados</span>
                 <strong>{selectedCustomer.creditsCount}</strong>
                 <small>Activos o en mora: {selectedCustomer.activeCreditsCount}</small>
               </article>
