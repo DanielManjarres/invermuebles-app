@@ -75,6 +75,97 @@ function normalizeText(value: string) {
   return value.trim().toLowerCase();
 }
 
+function formatNumericInput(value: number) {
+  return new Intl.NumberFormat("es-CO", {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+type MoneyInputProps = {
+  value: number;
+  onValueChange: (value: number) => void;
+};
+
+function MoneyInput({ value, onValueChange }: MoneyInputProps) {
+  const [textValue, setTextValue] = useState(
+    value > 0 ? formatNumericInput(value) : ""
+  );
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setTextValue(value > 0 ? formatNumericInput(value) : "");
+    }
+  }, [isFocused, value]);
+
+  function handleChange(nextValue: string) {
+    const digits = nextValue.replace(/\D/g, "");
+    setTextValue(digits);
+    onValueChange(digits ? Number(digits) : 0);
+  }
+
+  return (
+    <input
+      aria-label="Valor en pesos"
+      autoComplete="off"
+      inputMode="numeric"
+      onBlur={() => {
+        setIsFocused(false);
+        setTextValue(value > 0 ? formatNumericInput(value) : "");
+      }}
+      onChange={(event) => handleChange(event.target.value)}
+      onFocus={() => {
+        setIsFocused(true);
+        setTextValue(value > 0 ? String(value) : "");
+      }}
+      placeholder="0"
+      type="text"
+      value={textValue}
+    />
+  );
+}
+
+type QuantityInputProps = {
+  max: number;
+  value: number;
+  onValueChange: (value: number) => void;
+};
+
+function QuantityInput({ max, value, onValueChange }: QuantityInputProps) {
+  const [textValue, setTextValue] = useState(String(value));
+
+  useEffect(() => {
+    setTextValue(String(value));
+  }, [value]);
+
+  function handleChange(nextValue: string) {
+    const digits = nextValue.replace(/\D/g, "");
+    setTextValue(digits);
+
+    if (!digits) return;
+
+    const nextQuantity = Math.min(Math.max(1, Number(digits)), max);
+    onValueChange(nextQuantity);
+  }
+
+  return (
+    <input
+      aria-label="Cantidad"
+      inputMode="numeric"
+      onBlur={() => {
+        const nextQuantity = textValue
+          ? Math.min(Math.max(1, Number(textValue)), max)
+          : 1;
+        onValueChange(nextQuantity);
+        setTextValue(String(nextQuantity));
+      }}
+      onChange={(event) => handleChange(event.target.value)}
+      type="text"
+      value={textValue}
+    />
+  );
+}
+
 function getSaleSearchText(sale: AdminSale) {
   return [
     sale.shortId,
@@ -555,7 +646,13 @@ export function AdminSalesManager({
                       >
                         <Minus size={16} />
                       </button>
-                      <span>{item.quantity}</span>
+                      <QuantityInput
+                        max={item.product.stock}
+                        onValueChange={(nextQuantity) =>
+                          updateQuantity(item.product.id, nextQuantity)
+                        }
+                        value={item.quantity}
+                      />
                       <button
                         className="quantityButton"
                         type="button"
@@ -568,12 +665,10 @@ export function AdminSalesManager({
                   </div>
                   <label className="salePriceField">
                     Precio vendido
-                    <input
-                      min="0"
-                      onChange={(event) =>
-                        updateUnitPrice(item.product.id, event.target.value)
+                    <MoneyInput
+                      onValueChange={(nextPrice) =>
+                        updateUnitPrice(item.product.id, String(nextPrice))
                       }
-                      type="number"
                       value={item.unitPrice}
                     />
                   </label>
@@ -637,12 +732,8 @@ export function AdminSalesManager({
               </label>
               <label>
                 {saleType === "CREDIT_CASH" ? "Pago inicial" : "Abono inicial"}
-                <input
-                  min="0"
-                  onChange={(event) =>
-                    setAmountPaid(event.target.value ? Number(event.target.value) : 0)
-                  }
-                  type="number"
+                <MoneyInput
+                  onValueChange={setAmountPaid}
                   value={amountPaid}
                 />
               </label>
@@ -680,12 +771,8 @@ export function AdminSalesManager({
               </label>
               <label>
                 Abono inicial
-                <input
-                  min={Math.ceil(reservedMinimum)}
-                  onChange={(event) =>
-                    setAmountPaid(event.target.value ? Number(event.target.value) : 0)
-                  }
-                  type="number"
+                <MoneyInput
+                  onValueChange={setAmountPaid}
                   value={amountPaid}
                 />
               </label>
