@@ -261,6 +261,7 @@ export function AdminSalesManager({
   const [amountPaid, setAmountPaid] = useState(0);
   const [creditMonths, setCreditMonths] = useState(6);
   const [interestPercent, setInterestPercent] = useState(20);
+  const [hasAdjustedCreditPayment, setHasAdjustedCreditPayment] = useState(false);
   const [sistecreditoApproval, setSistecreditoApproval] = useState("");
   const [customerQuery, setCustomerQuery] = useState("");
   const [productQuery, setProductQuery] = useState("");
@@ -331,6 +332,9 @@ export function AdminSalesManager({
   const financeBase =
     saleType === "CREDIT_CASH" ? Math.max(cartTotal - amountPaid, 0) : cartTotal;
   const interestRate = interestPercent / 100;
+  const totalCreditWithInterest = cartTotal * (1 + interestRate);
+  const suggestedFirstInstallment =
+    creditMonths > 0 ? Math.ceil(totalCreditWithInterest / creditMonths) : 0;
   const estimatedCreditDebt = isFinanced
     ? Math.max(financeBase * (1 + interestRate) - (saleType === "CREDIT" ? amountPaid : 0), 0)
     : 0;
@@ -404,9 +408,21 @@ export function AdminSalesManager({
     }
   }, [amountPaid, cartTotal, saleType]);
 
+  useEffect(() => {
+    if (saleType === "CREDIT" && !hasAdjustedCreditPayment && cartTotal > 0) {
+      setAmountPaid(suggestedFirstInstallment);
+    }
+  }, [
+    cartTotal,
+    hasAdjustedCreditPayment,
+    saleType,
+    suggestedFirstInstallment,
+  ]);
+
   function changeSaleType(nextType: string) {
     setSaleType(nextType as AdminSale["type"]);
     setSistecreditoApproval("");
+    setHasAdjustedCreditPayment(false);
 
     if (nextType === "CASH") {
       setPaymentMethod("CASH");
@@ -427,7 +443,7 @@ export function AdminSalesManager({
     }
 
     if (nextType === "CREDIT") {
-      setAmountPaid(0);
+      setAmountPaid(suggestedFirstInstallment);
       return;
     }
 
@@ -492,8 +508,15 @@ export function AdminSalesManager({
       return;
     }
 
-    if (amountPaid > cartTotal) {
-      setNotice("El pago inicial no puede ser mayor al total de la venta.");
+    const maximumInitialPayment =
+      saleType === "CREDIT" ? totalCreditWithInterest : cartTotal;
+
+    if (amountPaid > maximumInitialPayment) {
+      setNotice(
+        saleType === "CREDIT"
+          ? "La primera cuota no puede ser mayor a la deuda total con intereses."
+          : "El pago inicial no puede ser mayor al total de la venta."
+      );
       return;
     }
 
@@ -801,9 +824,14 @@ export function AdminSalesManager({
                 />
               </label>
               <label>
-                {saleType === "CREDIT_CASH" ? "Pago inicial" : "Abono inicial"}
+                {saleType === "CREDIT_CASH" ? "Pago inicial" : "Primera cuota"}
                 <MoneyInput
-                  onValueChange={setAmountPaid}
+                  onValueChange={(value) => {
+                    if (saleType === "CREDIT") {
+                      setHasAdjustedCreditPayment(true);
+                    }
+                    setAmountPaid(value);
+                  }}
                   value={amountPaid}
                 />
               </label>
@@ -823,6 +851,9 @@ export function AdminSalesManager({
                 </label>
               ) : null}
               <p className="salePaymentHint">
+                {saleType === "CREDIT"
+                  ? `Primera cuota sugerida: ${formatMoney(suggestedFirstInstallment)}. `
+                  : ""}
                 Se aplicará {interestPercent} % de interés sobre el saldo financiado a {creditMonths} mes(es). Los próximos abonos podrán disminuir intereses pendientes.
               </p>
             </div>

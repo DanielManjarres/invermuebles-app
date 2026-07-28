@@ -241,11 +241,17 @@ export async function POST(request: Request) {
         }
 
         const financedAmount = saleType === SaleType.CREDIT ? total : total - amountPaid;
-        if (financedAmount <= 0 || amountPaid > total) throw new Error("PAYMENT_OVER_TOTAL");
+        if (financedAmount <= 0) throw new Error("PAYMENT_OVER_TOTAL");
 
         interestRate = requestedInterestRate / 100;
         principal = financedAmount;
         const scheduledTotal = financedAmount * (1 + interestRate);
+        if (
+          (saleType === SaleType.CREDIT && amountPaid > scheduledTotal) ||
+          (saleType === SaleType.CREDIT_CASH && amountPaid > total)
+        ) {
+          throw new Error("PAYMENT_OVER_TOTAL");
+        }
         const creditPayment = saleType === SaleType.CREDIT ? amountPaid : 0;
         const principalPaid = Math.min(principal, creditPayment / (1 + interestRate));
         outstandingPrincipal = principal - principalPaid;
