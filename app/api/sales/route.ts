@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 type SaleItemRequest = {
   productId?: string;
   quantity?: number;
+  unitPrice?: number;
 };
 
 type SaleRequest = {
@@ -25,23 +26,35 @@ const allowedSaleTypes = new Set<SaleType>([
 ]);
 
 function normalizeItems(items: SaleItemRequest[] = []) {
-  const itemMap = new Map<string, number>();
+  const itemMap = new Map<
+    string,
+    { productId: string; quantity: number; unitPrice?: number }
+  >();
 
   for (const item of items) {
     const productId = item.productId?.trim() ?? "";
     const quantity = Number(item.quantity);
+    const unitPrice =
+      typeof item.unitPrice === "number" ? Number(item.unitPrice) : undefined;
 
     if (!productId || !Number.isInteger(quantity) || quantity < 1) {
       continue;
     }
 
-    itemMap.set(productId, (itemMap.get(productId) ?? 0) + quantity);
+    if (unitPrice !== undefined && (!Number.isFinite(unitPrice) || unitPrice < 0)) {
+      continue;
+    }
+
+    const currentItem = itemMap.get(productId);
+
+    itemMap.set(productId, {
+      productId,
+      quantity: (currentItem?.quantity ?? 0) + quantity,
+      unitPrice: unitPrice ?? currentItem?.unitPrice,
+    });
   }
 
-  return Array.from(itemMap.entries()).map(([productId, quantity]) => ({
-    productId,
-    quantity,
-  }));
+  return Array.from(itemMap.values());
 }
 
 async function getAdminUserId() {
@@ -118,6 +131,7 @@ export async function POST(request: Request) {
         items = order.items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
+          unitPrice: undefined,
         }));
       }
 
@@ -153,7 +167,8 @@ export async function POST(request: Request) {
         }
 
         const nextStock = product.stock - item.quantity;
-        const lineTotal = Number(product.salePrice) * item.quantity;
+        const unitPrice = item.unitPrice ?? Number(product.salePrice);
+        const lineTotal = unitPrice * item.quantity;
         total += lineTotal;
 
         await tx.product.update({
@@ -183,7 +198,7 @@ export async function POST(request: Request) {
           productName: product.name,
           productReference: product.reference,
           quantity: item.quantity,
-          unitPrice: product.salePrice,
+          unitPrice,
         });
       }
 

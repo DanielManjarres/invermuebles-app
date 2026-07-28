@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Minus, Plus, ReceiptText, Search, ShoppingCart, Trash2 } from "lucide-react";
+import {
+  Minus,
+  PackageSearch,
+  Plus,
+  ReceiptText,
+  Search,
+  Trash2,
+} from "lucide-react";
 import type { AdminCustomer } from "@/lib/customers";
 import type { Product } from "@/lib/products";
 import {
@@ -19,6 +26,7 @@ import {
 type SaleCartItem = {
   product: Product;
   quantity: number;
+  unitPrice: number;
 };
 
 type AdminSalesManagerProps = {
@@ -32,12 +40,22 @@ const saleTypeOptions = Object.entries(saleTypeLabels).map(([value, label]) => (
   value,
 }));
 
+const sourceFilters = [
+  { label: "Todas", value: "ALL" },
+  { label: "Locales", value: "LOCAL" },
+  { label: "Desde pedidos", value: "ORDER" },
+];
+
 function formatMoney(value: number) {
   return new Intl.NumberFormat("es-CO", {
     maximumFractionDigits: 0,
     style: "currency",
     currency: "COP",
   }).format(value);
+}
+
+function normalizeText(value: string) {
+  return value.trim().toLowerCase();
 }
 
 function getSaleSearchText(sale: AdminSale) {
@@ -66,58 +84,97 @@ export function AdminSalesManager({
 }: AdminSalesManagerProps) {
   const [products, setProducts] = useState(initialProducts);
   const [sales, setSales] = useState(initialSales);
-  const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState("");
   const [saleType, setSaleType] = useState("CASH");
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [productQuery, setProductQuery] = useState("");
+  const [historyQuery, setHistoryQuery] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("ALL");
   const [notes, setNotes] = useState("");
   const [cartItems, setCartItems] = useState<SaleCartItem[]>([]);
-  const [query, setQuery] = useState("");
+  const [hasLoadedAdminCart, setHasLoadedAdminCart] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
-  const [hasLoadedAdminCart, setHasLoadedAdminCart] = useState(false);
   const adminSaleCart = useAdminSaleCart(products);
 
   const availableProducts = useMemo(
     () => products.filter((product) => product.stock > 0),
     [products]
   );
-  const productOptions = availableProducts.map((product) => ({
-    label: `${product.name} - ${product.reference} (${product.stock})`,
-    value: product.id,
-  }));
-  const customerOptions = customers.map((customer) => ({
-    label: customer.document
-      ? `${customer.fullName} - CC ${customer.document}`
-      : customer.fullName,
-    value: customer.id,
-  }));
+
+  const customerOptions = useMemo(() => {
+    const search = normalizeText(customerQuery);
+
+    return customers
+      .filter((customer) =>
+        [customer.fullName, customer.document, customer.phone, customer.city]
+          .join(" ")
+          .toLowerCase()
+          .includes(search)
+      )
+      .map((customer) => ({
+        label: customer.document
+          ? `${customer.fullName} - CC ${customer.document}`
+          : customer.fullName,
+        value: customer.id,
+      }));
+  }, [customerQuery, customers]);
+
+  const productOptions = useMemo(() => {
+    const search = normalizeText(productQuery);
+    const selectedIds = new Set(cartItems.map((item) => item.product.id));
+
+    return availableProducts
+      .filter((product) => !selectedIds.has(product.id))
+      .filter((product) =>
+        [product.name, product.reference, product.category, product.productClass]
+          .join(" ")
+          .toLowerCase()
+          .includes(search)
+      )
+      .map((product) => ({
+        label: `${product.name} - ${product.reference} (${product.stock})`,
+        value: product.id,
+      }));
+  }, [availableProducts, cartItems, productQuery]);
+
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.product.salePrice * item.quantity,
+    (total, item) => total + item.unitPrice * item.quantity,
     0
   );
   const cartQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const filteredSales = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return sales;
-    }
-
-    return sales.filter((sale) => getSaleSearchText(sale).includes(normalizedQuery));
-  }, [query, sales]);
   const completedSales = sales.filter((sale) => sale.status === "COMPLETED");
   const totalSold = completedSales.reduce((total, sale) => total + sale.total, 0);
+
+  const filteredSales = useMemo(() => {
+    const search = normalizeText(historyQuery);
+
+    return sales.filter((sale) => {
+      const matchesSearch = search ? getSaleSearchText(sale).includes(search) : true;
+      const matchesSource =
+        sourceFilter === "ALL" ? true : sale.source === sourceFilter;
+
+      return matchesSearch && matchesSource;
+    });
+  }, [historyQuery, sales, sourceFilter]);
 
   useEffect(() => {
     if (hasLoadedAdminCart) {
       return;
     }
 
-    setCartItems(adminSaleCart.detailedItems);
+    setCartItems(
+      adminSaleCart.detailedItems.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+        unitPrice: item.product.salePrice,
+      }))
+    );
     setHasLoadedAdminCart(true);
 
     if (adminSaleCart.detailedItems.length > 0) {
-      setNotice("Productos cargados desde el catalogo administrativo.");
+      setNotice("Productos cargados desde el catálogo administrativo.");
     }
   }, [adminSaleCart.detailedItems, hasLoadedAdminCart]);
 
@@ -128,23 +185,12 @@ export function AdminSalesManager({
       return;
     }
 
-    setCartItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.product.id === product.id);
-
-      if (existingItem) {
-        return currentItems.map((item) =>
-          item.product.id === product.id
-            ? {
-                ...item,
-                quantity: Math.min(item.quantity + 1, product.stock),
-              }
-            : item
-        );
-      }
-
-      return [...currentItems, { product, quantity: 1 }];
-    });
+    setCartItems((currentItems) => [
+      ...currentItems,
+      { product, quantity: 1, unitPrice: product.salePrice },
+    ]);
     setSelectedProductId("");
+    setProductQuery("");
   }
 
   function updateQuantity(productId: string, nextQuantity: number) {
@@ -154,6 +200,21 @@ export function AdminSalesManager({
           ? {
               ...item,
               quantity: Math.min(Math.max(1, nextQuantity), item.product.stock),
+            }
+          : item
+      )
+    );
+  }
+
+  function updateUnitPrice(productId: string, nextValue: string) {
+    const nextPrice = Number(nextValue);
+
+    setCartItems((currentItems) =>
+      currentItems.map((item) =>
+        item.product.id === productId
+          ? {
+              ...item,
+              unitPrice: Number.isFinite(nextPrice) && nextPrice >= 0 ? nextPrice : 0,
             }
           : item
       )
@@ -181,6 +242,7 @@ export function AdminSalesManager({
           items: cartItems.map((item) => ({
             productId: item.product.id,
             quantity: item.quantity,
+            unitPrice: item.unitPrice,
           })),
           notes,
           type: saleType,
@@ -195,15 +257,15 @@ export function AdminSalesManager({
         return;
       }
 
+      const selectedCustomer = customers.find(
+        (customer) => customer.id === selectedCustomerId
+      );
       const createdSale: AdminSale = {
         id: result.id,
         shortId: result.id.slice(-6).toUpperCase(),
         customerId: selectedCustomerId,
-        customerName:
-          customers.find((customer) => customer.id === selectedCustomerId)?.fullName ??
-          "Venta sin cliente registrado",
-        customerDocument:
-          customers.find((customer) => customer.id === selectedCustomerId)?.document ?? "",
+        customerName: selectedCustomer?.fullName ?? "Venta sin cliente registrado",
+        customerDocument: selectedCustomer?.document ?? "",
         orderId: "",
         orderShortId: "",
         source: "LOCAL",
@@ -225,8 +287,8 @@ export function AdminSalesManager({
           productCategory: item.product.category,
           productClass: item.product.productClass,
           quantity: item.quantity,
-          unitPrice: item.product.salePrice,
-          lineTotal: item.product.salePrice * item.quantity,
+          unitPrice: item.unitPrice,
+          lineTotal: item.unitPrice * item.quantity,
         })),
       };
 
@@ -278,15 +340,35 @@ export function AdminSalesManager({
           <div className="sectionHeader">
             <div>
               <p className="eyebrow">Venta local</p>
-              <h2>Registrar venta en el almacén</h2>
+              <h2>Finalizar venta del almacén</h2>
               <p className="sectionLead">
-                Selecciona cliente, productos y tipo de venta. Al guardar se
-                descuenta inventario automáticamente.
+                Agrega productos desde el catálogo administrativo, revisa
+                cantidades, ajusta el precio real y registra la venta.
               </p>
             </div>
           </div>
 
+          <div className="saleStepHeader">
+            <span>1</span>
+            <div>
+              <strong>Datos de la venta</strong>
+              <p>El cliente puede quedar vacío si es una venta rápida.</p>
+            </div>
+          </div>
+
           <div className="saleFormGrid">
+            <label>
+              Buscar cliente
+              <div className="searchBox compactSearchBox">
+                <Search size={18} />
+                <input
+                  onChange={(event) => setCustomerQuery(event.target.value)}
+                  placeholder="Cédula, nombre o teléfono"
+                  type="search"
+                  value={customerQuery}
+                />
+              </div>
+            </label>
             <label>
               Cliente
               <SelectMenu
@@ -307,9 +389,29 @@ export function AdminSalesManager({
             </label>
           </div>
 
+          <div className="saleStepHeader">
+            <span>2</span>
+            <div>
+              <strong>Productos seleccionados</strong>
+              <p>También puedes buscar y agregar otro producto sin volver al catálogo.</p>
+            </div>
+          </div>
+
           <div className="saleProductPicker">
             <label>
-              Producto
+              Buscar producto
+              <div className="searchBox compactSearchBox">
+                <PackageSearch size={18} />
+                <input
+                  onChange={(event) => setProductQuery(event.target.value)}
+                  placeholder="Nombre, referencia, tipo o clase"
+                  type="search"
+                  value={productQuery}
+                />
+              </div>
+            </label>
+            <label>
+              Producto adicional
               <SelectMenu
                 onChange={setSelectedProductId}
                 options={productOptions}
@@ -332,15 +434,15 @@ export function AdminSalesManager({
             {cartItems.length === 0 ? (
               <div className="emptyState compactEmptyState">
                 <h2>Sin productos</h2>
-                <p>Agrega productos para crear la venta local.</p>
+                <p>Agrega productos desde el catálogo admin para iniciar la venta.</p>
               </div>
             ) : (
               cartItems.map((item) => (
                 <article className="saleCartItem" key={item.product.id}>
-                  <div>
+                  <div className="saleCartProductInfo">
                     <strong>{item.product.name}</strong>
                     <span>
-                      {item.product.reference} · {formatMoney(item.product.salePrice)}
+                      {item.product.reference} · Base {formatMoney(item.product.salePrice)}
                     </span>
                   </div>
                   <div className="quantityControl" aria-label="Cambiar cantidad">
@@ -362,7 +464,18 @@ export function AdminSalesManager({
                       <Plus size={16} />
                     </button>
                   </div>
-                  <strong>{formatMoney(item.product.salePrice * item.quantity)}</strong>
+                  <label className="salePriceField">
+                    Precio vendido
+                    <input
+                      min="0"
+                      onChange={(event) =>
+                        updateUnitPrice(item.product.id, event.target.value)
+                      }
+                      type="number"
+                      value={item.unitPrice}
+                    />
+                  </label>
+                  <strong>{formatMoney(item.unitPrice * item.quantity)}</strong>
                   <button
                     className="iconButton"
                     type="button"
@@ -380,7 +493,7 @@ export function AdminSalesManager({
             Observaciones
             <textarea
               onChange={(event) => setNotes(event.target.value)}
-              placeholder="Ej: venta de contado en local, entrega inmediata."
+              placeholder="Ej: descuento autorizado, entrega inmediata, venta de contado."
               rows={2}
               value={notes}
             />
@@ -416,12 +529,27 @@ export function AdminSalesManager({
           <label className="searchBox">
             <Search size={18} />
             <input
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => setHistoryQuery(event.target.value)}
               placeholder="Buscar por venta, cliente o producto"
               type="search"
-              value={query}
+              value={historyQuery}
             />
           </label>
+
+          <div className="filterGroup saleHistoryFilters" aria-label="Filtrar ventas">
+            {sourceFilters.map((filter) => (
+              <button
+                className={
+                  sourceFilter === filter.value ? "filterButton active" : "filterButton"
+                }
+                key={filter.value}
+                type="button"
+                onClick={() => setSourceFilter(filter.value)}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
 
           <div className="salesList">
             {filteredSales.length === 0 ? (

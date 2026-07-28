@@ -2485,7 +2485,7 @@ th {
 
 .saleProductPicker {
   align-items: end;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto;
 }
 
 .saleFormGrid label,
@@ -2513,6 +2513,52 @@ th {
   outline: 3px solid rgba(7, 85, 42, 0.12);
 }
 
+.saleStepHeader {
+  align-items: center;
+  background: #edf5ed;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.saleStepHeader > span {
+  align-items: center;
+  background: var(--primary);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 900;
+  height: 26px;
+  justify-content: center;
+  width: 26px;
+}
+
+.saleStepHeader strong {
+  color: var(--text);
+  display: block;
+  font-size: 0.92rem;
+}
+
+.saleStepHeader p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 2px 0 0;
+}
+
+.compactSearchBox {
+  margin: 0;
+}
+
+.compactSearchBox input {
+  min-height: 44px;
+}
+
 .saleCartList,
 .salesList {
   display: grid;
@@ -2526,11 +2572,11 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
-  padding: 10px;
+  grid-template-columns: minmax(190px, 1fr) auto minmax(150px, 170px) minmax(110px, auto) auto;
+  padding: 12px;
 }
 
-.saleCartItem div:first-child {
+.saleCartProductInfo {
   display: grid;
   gap: 4px;
   min-width: 0;
@@ -2545,6 +2591,31 @@ th {
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.salePriceField {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.76rem;
+  font-weight: 900;
+  gap: 5px;
+}
+
+.salePriceField input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.salePriceField input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
 }
 
 .saleSummaryBar {
@@ -2631,6 +2702,10 @@ th {
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 5px 8px;
+}
+
+.saleHistoryFilters {
+  justify-content: start;
 }
 
 .customersSection {
@@ -3641,6 +3716,10 @@ th {
   .saleCartItem {
     align-items: start;
     grid-template-columns: 1fr;
+  }
+
+  .salePriceField input {
+    width: 100%;
   }
 
   .saleSummaryBar {
