@@ -26,6 +26,7 @@ type SaleRequest = {
   initialPayment?: number;
   type?: SaleType;
   creditMonths?: number;
+  interestRate?: number;
   sistecreditoApproval?: string;
 };
 
@@ -56,10 +57,6 @@ function normalizeItems(items: SaleItemRequest[] = []) {
   return Array.from(itemMap.values());
 }
 
-function creditRate(months: number) {
-  return months === 12 ? 0.4 : 0.2;
-}
-
 async function getAdminUserId() {
   const admin = await prisma.user.upsert({
     where: { email: "admin@invermuebles.com" },
@@ -88,6 +85,7 @@ export async function POST(request: Request) {
   const initialPayment = Number(body.initialPayment ?? 0);
   const paymentMethod = body.paymentMethod;
   const months = Number(body.creditMonths ?? 6);
+  const requestedInterestRate = Number(body.interestRate ?? 20);
 
   if (!body.customerId?.trim()) {
     return NextResponse.json(
@@ -103,9 +101,24 @@ export async function POST(request: Request) {
     );
   }
 
-  if (financingTypes.has(saleType) && months !== 6 && months !== 12) {
+  if (
+    financingTypes.has(saleType) &&
+    (!Number.isInteger(months) || months < 1 || months > 120)
+  ) {
     return NextResponse.json(
-      { message: "El crédito debe manejarse a 6 o 12 meses." },
+      { message: "El plazo del crédito debe estar entre 1 y 120 meses." },
+      { status: 400 }
+    );
+  }
+
+  if (
+    financingTypes.has(saleType) &&
+    (!Number.isFinite(requestedInterestRate) ||
+      requestedInterestRate < 0 ||
+      requestedInterestRate > 100)
+  ) {
+    return NextResponse.json(
+      { message: "El interés del crédito debe estar entre 0 % y 100 %." },
       { status: 400 }
     );
   }
@@ -230,7 +243,7 @@ export async function POST(request: Request) {
         const financedAmount = saleType === SaleType.CREDIT ? total : total - amountPaid;
         if (financedAmount <= 0 || amountPaid > total) throw new Error("PAYMENT_OVER_TOTAL");
 
-        interestRate = creditRate(months);
+        interestRate = requestedInterestRate / 100;
         principal = financedAmount;
         const scheduledTotal = financedAmount * (1 + interestRate);
         const creditPayment = saleType === SaleType.CREDIT ? amountPaid : 0;

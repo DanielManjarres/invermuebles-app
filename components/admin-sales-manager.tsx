@@ -52,11 +52,6 @@ const paymentMethodOptions = Object.entries(paymentMethodLabels).map(
   })
 );
 
-const creditMonthOptions = [
-  { label: "6 meses - 20 % de interes", value: "6" },
-  { label: "12 meses - 40 % de interes", value: "12" },
-];
-
 const sourceFilters = [
   { label: "Todas", value: "ALL" },
   { label: "Locales", value: "LOCAL" },
@@ -166,6 +161,69 @@ function QuantityInput({ max, value, onValueChange }: QuantityInputProps) {
   );
 }
 
+type FlexibleNumberInputProps = {
+  allowDecimal?: boolean;
+  max: number;
+  min: number;
+  onValueChange: (value: number) => void;
+  value: number;
+};
+
+function FlexibleNumberInput({
+  allowDecimal = false,
+  max,
+  min,
+  onValueChange,
+  value,
+}: FlexibleNumberInputProps) {
+  const [textValue, setTextValue] = useState(String(value));
+
+  useEffect(() => {
+    setTextValue(String(value));
+  }, [value]);
+
+  function clamp(nextValue: number) {
+    return Math.min(Math.max(min, nextValue), max);
+  }
+
+  function handleChange(nextValue: string) {
+    const normalized = allowDecimal
+      ? nextValue.replace(",", ".")
+      : nextValue.replace(/\D/g, "");
+
+    if (allowDecimal && !/^\d*(?:\.\d{0,2})?$/.test(normalized)) {
+      return;
+    }
+
+    setTextValue(normalized);
+
+    if (normalized === "" || normalized === ".") {
+      return;
+    }
+
+    const parsedValue = Number(normalized);
+    if (Number.isFinite(parsedValue)) {
+      onValueChange(clamp(parsedValue));
+    }
+  }
+
+  return (
+    <input
+      aria-label={allowDecimal ? "Porcentaje de interés" : "Plazo en meses"}
+      inputMode={allowDecimal ? "decimal" : "numeric"}
+      onBlur={() => {
+        const parsedValue = Number(textValue.replace(",", "."));
+        const nextValue = Number.isFinite(parsedValue) ? clamp(parsedValue) : min;
+        onValueChange(nextValue);
+        setTextValue(String(nextValue));
+      }}
+      onChange={(event) => handleChange(event.target.value)}
+      type="text"
+      value={textValue}
+    />
+  );
+}
+
 function getSaleSearchText(sale: AdminSale) {
   return [
     sale.shortId,
@@ -202,6 +260,7 @@ export function AdminSalesManager({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
   const [amountPaid, setAmountPaid] = useState(0);
   const [creditMonths, setCreditMonths] = useState(6);
+  const [interestPercent, setInterestPercent] = useState(20);
   const [sistecreditoApproval, setSistecreditoApproval] = useState("");
   const [customerQuery, setCustomerQuery] = useState("");
   const [productQuery, setProductQuery] = useState("");
@@ -271,7 +330,7 @@ export function AdminSalesManager({
   const isSistecredito = saleType === "SISTECREDITO";
   const financeBase =
     saleType === "CREDIT_CASH" ? Math.max(cartTotal - amountPaid, 0) : cartTotal;
-  const interestRate = creditMonths === 6 ? 0.2 : 0.4;
+  const interestRate = interestPercent / 100;
   const estimatedCreditDebt = isFinanced
     ? Math.max(financeBase * (1 + interestRate) - (saleType === "CREDIT" ? amountPaid : 0), 0)
     : 0;
@@ -466,6 +525,7 @@ export function AdminSalesManager({
         body: JSON.stringify({
           customerId: selectedCustomerId,
           creditMonths: isFinanced ? creditMonths : undefined,
+          interestRate: isFinanced ? interestPercent : undefined,
           initialPayment: amountPaid,
           items: cartItems.map((item) => ({
             productId: item.product.id,
@@ -722,12 +782,22 @@ export function AdminSalesManager({
           {isFinanced ? (
             <div className="salePaymentGrid">
               <label>
-                Plazo de financiación
-                <SelectMenu
-                  onChange={(value) => setCreditMonths(Number(value))}
-                  options={creditMonthOptions}
-                  placeholder="Selecciona plazo"
-                  value={String(creditMonths)}
+                Plazo en meses
+                <FlexibleNumberInput
+                  max={120}
+                  min={1}
+                  onValueChange={setCreditMonths}
+                  value={creditMonths}
+                />
+              </label>
+              <label>
+                Interés acordado (%)
+                <FlexibleNumberInput
+                  allowDecimal
+                  max={100}
+                  min={0}
+                  onValueChange={setInterestPercent}
+                  value={interestPercent}
                 />
               </label>
               <label>
@@ -753,7 +823,7 @@ export function AdminSalesManager({
                 </label>
               ) : null}
               <p className="salePaymentHint">
-                El interés es {creditMonths === 6 ? "20 %" : "40 %"} sobre el saldo financiado. Los próximos abonos podrán disminuir intereses pendientes.
+                Se aplicará {interestPercent} % de interés sobre el saldo financiado a {creditMonths} mes(es). Los próximos abonos podrán disminuir intereses pendientes.
               </p>
             </div>
           ) : null}
@@ -898,6 +968,9 @@ export function AdminSalesManager({
                       {saleTypeLabels[sale.type]}
                       {sale.paymentMethod
                         ? ` · ${paymentMethodLabels[sale.paymentMethod]}`
+                        : ""}
+                      {sale.creditMonths && sale.interestRate !== null
+                        ? ` · ${sale.creditMonths} meses · ${sale.interestRate} % interés`
                         : ""}
                     </p>
                   </div>

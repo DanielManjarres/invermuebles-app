@@ -26,6 +26,8 @@ export type AdminSale = {
   type: SaleType;
   status: SaleStatus;
   paymentMethod: PaymentMethod | null;
+  creditMonths: number | null;
+  interestRate: number | null;
   amountPaid: number;
   balance: number;
   notes: string;
