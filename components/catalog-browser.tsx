@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { MessageCircle, ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 import { whatsappUrl } from "@/lib/company";
+import { useAdminSaleCart } from "@/components/use-admin-sale-cart";
 
 type CatalogBrowserProps = {
   mode?: "public" | "admin";
@@ -19,6 +21,7 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
   const [activeCategory, setActiveCategory] = useState(allCategories);
   const [currentPage, setCurrentPage] = useState(1);
+  const adminSaleCart = useAdminSaleCart(catalogProducts);
 
   useEffect(() => {
     setCatalogProducts(products);
@@ -71,7 +74,15 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
             </button>
           ))}
         </div>
-        {isAdmin ? null : (
+        {isAdmin ? (
+          <Link className="adminSaleCartHint" href="/admin/ventas">
+            <ShoppingCart size={18} />
+            Venta local
+            {adminSaleCart.totalQuantity > 0 ? (
+              <span>{adminSaleCart.totalQuantity}</span>
+            ) : null}
+          </Link>
+        ) : (
           <a
             className="whatsappHint"
             href={whatsappUrl}
@@ -88,7 +99,11 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
         {paginatedProducts.map((product) => (
           <ProductCard
             key={product.id}
+            actionLabel="Agregar a venta"
+            detailActionLabel="Agregar a venta local"
+            onAdminSaleAdd={adminSaleCart.addProduct}
             product={product}
+            showAdminSaleAction={isAdmin}
             showCartAction={!isAdmin}
           />
         ))}

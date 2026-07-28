@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus, ReceiptText, Search, ShoppingCart, Trash2 } from "lucide-react";
 import type { AdminCustomer } from "@/lib/customers";
 import type { Product } from "@/lib/products";
@@ -11,6 +11,10 @@ import {
   type AdminSale,
 } from "@/lib/sales";
 import { SelectMenu } from "@/components/select-menu";
+import {
+  clearAdminSaleCart,
+  useAdminSaleCart,
+} from "@/components/use-admin-sale-cart";
 
 type SaleCartItem = {
   product: Product;
@@ -70,6 +74,8 @@ export function AdminSalesManager({
   const [query, setQuery] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
+  const [hasLoadedAdminCart, setHasLoadedAdminCart] = useState(false);
+  const adminSaleCart = useAdminSaleCart(products);
 
   const availableProducts = useMemo(
     () => products.filter((product) => product.stock > 0),
@@ -101,6 +107,19 @@ export function AdminSalesManager({
   }, [query, sales]);
   const completedSales = sales.filter((sale) => sale.status === "COMPLETED");
   const totalSold = completedSales.reduce((total, sale) => total + sale.total, 0);
+
+  useEffect(() => {
+    if (hasLoadedAdminCart) {
+      return;
+    }
+
+    setCartItems(adminSaleCart.detailedItems);
+    setHasLoadedAdminCart(true);
+
+    if (adminSaleCart.detailedItems.length > 0) {
+      setNotice("Productos cargados desde el catalogo administrativo.");
+    }
+  }, [adminSaleCart.detailedItems, hasLoadedAdminCart]);
 
   function addSelectedProduct() {
     const product = products.find((currentProduct) => currentProduct.id === selectedProductId);
@@ -221,6 +240,7 @@ export function AdminSalesManager({
       );
       setSales((currentSales) => [createdSale, ...currentSales]);
       setCartItems([]);
+      clearAdminSaleCart();
       setSelectedCustomerId("");
       setSaleType("CASH");
       setNotes("");
