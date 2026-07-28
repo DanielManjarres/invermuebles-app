@@ -135,6 +135,9 @@ model Sale {
   source     SaleSource @default(LOCAL)
   type       SaleType   @default(CASH)
   status     SaleStatus @default(COMPLETED)
+  paymentMethod String  @default("CASH")
+  amountPaid Decimal    @default(0) @db.Decimal(12, 2)
+  balance    Decimal    @default(0) @db.Decimal(12, 2)
   notes      String?
   total      Decimal    @default(0) @db.Decimal(12, 2)
   createdAt  DateTime   @default(now())

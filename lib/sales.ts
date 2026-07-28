@@ -23,12 +23,32 @@ export type AdminSale = {
   source: SaleSource;
   type: SaleType;
   status: SaleStatus;
+  paymentMethod: PaymentMethod;
+  amountPaid: number;
+  balance: number;
   notes: string;
   total: number;
   createdAt: string;
   createdAtISO: string;
   totalQuantity: number;
   items: AdminSaleItem[];
+};
+
+export type PaymentMethod =
+  | "CASH"
+  | "TRANSFER"
+  | "CARD"
+  | "MIXED"
+  | "SISTECREDITO"
+  | "PENDING";
+
+export const paymentMethodLabels: Record<PaymentMethod, string> = {
+  CASH: "Efectivo",
+  TRANSFER: "Transferencia",
+  CARD: "Tarjeta",
+  MIXED: "Mixto",
+  SISTECREDITO: "Sistecredito",
+  PENDING: "Pendiente por cobrar",
 };
 
 export const saleTypeLabels: Record<SaleType, string> = {

@@ -12,10 +12,12 @@ import {
 import type { AdminCustomer } from "@/lib/customers";
 import type { Product } from "@/lib/products";
 import {
+  paymentMethodLabels,
   saleSourceLabels,
   saleStatusLabels,
   saleTypeLabels,
   type AdminSale,
+  type PaymentMethod,
 } from "@/lib/sales";
 import { SelectMenu } from "@/components/select-menu";
 import {
@@ -39,6 +41,13 @@ const saleTypeOptions = Object.entries(saleTypeLabels).map(([value, label]) => (
   label,
   value,
 }));
+
+const paymentMethodOptions = Object.entries(paymentMethodLabels).map(
+  ([value, label]) => ({
+    label,
+    value,
+  })
+);
 
 const sourceFilters = [
   { label: "Todas", value: "ALL" },
@@ -64,6 +73,7 @@ function getSaleSearchText(sale: AdminSale) {
     sale.customerName,
     sale.customerDocument,
     sale.type,
+    sale.paymentMethod,
     sale.source,
     sale.notes,
     ...sale.items.flatMap((item) => [
@@ -87,6 +97,8 @@ export function AdminSalesManager({
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
   const [saleType, setSaleType] = useState("CASH");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
+  const [amountPaid, setAmountPaid] = useState(0);
   const [customerQuery, setCustomerQuery] = useState("");
   const [productQuery, setProductQuery] = useState("");
   const [historyQuery, setHistoryQuery] = useState("");
@@ -144,6 +156,10 @@ export function AdminSalesManager({
     0
   );
   const cartQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const requiresCustomer = ["CREDIT", "RESERVED", "CREDIT_CASH", "SISTECREDITO"].includes(
+    saleType
+  );
+  const balance = Math.max(cartTotal - amountPaid, 0);
   const completedSales = sales.filter((sale) => sale.status === "COMPLETED");
   const totalSold = completedSales.reduce((total, sale) => total + sale.total, 0);
 
@@ -177,6 +193,37 @@ export function AdminSalesManager({
       setNotice("Productos cargados desde el catálogo administrativo.");
     }
   }, [adminSaleCart.detailedItems, hasLoadedAdminCart]);
+
+  useEffect(() => {
+    if (saleType === "CASH" || saleType === "SISTECREDITO") {
+      setAmountPaid(cartTotal);
+    }
+  }, [cartTotal, saleType]);
+
+  function changeSaleType(nextType: string) {
+    setSaleType(nextType);
+
+    if (nextType === "CASH") {
+      setPaymentMethod("CASH");
+      setAmountPaid(cartTotal);
+      return;
+    }
+
+    if (nextType === "SISTECREDITO") {
+      setPaymentMethod("SISTECREDITO");
+      setAmountPaid(cartTotal);
+      return;
+    }
+
+    if (nextType === "CREDIT" || nextType === "RESERVED") {
+      setPaymentMethod("PENDING");
+      setAmountPaid(0);
+      return;
+    }
+
+    setPaymentMethod("CASH");
+    setAmountPaid(0);
+  }
 
   function addSelectedProduct() {
     const product = products.find((currentProduct) => currentProduct.id === selectedProductId);
@@ -232,6 +279,23 @@ export function AdminSalesManager({
       return;
     }
 
+    if (requiresCustomer && !selectedCustomerId) {
+      setNotice(
+        "Selecciona un cliente para ventas a credito, separado, credicontado o Sistecredito."
+      );
+      return;
+    }
+
+    if (amountPaid > cartTotal) {
+      setNotice("El valor recibido no puede ser mayor al total de la venta.");
+      return;
+    }
+
+    if (saleType === "CASH" && amountPaid < cartTotal) {
+      setNotice("En ventas de contado, el valor recibido debe cubrir el total.");
+      return;
+    }
+
     setIsSaving(true);
     setNotice("");
 
@@ -245,6 +309,8 @@ export function AdminSalesManager({
             unitPrice: item.unitPrice,
           })),
           notes,
+          paymentMethod,
+          amountPaid,
           type: saleType,
         }),
         headers: { "Content-Type": "application/json" },
@@ -271,6 +337,9 @@ export function AdminSalesManager({
         source: "LOCAL",
         type: saleType as AdminSale["type"],
         status: "COMPLETED",
+        paymentMethod,
+        amountPaid,
+        balance,
         notes,
         total: cartTotal,
         createdAt: new Date().toLocaleString("es-CO", {
@@ -305,6 +374,8 @@ export function AdminSalesManager({
       clearAdminSaleCart();
       setSelectedCustomerId("");
       setSaleType("CASH");
+      setPaymentMethod("CASH");
+      setAmountPaid(0);
       setNotes("");
       setNotice(`Venta #${createdSale.shortId} registrada correctamente.`);
     } catch {
@@ -381,7 +452,7 @@ export function AdminSalesManager({
             <label>
               Tipo de venta
               <SelectMenu
-                onChange={setSaleType}
+                onChange={changeSaleType}
                 options={saleTypeOptions}
                 placeholder="Selecciona tipo"
                 value={saleType}
@@ -495,6 +566,47 @@ export function AdminSalesManager({
             )}
           </div>
 
+          <div className="saleStepHeader">
+            <span>3</span>
+            <div>
+              <strong>Medio de pago</strong>
+              <p>Registra por donde paga el cliente y si queda saldo pendiente.</p>
+            </div>
+          </div>
+
+          <div className="salePaymentGrid">
+            <label>
+              Medio de pago
+              <SelectMenu
+                onChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                options={paymentMethodOptions}
+                placeholder="Selecciona medio"
+                value={paymentMethod}
+              />
+            </label>
+            <label>
+              Valor recibido / abono
+              <input
+                min="0"
+                onChange={(event) =>
+                  setAmountPaid(event.target.value ? Number(event.target.value) : 0)
+                }
+                type="number"
+                value={amountPaid}
+              />
+            </label>
+            <div className="saleBalanceBox">
+              <span>Saldo pendiente</span>
+              <strong>{formatMoney(balance)}</strong>
+            </div>
+          </div>
+
+          {requiresCustomer ? (
+            <p className="salePaymentHint">
+              Este tipo de venta debe quedar asociado a un cliente.
+            </p>
+          ) : null}
+
           <label className="saleNotes">
             Observaciones
             <textarea
@@ -571,7 +683,8 @@ export function AdminSalesManager({
                     <h3>Venta #{sale.shortId}</h3>
                     <p>
                       {sale.createdAt} · {saleSourceLabels[sale.source]} ·{" "}
-                      {saleTypeLabels[sale.type]}
+                      {saleTypeLabels[sale.type]} ·{" "}
+                      {paymentMethodLabels[sale.paymentMethod] ?? sale.paymentMethod}
                     </p>
                   </div>
                   <div>
@@ -589,7 +702,13 @@ export function AdminSalesManager({
                       </span>
                     ))}
                   </div>
-                  <strong>{formatMoney(sale.total)}</strong>
+                  <div className="salePaymentSummary">
+                    <strong>{formatMoney(sale.total)}</strong>
+                    <span>Recibido: {formatMoney(sale.amountPaid)}</span>
+                    {sale.balance > 0 ? (
+                      <span>Saldo: {formatMoney(sale.balance)}</span>
+                    ) : null}
+                  </div>
                 </article>
               ))
             )}

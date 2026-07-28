@@ -2498,6 +2498,7 @@ th {
 
 .saleFormGrid label,
 .saleProductPicker label,
+.salePaymentGrid label,
 .saleNotes {
   color: var(--text);
   display: grid;
@@ -2644,6 +2645,60 @@ th {
   outline: 3px solid rgba(7, 85, 42, 0.12);
 }
 
+.salePaymentGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(170px, 0.7fr);
+}
+
+.salePaymentGrid input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  min-height: 44px;
+  padding: 9px 12px;
+  width: 100%;
+}
+
+.salePaymentGrid input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.saleBalanceBox {
+  align-self: end;
+  background: #edf5ed;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  min-height: 66px;
+  padding: 10px 12px;
+}
+
+.saleBalanceBox span,
+.salePaymentSummary span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.saleBalanceBox strong,
+.salePaymentSummary strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.salePaymentHint {
+  color: var(--primary-dark);
+  font-size: 0.82rem;
+  font-weight: 900;
+  margin: -4px 0 0;
+}
+
 .saleLineTotal {
   display: grid;
   gap: 5px;
@@ -2737,6 +2792,11 @@ th {
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 5px 8px;
+}
+
+.salePaymentSummary {
+  display: grid;
+  gap: 4px;
 }
 
 .saleHistoryFilters {
@@ -3469,7 +3529,8 @@ th {
   .orderCustomerPanel,
   .orderFollowUp,
   .salesLayout,
-  .saleFormGrid {
+  .saleFormGrid,
+  .salePaymentGrid {
     grid-template-columns: 1fr;
   }
 

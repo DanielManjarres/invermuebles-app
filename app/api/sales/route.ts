@@ -14,11 +14,32 @@ type SaleRequest = {
   items?: SaleItemRequest[];
   notes?: string;
   orderId?: string;
+  paymentMethod?: string;
+  amountPaid?: number;
   type?: SaleType;
 };
 
+const paymentMethods = [
+  "CASH",
+  "TRANSFER",
+  "CARD",
+  "MIXED",
+  "SISTECREDITO",
+  "PENDING",
+] as const;
+
+type PaymentMethod = (typeof paymentMethods)[number];
+
 const allowedSaleTypes = new Set<SaleType>([
   SaleType.CASH,
+  SaleType.CREDIT,
+  SaleType.RESERVED,
+  SaleType.CREDIT_CASH,
+  SaleType.SISTECREDITO,
+]);
+
+const allowedPaymentMethods = new Set<PaymentMethod>(paymentMethods);
+const customerRequiredSaleTypes = new Set<SaleType>([
   SaleType.CREDIT,
   SaleType.RESERVED,
   SaleType.CREDIT_CASH,
@@ -82,7 +103,26 @@ export async function POST(request: Request) {
   const saleType = allowedSaleTypes.has(body.type as SaleType)
     ? (body.type as SaleType)
     : SaleType.CASH;
+  const paymentMethod = allowedPaymentMethods.has(body.paymentMethod as PaymentMethod)
+    ? (body.paymentMethod as PaymentMethod)
+    : saleType === SaleType.CREDIT || saleType === SaleType.RESERVED
+      ? "PENDING"
+      : saleType === SaleType.SISTECREDITO
+        ? "SISTECREDITO"
+        : "CASH";
   const source = body.orderId ? SaleSource.ORDER : SaleSource.LOCAL;
+  const requestedAmountPaid =
+    typeof body.amountPaid === "number" ? Number(body.amountPaid) : undefined;
+
+  if (
+    requestedAmountPaid !== undefined &&
+    (!Number.isFinite(requestedAmountPaid) || requestedAmountPaid < 0)
+  ) {
+    return NextResponse.json(
+      { message: "El valor recibido debe ser un numero valido." },
+      { status: 400 }
+    );
+  }
 
   if (body.customerId) {
     const customer = await prisma.customer.findUnique({
@@ -137,6 +177,10 @@ export async function POST(request: Request) {
 
       if (items.length === 0) {
         throw new Error("EMPTY_SALE");
+      }
+
+      if (customerRequiredSaleTypes.has(saleType) && !customerId) {
+        throw new Error("CUSTOMER_REQUIRED");
       }
 
       const products = await tx.product.findMany({
@@ -202,12 +246,36 @@ export async function POST(request: Request) {
         });
       }
 
+      const amountPaid =
+        requestedAmountPaid !== undefined
+          ? requestedAmountPaid
+          : saleType === SaleType.CASH || saleType === SaleType.SISTECREDITO
+            ? total
+            : 0;
+
+      if (amountPaid > total) {
+        throw new Error("PAYMENT_OVER_TOTAL");
+      }
+
+      if (saleType === SaleType.CASH && amountPaid < total) {
+        throw new Error("CASH_PAYMENT_INCOMPLETE");
+      }
+
+      if (saleType === SaleType.CASH && paymentMethod === "PENDING") {
+        throw new Error("PAYMENT_METHOD_REQUIRED");
+      }
+
+      const balance = Math.max(total - amountPaid, 0);
+
       return tx.sale.create({
         data: {
+          amountPaid,
+          balance,
           customerId,
           items: { create: saleItems },
           notes: body.notes?.trim() || null,
           orderId,
+          paymentMethod,
           source,
           total,
           type: saleType,
@@ -227,6 +295,37 @@ export async function POST(request: Request) {
       if (error.message === "EMPTY_SALE") {
         return NextResponse.json(
           { message: "Agrega al menos un producto a la venta." },
+          { status: 400 }
+        );
+      }
+
+      if (error.message === "CUSTOMER_REQUIRED") {
+        return NextResponse.json(
+          {
+            message:
+              "Selecciona un cliente para ventas a credito, separado, credicontado o Sistecredito.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (error.message === "PAYMENT_OVER_TOTAL") {
+        return NextResponse.json(
+          { message: "El valor recibido no puede ser mayor al total de la venta." },
+          { status: 400 }
+        );
+      }
+
+      if (error.message === "CASH_PAYMENT_INCOMPLETE") {
+        return NextResponse.json(
+          { message: "En ventas de contado, el valor recibido debe cubrir el total." },
+          { status: 400 }
+        );
+      }
+
+      if (error.message === "PAYMENT_METHOD_REQUIRED") {
+        return NextResponse.json(
+          { message: "Selecciona un medio de pago valido para finalizar la venta." },
           { status: 400 }
         );
       }
