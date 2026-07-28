@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Minus,
   PackageSearch,
@@ -10,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { AdminCustomer } from "@/lib/customers";
+import type { AdminOrder } from "@/lib/orders";
 import type { Product } from "@/lib/products";
 import {
   paymentMethodLabels,
@@ -33,6 +35,7 @@ type SaleCartItem = {
 
 type AdminSalesManagerProps = {
   customers: AdminCustomer[];
+  orders: AdminOrder[];
   products: Product[];
   sales: AdminSale[];
 };
@@ -48,6 +51,11 @@ const paymentMethodOptions = Object.entries(paymentMethodLabels).map(
     value,
   })
 );
+
+const creditMonthOptions = [
+  { label: "6 meses - 20 % de interes", value: "6" },
+  { label: "12 meses - 40 % de interes", value: "12" },
+];
 
 const sourceFilters = [
   { label: "Todas", value: "ALL" },
@@ -89,16 +97,21 @@ function getSaleSearchText(sale: AdminSale) {
 
 export function AdminSalesManager({
   customers,
+  orders,
   products: initialProducts,
   sales: initialSales,
 }: AdminSalesManagerProps) {
-  const [products, setProducts] = useState(initialProducts);
-  const [sales, setSales] = useState(initialSales);
+  const searchParams = useSearchParams();
+  const orderIdFromUrl = searchParams.get("pedido") ?? "";
+  const [products] = useState(initialProducts);
+  const [sales] = useState(initialSales);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
-  const [saleType, setSaleType] = useState("CASH");
+  const [saleType, setSaleType] = useState<AdminSale["type"]>("CASH");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
   const [amountPaid, setAmountPaid] = useState(0);
+  const [creditMonths, setCreditMonths] = useState(6);
+  const [sistecreditoApproval, setSistecreditoApproval] = useState("");
   const [customerQuery, setCustomerQuery] = useState("");
   const [productQuery, setProductQuery] = useState("");
   const [historyQuery, setHistoryQuery] = useState("");
@@ -106,9 +119,15 @@ export function AdminSalesManager({
   const [notes, setNotes] = useState("");
   const [cartItems, setCartItems] = useState<SaleCartItem[]>([]);
   const [hasLoadedAdminCart, setHasLoadedAdminCart] = useState(false);
+  const [preparedOrderId, setPreparedOrderId] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
   const adminSaleCart = useAdminSaleCart(products);
+
+  const preparedOrder = useMemo(
+    () => orders.find((order) => order.id === orderIdFromUrl),
+    [orderIdFromUrl, orders]
+  );
 
   const availableProducts = useMemo(
     () => products.filter((product) => product.stock > 0),
@@ -156,12 +175,19 @@ export function AdminSalesManager({
     0
   );
   const cartQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const requiresCustomer = ["CREDIT", "RESERVED", "CREDIT_CASH", "SISTECREDITO"].includes(
-    saleType
-  );
+  const isFinanced = saleType === "CREDIT" || saleType === "CREDIT_CASH";
+  const isReserved = saleType === "RESERVED";
+  const isSistecredito = saleType === "SISTECREDITO";
+  const financeBase =
+    saleType === "CREDIT_CASH" ? Math.max(cartTotal - amountPaid, 0) : cartTotal;
+  const interestRate = creditMonths === 6 ? 0.2 : 0.4;
+  const estimatedCreditDebt = isFinanced
+    ? Math.max(financeBase * (1 + interestRate) - (saleType === "CREDIT" ? amountPaid : 0), 0)
+    : 0;
+  const reservedMinimum = cartTotal * 0.1;
   const balance = Math.max(cartTotal - amountPaid, 0);
-  const completedSales = sales.filter((sale) => sale.status === "COMPLETED");
-  const totalSold = completedSales.reduce((total, sale) => total + sale.total, 0);
+  const activeSales = sales.filter((sale) => sale.status !== "CANCELLED");
+  const totalSold = activeSales.reduce((total, sale) => total + sale.total, 0);
 
   const filteredSales = useMemo(() => {
     const search = normalizeText(historyQuery);
@@ -180,28 +206,57 @@ export function AdminSalesManager({
       return;
     }
 
-    setCartItems(
-      adminSaleCart.detailedItems.map((item) => ({
-        product: item.product,
-        quantity: item.quantity,
-        unitPrice: item.product.salePrice,
-      }))
-    );
+    if (orderIdFromUrl) {
+      if (!preparedOrder || preparedOrder.status !== "CONFIRMED" || preparedOrder.saleId) {
+        setNotice("El pedido seleccionado no esta disponible para preparar una venta.");
+      } else {
+        setCartItems(
+          preparedOrder.items.flatMap((item) => {
+            const product = products.find((currentProduct) => currentProduct.id === item.productId);
+            return product
+              ? [{ product, quantity: item.quantity, unitPrice: product.salePrice }]
+              : [];
+          })
+        );
+        setPreparedOrderId(preparedOrder.id);
+        setSelectedCustomerId(preparedOrder.customerId);
+        setNotes(preparedOrder.notes || "Venta preparada desde pedido web.");
+        setNotice("Pedido cargado. Define la modalidad, precios y condiciones antes de finalizar.");
+      }
+    } else {
+      setCartItems(
+        adminSaleCart.detailedItems.map((item) => ({
+          product: item.product,
+          quantity: item.quantity,
+          unitPrice: item.product.salePrice,
+        }))
+      );
+    }
     setHasLoadedAdminCart(true);
 
-    if (adminSaleCart.detailedItems.length > 0) {
+    if (!orderIdFromUrl && adminSaleCart.detailedItems.length > 0) {
       setNotice("Productos cargados desde el catálogo administrativo.");
     }
-  }, [adminSaleCart.detailedItems, hasLoadedAdminCart]);
+  }, [
+    adminSaleCart.detailedItems,
+    hasLoadedAdminCart,
+    orderIdFromUrl,
+    preparedOrder,
+    products,
+  ]);
 
   useEffect(() => {
     if (saleType === "CASH" || saleType === "SISTECREDITO") {
       setAmountPaid(cartTotal);
     }
-  }, [cartTotal, saleType]);
+    if (saleType === "RESERVED" && amountPaid === 0 && cartTotal > 0) {
+      setAmountPaid(Math.ceil(cartTotal * 0.1));
+    }
+  }, [amountPaid, cartTotal, saleType]);
 
   function changeSaleType(nextType: string) {
-    setSaleType(nextType);
+    setSaleType(nextType as AdminSale["type"]);
+    setSistecreditoApproval("");
 
     if (nextType === "CASH") {
       setPaymentMethod("CASH");
@@ -210,13 +265,18 @@ export function AdminSalesManager({
     }
 
     if (nextType === "SISTECREDITO") {
-      setPaymentMethod("SISTECREDITO");
+      setPaymentMethod("CASH");
       setAmountPaid(cartTotal);
       return;
     }
 
-    if (nextType === "CREDIT" || nextType === "RESERVED") {
-      setPaymentMethod("PENDING");
+    if (nextType === "RESERVED") {
+      setPaymentMethod("CASH");
+      setAmountPaid(Math.ceil(cartTotal * 0.1));
+      return;
+    }
+
+    if (nextType === "CREDIT") {
       setAmountPaid(0);
       return;
     }
@@ -275,24 +335,35 @@ export function AdminSalesManager({
   }
 
   async function createLocalSale() {
-    if (cartItems.length === 0 || isSaving) {
-      return;
-    }
+    if (cartItems.length === 0 || isSaving) return;
 
-    if (requiresCustomer && !selectedCustomerId) {
-      setNotice(
-        "Selecciona un cliente para ventas a credito, separado, credicontado o Sistecredito."
-      );
+    if (!selectedCustomerId) {
+      setNotice("Selecciona el cliente que realiza la compra.");
       return;
     }
 
     if (amountPaid > cartTotal) {
-      setNotice("El valor recibido no puede ser mayor al total de la venta.");
+      setNotice("El pago inicial no puede ser mayor al total de la venta.");
       return;
     }
 
-    if (saleType === "CASH" && amountPaid < cartTotal) {
-      setNotice("En ventas de contado, el valor recibido debe cubrir el total.");
+    if (saleType === "CASH" && amountPaid !== cartTotal) {
+      setNotice("En contado se debe registrar el valor completo de la venta.");
+      return;
+    }
+
+    if (isReserved && amountPaid < reservedMinimum) {
+      setNotice("El separado requiere un abono minimo del 10 % del total.");
+      return;
+    }
+
+    if (saleType === "CREDIT_CASH" && amountPaid <= 0) {
+      setNotice("El credicontado requiere registrar un pago inicial.");
+      return;
+    }
+
+    if (isSistecredito && !sistecreditoApproval.trim()) {
+      setNotice("Registra el numero de aprobacion de Sistecredito.");
       return;
     }
 
@@ -302,82 +373,39 @@ export function AdminSalesManager({
     try {
       const response = await fetch("/api/sales", {
         body: JSON.stringify({
-          customerId: selectedCustomerId || null,
+          customerId: selectedCustomerId,
+          creditMonths: isFinanced ? creditMonths : undefined,
+          initialPayment: amountPaid,
           items: cartItems.map((item) => ({
             productId: item.product.id,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
           })),
           notes,
-          paymentMethod,
-          amountPaid,
+          orderId: preparedOrderId || undefined,
+          paymentMethod: amountPaid > 0 && !isSistecredito ? paymentMethod : undefined,
+          sistecreditoApproval: isSistecredito ? sistecreditoApproval.trim() : undefined,
           type: saleType,
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const result = (await response.json()) as { id?: string; message?: string };
+      const result = (await response.json()) as {
+        id?: string;
+        message?: string;
+        stockApplied?: boolean;
+      };
 
       if (!response.ok || !result.id) {
         setNotice(result.message ?? "No se pudo registrar la venta.");
         return;
       }
 
-      const selectedCustomer = customers.find(
-        (customer) => customer.id === selectedCustomerId
-      );
-      const createdSale: AdminSale = {
-        id: result.id,
-        shortId: result.id.slice(-6).toUpperCase(),
-        customerId: selectedCustomerId,
-        customerName: selectedCustomer?.fullName ?? "Venta sin cliente registrado",
-        customerDocument: selectedCustomer?.document ?? "",
-        orderId: "",
-        orderShortId: "",
-        source: "LOCAL",
-        type: saleType as AdminSale["type"],
-        status: "COMPLETED",
-        paymentMethod,
-        amountPaid,
-        balance,
-        notes,
-        total: cartTotal,
-        createdAt: new Date().toLocaleString("es-CO", {
-          dateStyle: "short",
-          timeStyle: "short",
-        }),
-        createdAtISO: new Date().toISOString(),
-        totalQuantity: cartQuantity,
-        items: cartItems.map((item) => ({
-          id: `${result.id}-${item.product.id}`,
-          productId: item.product.id,
-          productName: item.product.name,
-          productReference: item.product.reference,
-          productCategory: item.product.category,
-          productClass: item.product.productClass,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          lineTotal: item.unitPrice * item.quantity,
-        })),
-      };
-
-      setProducts((currentProducts) =>
-        currentProducts.map((product) => {
-          const soldItem = cartItems.find((item) => item.product.id === product.id);
-          return soldItem
-            ? { ...product, stock: product.stock - soldItem.quantity }
-            : product;
-        })
-      );
-      setSales((currentSales) => [createdSale, ...currentSales]);
-      setCartItems([]);
+      setNotice(result.message ?? "Venta registrada correctamente.");
       clearAdminSaleCart();
-      setSelectedCustomerId("");
-      setSaleType("CASH");
-      setPaymentMethod("CASH");
-      setAmountPaid(0);
-      setNotes("");
-      setNotice(`Venta #${createdSale.shortId} registrada correctamente.`);
+      window.setTimeout(() => {
+        window.location.assign("/admin/ventas");
+      }, 700);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -423,7 +451,7 @@ export function AdminSalesManager({
             <span>1</span>
             <div>
               <strong>Datos de la venta</strong>
-              <p>El cliente puede quedar vacío si es una venta rápida.</p>
+              <p>Toda venta queda asociada a un cliente para conservar su historial.</p>
             </div>
           </div>
 
@@ -445,7 +473,7 @@ export function AdminSalesManager({
               <SelectMenu
                 onChange={setSelectedCustomerId}
                 options={customerOptions}
-                placeholder="Venta sin cliente"
+                placeholder="Selecciona un cliente"
                 value={selectedCustomerId}
               />
             </label>
@@ -569,42 +597,131 @@ export function AdminSalesManager({
           <div className="saleStepHeader">
             <span>3</span>
             <div>
-              <strong>Medio de pago</strong>
-              <p>Registra por donde paga el cliente y si queda saldo pendiente.</p>
+              <strong>Condiciones de la venta</strong>
+              <p>Registra el pago inicial y la modalidad acordada con el cliente.</p>
             </div>
           </div>
 
-          <div className="salePaymentGrid">
-            <label>
-              Medio de pago
-              <SelectMenu
-                onChange={(value) => setPaymentMethod(value as PaymentMethod)}
-                options={paymentMethodOptions}
-                placeholder="Selecciona medio"
-                value={paymentMethod}
-              />
-            </label>
-            <label>
-              Valor recibido / abono
-              <input
-                min="0"
-                onChange={(event) =>
-                  setAmountPaid(event.target.value ? Number(event.target.value) : 0)
-                }
-                type="number"
-                value={amountPaid}
-              />
-            </label>
-            <div className="saleBalanceBox">
-              <span>Saldo pendiente</span>
-              <strong>{formatMoney(balance)}</strong>
+          {saleType === "CASH" ? (
+            <div className="salePaymentGrid">
+              <label>
+                Medio de pago
+                <SelectMenu
+                  onChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                  options={paymentMethodOptions}
+                  placeholder="Selecciona medio"
+                  value={paymentMethod}
+                />
+              </label>
+              <div className="saleBalanceBox">
+                <span>Valor recibido</span>
+                <strong>{formatMoney(cartTotal)}</strong>
+              </div>
+              <div className="saleBalanceBox">
+                <span>Saldo pendiente</span>
+                <strong>{formatMoney(0)}</strong>
+              </div>
             </div>
-          </div>
+          ) : null}
 
-          {requiresCustomer ? (
-            <p className="salePaymentHint">
-              Este tipo de venta debe quedar asociado a un cliente.
-            </p>
+          {isFinanced ? (
+            <div className="salePaymentGrid">
+              <label>
+                Plazo de financiación
+                <SelectMenu
+                  onChange={(value) => setCreditMonths(Number(value))}
+                  options={creditMonthOptions}
+                  placeholder="Selecciona plazo"
+                  value={String(creditMonths)}
+                />
+              </label>
+              <label>
+                {saleType === "CREDIT_CASH" ? "Pago inicial" : "Abono inicial"}
+                <input
+                  min="0"
+                  onChange={(event) =>
+                    setAmountPaid(event.target.value ? Number(event.target.value) : 0)
+                  }
+                  type="number"
+                  value={amountPaid}
+                />
+              </label>
+              <div className="saleBalanceBox">
+                <span>Deuda estimada</span>
+                <strong>{formatMoney(estimatedCreditDebt)}</strong>
+              </div>
+              {amountPaid > 0 ? (
+                <label>
+                  Medio del pago inicial
+                  <SelectMenu
+                    onChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                    options={paymentMethodOptions}
+                    placeholder="Selecciona medio"
+                    value={paymentMethod}
+                  />
+                </label>
+              ) : null}
+              <p className="salePaymentHint">
+                El interés es {creditMonths === 6 ? "20 %" : "40 %"} sobre el saldo financiado. Los próximos abonos podrán disminuir intereses pendientes.
+              </p>
+            </div>
+          ) : null}
+
+          {isReserved ? (
+            <div className="salePaymentGrid">
+              <label>
+                Medio del abono
+                <SelectMenu
+                  onChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                  options={paymentMethodOptions}
+                  placeholder="Selecciona medio"
+                  value={paymentMethod}
+                />
+              </label>
+              <label>
+                Abono inicial
+                <input
+                  min={Math.ceil(reservedMinimum)}
+                  onChange={(event) =>
+                    setAmountPaid(event.target.value ? Number(event.target.value) : 0)
+                  }
+                  type="number"
+                  value={amountPaid}
+                />
+              </label>
+              <div className="saleBalanceBox">
+                <span>Saldo por pagar</span>
+                <strong>{formatMoney(balance)}</strong>
+              </div>
+              <p className="salePaymentHint">
+                Mínimo para separar: {formatMoney(reservedMinimum)}. El producto sigue disponible hasta completar el pago, con plazo máximo de tres meses.
+              </p>
+            </div>
+          ) : null}
+
+          {isSistecredito ? (
+            <div className="salePaymentGrid">
+              <label>
+                Número de aprobación
+                <input
+                  onChange={(event) => setSistecreditoApproval(event.target.value)}
+                  placeholder="Ej: aprobación Sistecrédito"
+                  type="text"
+                  value={sistecreditoApproval}
+                />
+              </label>
+              <div className="saleBalanceBox">
+                <span>Valor cubierto por Sistecrédito</span>
+                <strong>{formatMoney(cartTotal)}</strong>
+              </div>
+              <div className="saleBalanceBox">
+                <span>Saldo del cliente</span>
+                <strong>{formatMoney(0)}</strong>
+              </div>
+              <p className="salePaymentHint">
+                Al registrar la aprobación, la venta queda pagada completamente y pendiente de entrega.
+              </p>
+            </div>
           ) : null}
 
           <label className="saleNotes">
@@ -631,7 +748,15 @@ export function AdminSalesManager({
               onClick={createLocalSale}
             >
               <ReceiptText size={18} />
-              {isSaving ? "Guardando venta..." : "Finalizar venta"}
+              {isSaving
+                ? "Guardando venta..."
+                : isReserved
+                  ? "Registrar separado"
+                  : isFinanced
+                    ? "Crear venta a crédito"
+                    : isSistecredito
+                      ? "Registrar Sistecrédito"
+                      : "Finalizar venta"}
             </button>
           </div>
         </article>
@@ -683,8 +808,10 @@ export function AdminSalesManager({
                     <h3>Venta #{sale.shortId}</h3>
                     <p>
                       {sale.createdAt} · {saleSourceLabels[sale.source]} ·{" "}
-                      {saleTypeLabels[sale.type]} ·{" "}
-                      {paymentMethodLabels[sale.paymentMethod] ?? sale.paymentMethod}
+                      {saleTypeLabels[sale.type]}
+                      {sale.paymentMethod
+                        ? ` · ${paymentMethodLabels[sale.paymentMethod]}`
+                        : ""}
                     </p>
                   </div>
                   <div>

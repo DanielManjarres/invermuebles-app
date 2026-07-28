@@ -1,5 +1,13 @@
+import {
+  OrderStatus,
+  PaymentMethod,
+  SaleSource,
+  SaleStatus,
+  SaleType,
+  StockMovementType,
+  UserRole,
+} from "@prisma/client";
 import { NextResponse } from "next/server";
-import { OrderStatus, SaleSource, SaleType, StockMovementType, UserRole } from "@prisma/client";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 
@@ -10,72 +18,46 @@ type SaleItemRequest = {
 };
 
 type SaleRequest = {
-  customerId?: string | null;
+  customerId?: string;
   items?: SaleItemRequest[];
   notes?: string;
   orderId?: string;
-  paymentMethod?: string;
-  amountPaid?: number;
+  paymentMethod?: PaymentMethod;
+  initialPayment?: number;
   type?: SaleType;
+  creditMonths?: number;
+  sistecreditoApproval?: string;
 };
 
-const paymentMethods = [
-  "CASH",
-  "TRANSFER",
-  "CARD",
-  "MIXED",
-  "SISTECREDITO",
-  "PENDING",
-] as const;
-
-type PaymentMethod = (typeof paymentMethods)[number];
-
-const allowedSaleTypes = new Set<SaleType>([
-  SaleType.CASH,
-  SaleType.CREDIT,
-  SaleType.RESERVED,
-  SaleType.CREDIT_CASH,
-  SaleType.SISTECREDITO,
-]);
-
-const allowedPaymentMethods = new Set<PaymentMethod>(paymentMethods);
-const customerRequiredSaleTypes = new Set<SaleType>([
-  SaleType.CREDIT,
-  SaleType.RESERVED,
-  SaleType.CREDIT_CASH,
-  SaleType.SISTECREDITO,
-]);
+const allowedSaleTypes = new Set<SaleType>(Object.values(SaleType));
+const financingTypes = new Set<SaleType>([SaleType.CREDIT, SaleType.CREDIT_CASH]);
 
 function normalizeItems(items: SaleItemRequest[] = []) {
-  const itemMap = new Map<
-    string,
-    { productId: string; quantity: number; unitPrice?: number }
-  >();
+  const itemMap = new Map<string, { productId: string; quantity: number; unitPrice: number }>();
 
   for (const item of items) {
     const productId = item.productId?.trim() ?? "";
     const quantity = Number(item.quantity);
-    const unitPrice =
-      typeof item.unitPrice === "number" ? Number(item.unitPrice) : undefined;
+    const unitPrice = Number(item.unitPrice);
 
-    if (!productId || !Number.isInteger(quantity) || quantity < 1) {
+    if (
+      !productId ||
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      !Number.isFinite(unitPrice) ||
+      unitPrice < 0
+    ) {
       continue;
     }
 
-    if (unitPrice !== undefined && (!Number.isFinite(unitPrice) || unitPrice < 0)) {
-      continue;
-    }
-
-    const currentItem = itemMap.get(productId);
-
-    itemMap.set(productId, {
-      productId,
-      quantity: (currentItem?.quantity ?? 0) + quantity,
-      unitPrice: unitPrice ?? currentItem?.unitPrice,
-    });
+    itemMap.set(productId, { productId, quantity, unitPrice });
   }
 
   return Array.from(itemMap.values());
+}
+
+function creditRate(months: number) {
+  return months === 12 ? 0.4 : 0.2;
 }
 
 async function getAdminUserId() {
@@ -103,139 +85,101 @@ export async function POST(request: Request) {
   const saleType = allowedSaleTypes.has(body.type as SaleType)
     ? (body.type as SaleType)
     : SaleType.CASH;
-  const paymentMethod = allowedPaymentMethods.has(body.paymentMethod as PaymentMethod)
-    ? (body.paymentMethod as PaymentMethod)
-    : saleType === SaleType.CREDIT || saleType === SaleType.RESERVED
-      ? "PENDING"
-      : saleType === SaleType.SISTECREDITO
-        ? "SISTECREDITO"
-        : "CASH";
-  const source = body.orderId ? SaleSource.ORDER : SaleSource.LOCAL;
-  const requestedAmountPaid =
-    typeof body.amountPaid === "number" ? Number(body.amountPaid) : undefined;
+  const initialPayment = Number(body.initialPayment ?? 0);
+  const paymentMethod = body.paymentMethod;
+  const months = Number(body.creditMonths ?? 6);
 
-  if (
-    requestedAmountPaid !== undefined &&
-    (!Number.isFinite(requestedAmountPaid) || requestedAmountPaid < 0)
-  ) {
+  if (!body.customerId?.trim()) {
     return NextResponse.json(
-      { message: "El valor recibido debe ser un numero valido." },
+      { message: "Toda venta debe quedar asociada a un cliente." },
       { status: 400 }
     );
   }
 
-  if (body.customerId) {
-    const customer = await prisma.customer.findUnique({
-      where: { id: body.customerId },
-      select: { id: true },
-    });
+  if (!Number.isFinite(initialPayment) || initialPayment < 0) {
+    return NextResponse.json(
+      { message: "El pago inicial debe ser un valor válido." },
+      { status: 400 }
+    );
+  }
 
-    if (!customer) {
-      return NextResponse.json(
-        { message: "Selecciona un cliente valido para la venta." },
-        { status: 400 }
-      );
-    }
+  if (financingTypes.has(saleType) && months !== 6 && months !== 12) {
+    return NextResponse.json(
+      { message: "El crédito debe manejarse a 6 o 12 meses." },
+      { status: 400 }
+    );
+  }
+
+  if (
+    initialPayment > 0 &&
+    paymentMethod !== PaymentMethod.CASH &&
+    paymentMethod !== PaymentMethod.TRANSFER
+  ) {
+    return NextResponse.json(
+      { message: "Selecciona efectivo o transferencia para registrar el pago inicial." },
+      { status: 400 }
+    );
   }
 
   try {
     const adminUserId = await getAdminUserId();
 
     const sale = await prisma.$transaction(async (tx) => {
-      let customerId = body.customerId || null;
-      let orderId: string | null = body.orderId?.trim() || null;
+      const customer = await tx.customer.findUnique({
+        where: { id: body.customerId!.trim() },
+        select: { id: true, status: true },
+      });
+
+      if (!customer) {
+        throw new Error("CUSTOMER_NOT_FOUND");
+      }
+
+      if (customer.status === "INACTIVE" || customer.status === "BLOCKED") {
+        throw new Error("CUSTOMER_UNAVAILABLE");
+      }
+
+      const orderId = body.orderId?.trim() || null;
       let items = normalizeItems(body.items);
 
       if (orderId) {
         const order = await tx.order.findUnique({
           where: { id: orderId },
-          include: {
-            items: true,
-            sale: true,
-          },
+          include: { items: true, sale: true },
         });
 
-        if (!order) {
-          throw new Error("ORDER_NOT_FOUND");
-        }
+        if (!order) throw new Error("ORDER_NOT_FOUND");
+        if (order.status !== OrderStatus.CONFIRMED) throw new Error("ORDER_NOT_CONFIRMED");
+        if (order.sale) throw new Error("ORDER_ALREADY_SOLD");
 
-        if (order.status !== OrderStatus.CONFIRMED) {
-          throw new Error("ORDER_NOT_CONFIRMED");
-        }
-
-        if (order.sale) {
-          throw new Error("ORDER_ALREADY_SOLD");
-        }
-
-        customerId = customerId || order.customerId;
+        const requestedPrices = new Map(items.map((item) => [item.productId, item.unitPrice]));
         items = order.items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: undefined,
+          unitPrice: requestedPrices.get(item.productId) ?? 0,
         }));
       }
 
-      if (items.length === 0) {
-        throw new Error("EMPTY_SALE");
-      }
-
-      if (customerRequiredSaleTypes.has(saleType) && !customerId) {
-        throw new Error("CUSTOMER_REQUIRED");
-      }
+      if (items.length === 0) throw new Error("EMPTY_SALE");
 
       const products = await tx.product.findMany({
         where: { id: { in: items.map((item) => item.productId) } },
-        include: {
-          productClass: true,
-          productType: true,
-        },
+        include: { productClass: true, productType: true },
       });
 
-      if (products.length !== items.length) {
-        throw new Error("PRODUCT_NOT_FOUND");
-      }
+      if (products.length !== items.length) throw new Error("PRODUCT_NOT_FOUND");
 
       const productsById = new Map(products.map((product) => [product.id, product]));
-      const saleItems = [];
-      let total = 0;
-
-      for (const item of items) {
+      const saleItems = items.map((item) => {
         const product = productsById.get(item.productId);
-
-        if (!product) {
-          throw new Error("PRODUCT_NOT_FOUND");
-        }
-
+        if (!product) throw new Error("PRODUCT_NOT_FOUND");
         if (product.stock < item.quantity) {
           throw new Error(`OUT_OF_STOCK:${product.name}:${product.stock}`);
         }
 
-        const nextStock = product.stock - item.quantity;
-        const unitPrice = item.unitPrice ?? Number(product.salePrice);
-        const lineTotal = unitPrice * item.quantity;
-        total += lineTotal;
-
-        await tx.product.update({
-          where: { id: product.id },
-          data: { stock: nextStock },
-        });
-
-        await tx.stockMovement.create({
-          data: {
-            nextStock,
-            previousStock: product.stock,
-            productId: product.id,
-            quantity: item.quantity,
-            reason: source === SaleSource.ORDER ? "Venta desde pedido" : "Venta local",
-            note: body.notes?.trim() || null,
-            type: StockMovementType.EXIT,
-            userId: adminUserId,
-          },
-        });
-
-        saleItems.push({
+        const unitPrice = item.unitPrice || Number(product.salePrice);
+        return {
           cost: product.cost,
-          lineTotal,
+          lineTotal: unitPrice * item.quantity,
           productCategory: product.productType.name,
           productClass: product.productClass.name,
           productId: product.id,
@@ -243,135 +187,183 @@ export async function POST(request: Request) {
           productReference: product.reference,
           quantity: item.quantity,
           unitPrice,
-        });
+        };
+      });
+      const total = saleItems.reduce((sum, item) => sum + item.lineTotal, 0);
+
+      let amountPaid = initialPayment;
+      let balance = 0;
+      let status: SaleStatus = SaleStatus.PENDING_DELIVERY;
+      let stockApplied = saleType !== SaleType.RESERVED;
+      let reservedUntil: Date | null = null;
+      let interestRate = 0;
+      let principal = 0;
+      let outstandingPrincipal = 0;
+      let interestBalance = 0;
+
+      if (saleType === SaleType.CASH) {
+        amountPaid = initialPayment || total;
+        if (amountPaid !== total) throw new Error("CASH_PAYMENT_INCOMPLETE");
       }
 
-      const amountPaid =
-        requestedAmountPaid !== undefined
-          ? requestedAmountPaid
-          : saleType === SaleType.CASH || saleType === SaleType.SISTECREDITO
-            ? total
-            : 0;
-
-      if (amountPaid > total) {
-        throw new Error("PAYMENT_OVER_TOTAL");
+      if (saleType === SaleType.SISTECREDITO) {
+        if (!body.sistecreditoApproval?.trim()) throw new Error("SISTECREDITO_APPROVAL_REQUIRED");
+        amountPaid = total;
       }
 
-      if (saleType === SaleType.CASH && amountPaid < total) {
-        throw new Error("CASH_PAYMENT_INCOMPLETE");
+      if (saleType === SaleType.RESERVED) {
+        const minimumPayment = total * 0.1;
+        if (amountPaid < minimumPayment) throw new Error("RESERVED_MINIMUM_PAYMENT");
+        if (amountPaid > total) throw new Error("PAYMENT_OVER_TOTAL");
+        balance = total - amountPaid;
+        status = balance === 0 ? SaleStatus.PENDING_DELIVERY : SaleStatus.PENDING_PAYMENT;
+        stockApplied = balance === 0;
+        reservedUntil = new Date();
+        reservedUntil.setMonth(reservedUntil.getMonth() + 3);
       }
 
-      if (saleType === SaleType.CASH && paymentMethod === "PENDING") {
-        throw new Error("PAYMENT_METHOD_REQUIRED");
+      if (financingTypes.has(saleType)) {
+        if (saleType === SaleType.CREDIT_CASH && amountPaid <= 0) {
+          throw new Error("CREDIT_CASH_INITIAL_REQUIRED");
+        }
+
+        const financedAmount = saleType === SaleType.CREDIT ? total : total - amountPaid;
+        if (financedAmount <= 0 || amountPaid > total) throw new Error("PAYMENT_OVER_TOTAL");
+
+        interestRate = creditRate(months);
+        principal = financedAmount;
+        const scheduledTotal = financedAmount * (1 + interestRate);
+        const creditPayment = saleType === SaleType.CREDIT ? amountPaid : 0;
+        const principalPaid = Math.min(principal, creditPayment / (1 + interestRate));
+        outstandingPrincipal = principal - principalPaid;
+        interestBalance = outstandingPrincipal * interestRate;
+        balance = outstandingPrincipal + interestBalance;
+        status = SaleStatus.PENDING_DELIVERY;
       }
 
-      const balance = Math.max(total - amountPaid, 0);
+      if (saleType !== SaleType.CREDIT && saleType !== SaleType.CREDIT_CASH && saleType !== SaleType.RESERVED) {
+        if (amountPaid > total) throw new Error("PAYMENT_OVER_TOTAL");
+        balance = Math.max(total - amountPaid, 0);
+      }
 
-      return tx.sale.create({
+      const sale = await tx.sale.create({
         data: {
           amountPaid,
           balance,
-          customerId,
+          customerId: customer.id,
           items: { create: saleItems },
           notes: body.notes?.trim() || null,
           orderId,
-          paymentMethod,
-          source,
+          paymentMethod:
+            saleType === SaleType.SISTECREDITO ? "SISTECREDITO" : paymentMethod ?? "CASH",
+          reservedUntil,
+          sistecreditoApproval: body.sistecreditoApproval?.trim() || null,
+          source: orderId ? SaleSource.ORDER : SaleSource.LOCAL,
+          status,
+          stockApplied,
           total,
           type: saleType,
+          credit: financingTypes.has(saleType)
+            ? {
+                create: {
+                  customerId: customer.id,
+                  interestBalance,
+                  interestRate: interestRate * 100,
+                  months,
+                  outstandingPrincipal,
+                  principal,
+                  total: principal + principal * interestRate,
+                },
+              }
+            : undefined,
         },
+        include: { credit: true },
       });
+
+      if (amountPaid > 0 && saleType !== SaleType.SISTECREDITO && paymentMethod) {
+        await tx.salePayment.create({
+          data: {
+            amount: amountPaid,
+            creditId: saleType === SaleType.CREDIT ? sale.credit?.id : null,
+            interestAmount:
+              saleType === SaleType.CREDIT
+                ? amountPaid - (principal - outstandingPrincipal)
+                : null,
+            method: paymentMethod,
+            note: "Pago inicial al registrar la venta.",
+            principalAmount:
+              saleType === SaleType.CREDIT ? principal - outstandingPrincipal : null,
+            saleId: sale.id,
+            userId: adminUserId,
+          },
+        });
+      }
+
+      if (stockApplied) {
+        for (const item of saleItems) {
+          const product = productsById.get(item.productId)!;
+          const nextStock = product.stock - item.quantity;
+          await tx.product.update({ where: { id: product.id }, data: { stock: nextStock } });
+          await tx.stockMovement.create({
+            data: {
+              nextStock,
+              previousStock: product.stock,
+              productId: product.id,
+              quantity: item.quantity,
+              reason: orderId ? "Venta desde pedido confirmado" : `Venta ${saleType}`,
+              note: body.notes?.trim() || null,
+              type: StockMovementType.EXIT,
+              userId: adminUserId,
+            },
+          });
+        }
+      }
+
+      return sale;
     });
 
     return NextResponse.json(
       {
         id: sale.id,
         message: "Venta registrada correctamente.",
+        status: sale.status,
+        total: Number(sale.total),
+        amountPaid: Number(sale.amountPaid),
+        balance: Number(sale.balance),
+        stockApplied: sale.stockApplied,
       },
       { status: 201 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "EMPTY_SALE") {
-        return NextResponse.json(
-          { message: "Agrega al menos un producto a la venta." },
-          { status: 400 }
-        );
-      }
+    const message = error instanceof Error ? error.message : "";
+    const errors: Record<string, [string, number]> = {
+      CUSTOMER_NOT_FOUND: ["Selecciona un cliente válido para la venta.", 400],
+      CUSTOMER_UNAVAILABLE: ["El cliente está inactivo o bloqueado para nuevas ventas.", 400],
+      EMPTY_SALE: ["Agrega al menos un producto a la venta.", 400],
+      PRODUCT_NOT_FOUND: ["Uno de los productos no existe.", 404],
+      ORDER_NOT_FOUND: ["El pedido seleccionado no existe.", 404],
+      ORDER_NOT_CONFIRMED: ["Solo se puede preparar una venta desde pedidos confirmados.", 400],
+      ORDER_ALREADY_SOLD: ["Este pedido ya fue convertido en venta.", 400],
+      PAYMENT_OVER_TOTAL: ["El pago inicial no puede ser mayor al valor de la venta.", 400],
+      CASH_PAYMENT_INCOMPLETE: ["En contado el pago debe cubrir el total de la venta.", 400],
+      RESERVED_MINIMUM_PAYMENT: ["Para separar se debe registrar al menos el 10 % del valor.", 400],
+      CREDIT_CASH_INITIAL_REQUIRED: ["Credicontado requiere un pago inicial mayor a cero.", 400],
+      SISTECREDITO_APPROVAL_REQUIRED: ["Registra el número de aprobación de Sistecrédito.", 400],
+    };
 
-      if (error.message === "CUSTOMER_REQUIRED") {
-        return NextResponse.json(
-          {
-            message:
-              "Selecciona un cliente para ventas a credito, separado, credicontado o Sistecredito.",
-          },
-          { status: 400 }
-        );
-      }
-
-      if (error.message === "PAYMENT_OVER_TOTAL") {
-        return NextResponse.json(
-          { message: "El valor recibido no puede ser mayor al total de la venta." },
-          { status: 400 }
-        );
-      }
-
-      if (error.message === "CASH_PAYMENT_INCOMPLETE") {
-        return NextResponse.json(
-          { message: "En ventas de contado, el valor recibido debe cubrir el total." },
-          { status: 400 }
-        );
-      }
-
-      if (error.message === "PAYMENT_METHOD_REQUIRED") {
-        return NextResponse.json(
-          { message: "Selecciona un medio de pago valido para finalizar la venta." },
-          { status: 400 }
-        );
-      }
-
-      if (error.message === "ORDER_NOT_FOUND") {
-        return NextResponse.json(
-          { message: "El pedido seleccionado no existe." },
-          { status: 404 }
-        );
-      }
-
-      if (error.message === "ORDER_NOT_CONFIRMED") {
-        return NextResponse.json(
-          { message: "Solo se puede crear venta de pedidos confirmados." },
-          { status: 400 }
-        );
-      }
-
-      if (error.message === "ORDER_ALREADY_SOLD") {
-        return NextResponse.json(
-          { message: "Este pedido ya fue convertido en venta." },
-          { status: 400 }
-        );
-      }
-
-      if (error.message === "PRODUCT_NOT_FOUND") {
-        return NextResponse.json(
-          { message: "Uno de los productos no existe." },
-          { status: 404 }
-        );
-      }
-
-      if (error.message.startsWith("OUT_OF_STOCK:")) {
-        const [, productName, stock] = error.message.split(":");
-        return NextResponse.json(
-          {
-            message: `No hay stock suficiente de ${productName}. Disponible: ${stock}.`,
-          },
-          { status: 400 }
-        );
-      }
+    if (errors[message]) {
+      const [detail, status] = errors[message];
+      return NextResponse.json({ message: detail }, { status });
     }
 
-    return NextResponse.json(
-      { message: "No se pudo registrar la venta." },
-      { status: 500 }
-    );
+    if (message.startsWith("OUT_OF_STOCK:")) {
+      const [, name, stock] = message.split(":");
+      return NextResponse.json(
+        { message: `No hay stock suficiente de ${name}. Disponible: ${stock}.` },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ message: "No se pudo registrar la venta." }, { status: 500 });
   }
 }

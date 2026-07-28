@@ -2699,6 +2699,11 @@ th {
   margin: -4px 0 0;
 }
 
+.salePaymentGrid .salePaymentHint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 .saleLineTotal {
   display: grid;
   gap: 5px;

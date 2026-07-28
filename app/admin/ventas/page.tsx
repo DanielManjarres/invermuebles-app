@@ -2,16 +2,17 @@ import { AdminSalesManager } from "@/components/admin-sales-manager";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
 import { getCustomers } from "@/lib/database-customers";
-import { getProducts } from "@/lib/database-products";
+import { getOrders, getProducts } from "@/lib/database-products";
 import { getSales } from "@/lib/database-sales";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSalesPage() {
-  const [customers, products, sales] = await Promise.all([
+  const [customers, products, sales, orders] = await Promise.all([
     getCustomers(),
     getProducts(),
     getSales(),
+    getOrders(),
   ]);
 
   return (
@@ -32,7 +33,12 @@ export default async function AdminSalesPage() {
         </div>
       </section>
 
-      <AdminSalesManager customers={customers} products={products} sales={sales} />
+      <AdminSalesManager
+        customers={customers}
+        orders={orders}
+        products={products}
+        sales={sales}
+      />
     </main>
   );
 }

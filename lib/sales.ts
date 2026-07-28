@@ -1,4 +1,6 @@
-import type { SaleSource, SaleStatus, SaleType } from "@prisma/client";
+import type { PaymentMethod as PrismaPaymentMethod, SaleSource, SaleStatus, SaleType } from "@prisma/client";
+
+export type PaymentMethod = PrismaPaymentMethod;
 
 export type AdminSaleItem = {
   id: string;
@@ -23,7 +25,7 @@ export type AdminSale = {
   source: SaleSource;
   type: SaleType;
   status: SaleStatus;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   amountPaid: number;
   balance: number;
   notes: string;
@@ -34,21 +36,9 @@ export type AdminSale = {
   items: AdminSaleItem[];
 };
 
-export type PaymentMethod =
-  | "CASH"
-  | "TRANSFER"
-  | "CARD"
-  | "MIXED"
-  | "SISTECREDITO"
-  | "PENDING";
-
 export const paymentMethodLabels: Record<PaymentMethod, string> = {
   CASH: "Efectivo",
   TRANSFER: "Transferencia",
-  CARD: "Tarjeta",
-  MIXED: "Mixto",
-  SISTECREDITO: "Sistecredito",
-  PENDING: "Pendiente por cobrar",
 };
 
 export const saleTypeLabels: Record<SaleType, string> = {
@@ -66,5 +56,8 @@ export const saleSourceLabels: Record<SaleSource, string> = {
 
 export const saleStatusLabels: Record<SaleStatus, string> = {
   COMPLETED: "Finalizada",
+  PENDING_PAYMENT: "Pendiente de pago",
+  PENDING_DELIVERY: "Pendiente de entrega",
+  DELIVERED: "Entregada",
   CANCELLED: "Cancelada",
 };
