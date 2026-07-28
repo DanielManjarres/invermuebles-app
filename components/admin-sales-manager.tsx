@@ -445,24 +445,27 @@ export function AdminSalesManager({
                       {item.product.reference} · Base {formatMoney(item.product.salePrice)}
                     </span>
                   </div>
-                  <div className="quantityControl" aria-label="Cambiar cantidad">
-                    <button
-                      className="quantityButton"
-                      type="button"
-                      disabled={item.quantity === 1}
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      className="quantityButton"
-                      type="button"
-                      disabled={item.quantity >= item.product.stock}
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                    >
-                      <Plus size={16} />
-                    </button>
+                  <div className="saleQuantityBlock">
+                    <span>Cantidad</span>
+                    <div className="quantityControl" aria-label="Cambiar cantidad">
+                      <button
+                        className="quantityButton"
+                        type="button"
+                        disabled={item.quantity === 1}
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        className="quantityButton"
+                        type="button"
+                        disabled={item.quantity >= item.product.stock}
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
                   </div>
                   <label className="salePriceField">
                     Precio vendido
@@ -475,7 +478,10 @@ export function AdminSalesManager({
                       value={item.unitPrice}
                     />
                   </label>
-                  <strong>{formatMoney(item.unitPrice * item.quantity)}</strong>
+                  <div className="saleLineTotal">
+                    <span>Subtotal</span>
+                    <strong>{formatMoney(item.unitPrice * item.quantity)}</strong>
+                  </div>
                   <button
                     className="iconButton"
                     type="button"

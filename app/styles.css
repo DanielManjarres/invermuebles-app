@@ -2442,14 +2442,14 @@ th {
   display: grid;
   gap: 18px;
   max-width: 1180px;
-  padding-top: 34px;
+  padding-top: 28px;
 }
 
 .salesLayout {
   align-items: start;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.72fr);
+  grid-template-columns: 1fr;
 }
 
 .localSalePanel,
@@ -2458,7 +2458,9 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
+  overflow: hidden;
   padding: 18px;
 }
 
@@ -2469,7 +2471,7 @@ th {
 
 .localSalePanel h2,
 .salesHistoryPanel h2 {
-  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-size: clamp(1.45rem, 2.5vw, 1.9rem);
   margin: 0;
 }
 
@@ -2480,12 +2482,18 @@ th {
 }
 
 .saleFormGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(220px, 0.7fr);
 }
 
 .saleProductPicker {
   align-items: end;
-  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 0.9fr) 150px;
+}
+
+.saleProductPicker .secondaryButton {
+  min-height: 44px;
+  padding-inline: 14px;
+  white-space: nowrap;
 }
 
 .saleFormGrid label,
@@ -2562,18 +2570,18 @@ th {
 .saleCartList,
 .salesList {
   display: grid;
-  gap: 10px;
+  gap: 9px;
 }
 
 .saleCartItem {
   align-items: center;
-  background: var(--surface-strong);
+  background: #f4faf4;
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(190px, 1fr) auto minmax(150px, 170px) minmax(110px, auto) auto;
-  padding: 12px;
+  gap: 12px;
+  grid-template-columns: minmax(230px, 1fr) 116px minmax(150px, 170px) 130px 42px;
+  padding: 12px 14px;
 }
 
 .saleCartProductInfo {
@@ -2584,6 +2592,7 @@ th {
 
 .saleCartItem strong {
   color: var(--text);
+  font-size: 0.98rem;
   line-height: 1.25;
 }
 
@@ -2591,6 +2600,23 @@ th {
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.saleQuantityBlock {
+  display: grid;
+  gap: 5px;
+  justify-content: start;
+}
+
+.saleQuantityBlock > span,
+.saleLineTotal > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.saleQuantityBlock .quantityControl {
+  background: #fff;
 }
 
 .salePriceField {
@@ -2616,6 +2642,15 @@ th {
 .salePriceField input:focus {
   border-color: var(--primary);
   outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.saleLineTotal {
+  display: grid;
+  gap: 5px;
+}
+
+.saleLineTotal strong {
+  white-space: nowrap;
 }
 
 .saleSummaryBar {
@@ -2705,7 +2740,12 @@ th {
 }
 
 .saleHistoryFilters {
+  gap: 8px;
   justify-content: start;
+}
+
+.salesHistoryPanel .searchBox {
+  max-width: 520px;
 }
 
 .customersSection {
@@ -3500,6 +3540,16 @@ th {
 
   .footerAccess {
     text-align: left;
+  }
+}
+
+@media (max-width: 1180px) {
+  .salesLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .salesHistoryPanel {
+    order: 2;
   }
 }
 
