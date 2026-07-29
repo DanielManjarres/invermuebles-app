@@ -353,7 +353,7 @@ export function AdminSalesManager({
   const filteredSales = useMemo(() => {
     const search = normalizeText(historyQuery);
 
-    return sales.filter((sale) => {
+    return sales.filter((sale) => sale.status !== "CANCELLED").filter((sale) => {
       const matchesSearch = search ? getSaleSearchText(sale).includes(search) : true;
       const matchesSource =
         sourceFilter === "ALL" ? true : sale.source === sourceFilter;
@@ -612,11 +612,7 @@ export function AdminSalesManager({
       }
 
       setSales((currentSales) =>
-        currentSales.map((currentSale) =>
-          currentSale.id === sale.id
-            ? { ...currentSale, balance: 0, status: "CANCELLED" }
-            : currentSale
-        )
+        currentSales.filter((currentSale) => currentSale.id !== sale.id)
       );
       setSaleToCancel(null);
       setNotice(result.message ?? `Venta #${sale.shortId} anulada correctamente.`);
