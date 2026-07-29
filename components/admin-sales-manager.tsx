@@ -842,7 +842,11 @@ export function AdminSalesManager({
               </label>
               <div className="saleCreditSummary">
                 <div className="saleBalanceBox">
-                  <span>Deuda total con inter&eacute;s</span>
+                  <span>
+                    {saleType === "CREDIT_CASH"
+                      ? "Total financiado con inter\u00e9s"
+                      : "Deuda total con inter\u00e9s"}
+                  </span>
                   <strong>{formatMoney(financedTotalWithInterest)}</strong>
                 </div>
                 <div className="saleBalanceBox">
