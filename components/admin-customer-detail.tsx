@@ -3,8 +3,10 @@
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  AlertTriangle,
   BadgeCheck,
   Ban,
   CreditCard,
@@ -12,6 +14,7 @@ import {
   FileText,
   MapPin,
   Phone,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import {
@@ -99,12 +102,15 @@ function buildCustomerFromForm(
 }
 
 export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
+  const router = useRouter();
   const [currentCustomer, setCurrentCustomer] = useState(customer);
   const [form, setForm] = useState<CustomerFormState>(
     createFormFromCustomer(customer)
   );
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
 
@@ -167,6 +173,31 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
     setNotice(`${savedCustomer.fullName} fue actualizado.`);
   }
 
+  async function handleCustomerDelete() {
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch("/api/customers", {
+        body: JSON.stringify({ id: currentCustomer.id }),
+        headers: { "Content-Type": "application/json" },
+        method: "DELETE",
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        setNotice(result.message ?? "No se pudo eliminar el cliente.");
+        setIsDeleteOpen(false);
+        return;
+      }
+
+      router.push("/admin/clientes");
+    } catch {
+      setNotice("No se pudo conectar con el sistema.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <section className="tableSection customersSection">
       {notice ? (
@@ -189,10 +220,20 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
               {customerStatusLabels[currentCustomer.status]}
             </span>
           </div>
-          <button className="secondaryButton" type="button" onClick={openEditForm}>
-            <Edit3 size={18} />
-            Editar
-          </button>
+          <div className="customerHeaderActions">
+            <button className="secondaryButton" type="button" onClick={openEditForm}>
+              <Edit3 size={18} />
+              Editar
+            </button>
+            <button
+              className="dangerButton"
+              type="button"
+              onClick={() => setIsDeleteOpen(true)}
+            >
+              <Trash2 size={18} />
+              Eliminar
+            </button>
+          </div>
         </div>
 
         <div className="customerDataGrid">
@@ -271,6 +312,61 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
           </article>
         </div>
       </article>
+
+      {isDeleteOpen ? (
+        <div className="modalOverlay" role="presentation">
+          <div className="adminModal recordDeleteModal">
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Correccion de registros</p>
+                <h2>Eliminar cliente</h2>
+              </div>
+              <button
+                aria-label="Cerrar confirmacion"
+                className="modalClose"
+                type="button"
+                onClick={() => setIsDeleteOpen(false)}
+              >
+                x
+              </button>
+            </div>
+
+            <div className="recordDeleteWarning">
+              <AlertTriangle size={20} />
+              <p>
+                Solo se eliminara si no tiene pedidos, ventas ni creditos
+                relacionados. Si ya tiene historial, el cliente se conserva y
+                puedes marcarlo como inactivo.
+              </p>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Cliente seleccionado</span>
+              <strong>{currentCustomer.fullName}</strong>
+              <small>CC {currentCustomer.document}</small>
+            </div>
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={() => setIsDeleteOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="dangerButton"
+                disabled={isDeleting}
+                type="button"
+                onClick={handleCustomerDelete}
+              >
+                <Trash2 size={18} />
+                {isDeleting ? "Revisando..." : "Eliminar cliente"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isFormOpen ? (
         <div className="modalOverlay" role="presentation">

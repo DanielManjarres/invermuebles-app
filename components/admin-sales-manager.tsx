@@ -253,7 +253,7 @@ export function AdminSalesManager({
   const searchParams = useSearchParams();
   const orderIdFromUrl = searchParams.get("pedido") ?? "";
   const [products] = useState(initialProducts);
-  const [sales] = useState(initialSales);
+  const [sales, setSales] = useState(initialSales);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
   const [saleType, setSaleType] = useState<AdminSale["type"]>("CASH");
@@ -273,6 +273,8 @@ export function AdminSalesManager({
   const [preparedOrderId, setPreparedOrderId] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
+  const [saleToCancel, setSaleToCancel] = useState<AdminSale | null>(null);
+  const [cancellingSaleId, setCancellingSaleId] = useState("");
   const adminSaleCart = useAdminSaleCart(products);
 
   const preparedOrder = useMemo(
@@ -592,20 +594,53 @@ export function AdminSalesManager({
     }
   }
 
+  async function cancelSale(sale: AdminSale) {
+    if (cancellingSaleId) return;
+
+    setCancellingSaleId(sale.id);
+
+    try {
+      const response = await fetch(`/api/sales/${sale.id}`, {
+        method: "DELETE",
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        setNotice(result.message ?? "No se pudo anular la venta.");
+        setSaleToCancel(null);
+        return;
+      }
+
+      setSales((currentSales) =>
+        currentSales.map((currentSale) =>
+          currentSale.id === sale.id
+            ? { ...currentSale, balance: 0, status: "CANCELLED" }
+            : currentSale
+        )
+      );
+      setSaleToCancel(null);
+      setNotice(result.message ?? `Venta #${sale.shortId} anulada correctamente.`);
+    } catch {
+      setNotice("No se pudo conectar con el sistema.");
+    } finally {
+      setCancellingSaleId("");
+    }
+  }
+
   return (
     <section className="tableSection salesSection">
       <div className="movementSummaryGrid" aria-label="Resumen de ventas">
         <article>
           <span>Total ventas</span>
-          <strong>{sales.length}</strong>
+          <strong>{activeSales.length}</strong>
         </article>
         <article>
           <span>Ventas locales</span>
-          <strong>{sales.filter((sale) => sale.source === "LOCAL").length}</strong>
+          <strong>{activeSales.filter((sale) => sale.source === "LOCAL").length}</strong>
         </article>
         <article>
           <span>Desde pedidos</span>
-          <strong>{sales.filter((sale) => sale.source === "ORDER").length}</strong>
+          <strong>{activeSales.filter((sale) => sale.source === "ORDER").length}</strong>
         </article>
         <article>
           <span>Total vendido</span>
@@ -1046,12 +1081,79 @@ export function AdminSalesManager({
                       <span>Saldo: {formatMoney(sale.balance)}</span>
                     ) : null}
                   </div>
+                  {sale.status !== "CANCELLED" ? (
+                    <div className="saleHistoryActions">
+                      <button
+                        className="dangerButton"
+                        type="button"
+                        onClick={() => setSaleToCancel(sale)}
+                      >
+                        <Trash2 size={16} />
+                        Anular venta
+                      </button>
+                    </div>
+                  ) : null}
                 </article>
               ))
             )}
           </div>
         </article>
       </div>
+
+      {saleToCancel ? (
+        <div className="adminModalBackdrop" role="presentation">
+          <div
+            aria-labelledby="cancel-sale-title"
+            aria-modal="true"
+            className="adminModal recordDeleteModal"
+            role="dialog"
+          >
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Correccion administrativa</p>
+                <h2 id="cancel-sale-title">Anular venta</h2>
+              </div>
+              <button
+                className="iconButton"
+                type="button"
+                title="Cerrar"
+                onClick={() => setSaleToCancel(null)}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div className="recordDeleteWarning">
+              La venta no se eliminara. Se conservara en el historial como anulada y,
+              si afecto el inventario, se registrara una devolucion de stock.
+            </div>
+            <div className="recordDeleteTarget">
+              <span>Venta seleccionada</span>
+              <strong>Venta #{saleToCancel.shortId}</strong>
+              <small>{saleToCancel.customerName}</small>
+            </div>
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={() => setSaleToCancel(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="dangerButton"
+                disabled={cancellingSaleId === saleToCancel.id}
+                type="button"
+                onClick={() => cancelSale(saleToCancel)}
+              >
+                <Trash2 size={17} />
+                {cancellingSaleId === saleToCancel.id
+                  ? "Anulando..."
+                  : "Anular venta"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

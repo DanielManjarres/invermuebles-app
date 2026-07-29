@@ -9,6 +9,7 @@ import {
   MessageCircle,
   ReceiptText,
   Search,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import {
@@ -79,6 +80,8 @@ export function AdminOrdersBrowser({
     useState<OrderStatusFilter>(allStatuses);
   const [currentPage, setCurrentPage] = useState(1);
   const [savingOrderId, setSavingOrderId] = useState("");
+  const [deletingOrderId, setDeletingOrderId] = useState("");
+  const [orderToDelete, setOrderToDelete] = useState<AdminOrder | null>(null);
   const [notice, setNotice] = useState("");
   const [draftNotes, setDraftNotes] = useState<Record<string, string>>(
     () =>
@@ -225,6 +228,33 @@ export function AdminOrdersBrowser({
       return;
     }
     router.push(`/admin/ventas?pedido=${order.id}`);
+  }
+
+  async function deleteOrder(order: AdminOrder) {
+    setDeletingOrderId(order.id);
+
+    try {
+      const response = await fetch(`/api/orders/${order.id}`, {
+        method: "DELETE",
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        setNotice(result.message ?? "No se pudo eliminar el pedido.");
+        setOrderToDelete(null);
+        return;
+      }
+
+      setOrders((currentOrders) =>
+        currentOrders.filter((currentOrder) => currentOrder.id !== order.id)
+      );
+      setOrderToDelete(null);
+      setNotice(`Pedido #${order.shortId} eliminado.`);
+    } catch {
+      setNotice("No se pudo conectar con el sistema.");
+    } finally {
+      setDeletingOrderId("");
+    }
   }
 
   return (
@@ -461,6 +491,18 @@ export function AdminOrdersBrowser({
                             : "Preparar venta"}
                       </button>
                     ) : null}
+
+                    {!order.saleId ? (
+                      <button
+                        className="dangerButton"
+                        disabled={savingOrderId === order.id || deletingOrderId === order.id}
+                        type="button"
+                        onClick={() => setOrderToDelete(order)}
+                      >
+                        <Trash2 size={18} />
+                        Eliminar pedido
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               </article>
@@ -492,6 +534,61 @@ export function AdminOrdersBrowser({
           ) : null}
         </>
       )}
+
+      {orderToDelete ? (
+        <div className="modalOverlay" role="presentation">
+          <div className="adminModal recordDeleteModal">
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Correccion de registros</p>
+                <h2>Eliminar pedido</h2>
+              </div>
+              <button
+                aria-label="Cerrar confirmacion"
+                className="modalClose"
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+              >
+                x
+              </button>
+            </div>
+
+            <div className="recordDeleteWarning">
+              <Trash2 size={20} />
+              <p>
+                El pedido se puede eliminar porque todavia no tiene una venta
+                asociada. Las ventas creadas se conservan y se anulan desde su
+                historial.
+              </p>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Pedido seleccionado</span>
+              <strong>Pedido #{orderToDelete.shortId}</strong>
+              <small>{orderToDelete.totalQuantity} unidad(es)</small>
+            </div>
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="dangerButton"
+                disabled={deletingOrderId === orderToDelete.id}
+                type="button"
+                onClick={() => deleteOrder(orderToDelete)}
+              >
+                <Trash2 size={18} />
+                {deletingOrderId === orderToDelete.id ? "Eliminando..." : "Eliminar pedido"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

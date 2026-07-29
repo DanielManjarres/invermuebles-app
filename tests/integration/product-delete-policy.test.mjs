@@ -27,6 +27,17 @@ test("blocks deleting products with registered orders", () => {
   assert.match(result.reason, /pedidos registrados/i);
 });
 
+test("blocks deleting products with registered sales", () => {
+  const result = canDeleteProduct({
+    orderItemsCount: 0,
+    saleItemsCount: 1,
+    stockMovements: [],
+  });
+
+  assert.equal(result.allowed, false);
+  assert.match(result.reason, /ventas registradas/i);
+});
+
 test("blocks deleting products with real stock movements", () => {
   const result = canDeleteProduct({
     orderItemsCount: 0,

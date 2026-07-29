@@ -13,11 +13,13 @@ type ProductDeleteMovement = {
 
 type ProductDeletePolicyParams = {
   orderItemsCount: number;
+  saleItemsCount?: number;
   stockMovements: ProductDeleteMovement[];
 };
 
 export function canDeleteProduct({
   orderItemsCount,
+  saleItemsCount = 0,
   stockMovements,
 }: ProductDeletePolicyParams) {
   if (orderItemsCount > 0) {
@@ -25,6 +27,14 @@ export function canDeleteProduct({
       allowed: false,
       reason:
         "Este producto ya tiene pedidos registrados. Para conservar el historial, ocultalo del catalogo en vez de eliminarlo.",
+    };
+  }
+
+  if (saleItemsCount > 0) {
+    return {
+      allowed: false,
+      reason:
+        "Este producto ya tiene ventas registradas. Para conservar el historial, ocultalo del catalogo en vez de eliminarlo.",
     };
   }
 

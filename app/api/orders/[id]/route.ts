@@ -67,3 +67,43 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
+  const { id } = await params;
+  const order = await prisma.order.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      sale: { select: { id: true } },
+    },
+  });
+
+  if (!order) {
+    return NextResponse.json(
+      { message: "No se encontro el pedido." },
+      { status: 404 }
+    );
+  }
+
+  if (order.sale) {
+    return NextResponse.json(
+      {
+        message:
+          "Este pedido ya esta relacionado con una venta. Para conservar el historial, no se puede eliminar.",
+      },
+      { status: 409 }
+    );
+  }
+
+  await prisma.order.delete({ where: { id: order.id } });
+
+  return NextResponse.json({ id: order.id });
+}

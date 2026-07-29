@@ -1468,6 +1468,17 @@ th {
   z-index: 20;
 }
 
+.adminModalBackdrop {
+  align-items: center;
+  background: rgba(12, 18, 14, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 20;
+}
+
 .adminModal {
   background: #fff;
   border-radius: 8px;
@@ -1517,6 +1528,68 @@ th {
 .modalClose:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.recordDeleteModal {
+  max-width: 560px;
+  width: min(100%, 560px);
+}
+
+.recordDeleteWarning {
+  align-items: flex-start;
+  background: #fae4df;
+  border: 1px solid #efc2ba;
+  border-radius: 8px;
+  color: #8b2722;
+  display: flex;
+  gap: 10px;
+  font-weight: 800;
+  line-height: 1.45;
+  padding: 14px 16px;
+}
+
+.recordDeleteWarning p {
+  margin: 0;
+}
+
+.recordDeleteTarget {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.recordDeleteTarget span,
+.recordDeleteTarget small {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.recordDeleteTarget strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.customerHeaderActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.saleHistoryActions {
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+
+.saleHistoryActions .dangerButton {
+  min-height: 36px;
+  padding-inline: 12px;
 }
 
 .adminFormGrid {
@@ -3767,6 +3840,11 @@ th {
     padding: 14px;
   }
 
+  .adminModalBackdrop {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
   .adminModal,
   .smallModal {
     gap: 14px;
@@ -3776,6 +3854,23 @@ th {
 
   .modalHeader h2 {
     font-size: 1.45rem;
+  }
+
+  .customerHeaderActions {
+    width: 100%;
+  }
+
+  .customerHeaderActions .secondaryButton,
+  .customerHeaderActions .dangerButton {
+    flex: 1;
+  }
+
+  .saleHistoryActions {
+    justify-content: stretch;
+  }
+
+  .saleHistoryActions .dangerButton {
+    width: 100%;
   }
 
   .productDetailInfo {
