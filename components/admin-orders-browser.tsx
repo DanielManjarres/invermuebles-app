@@ -33,6 +33,10 @@ const statusOptions: AdminOrder["status"][] = [
   "CANCELLED",
 ];
 
+const statusFilterOptions = statusOptions.filter(
+  (status) => status !== "CANCELLED"
+);
+
 const statusMenuOptions = statusOptions.map((status) => ({
   label: orderStatusLabels[status],
   value: status,
@@ -122,15 +126,17 @@ export function AdminOrdersBrowser({
   const filteredOrders = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return orders.filter((order) => {
-      const matchesStatus =
-        activeStatus === allStatuses || order.status === activeStatus;
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        getOrderSearchText(order).includes(normalizedQuery);
+    return orders
+      .filter((order) => order.status !== "CANCELLED")
+      .filter((order) => {
+        const matchesStatus =
+          activeStatus === allStatuses || order.status === activeStatus;
+        const matchesQuery =
+          normalizedQuery.length === 0 ||
+          getOrderSearchText(order).includes(normalizedQuery);
 
-      return matchesStatus && matchesQuery;
-    });
+        return matchesStatus && matchesQuery;
+      });
   }, [activeStatus, orders, query]);
 
   const orderStats = useMemo(
@@ -196,8 +202,14 @@ export function AdminOrdersBrowser({
         return;
       }
 
-      setOrders((currentOrders) =>
-        currentOrders.map((currentOrder) =>
+      setOrders((currentOrders) => {
+        if (nextStatus === "CANCELLED") {
+          return currentOrders.filter(
+            (currentOrder) => currentOrder.id !== order.id
+          );
+        }
+
+        return currentOrders.map((currentOrder) =>
           currentOrder.id === order.id
             ? {
                 ...currentOrder,
@@ -208,9 +220,13 @@ export function AdminOrdersBrowser({
                 status: nextStatus,
               }
             : currentOrder
-        )
+        );
+      });
+      setNotice(
+        nextStatus === "CANCELLED"
+          ? `Pedido #${order.shortId} cancelado y retirado de la bandeja.`
+          : `Pedido #${order.shortId} actualizado.`
       );
-      setNotice(`Pedido #${order.shortId} actualizado.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -310,7 +326,7 @@ export function AdminOrdersBrowser({
           >
             Todos
           </button>
-          {statusOptions.map((status) => (
+          {statusFilterOptions.map((status) => (
             <button
               className={
                 activeStatus === status ? "filterButton active" : "filterButton"
