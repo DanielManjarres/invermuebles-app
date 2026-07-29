@@ -2692,6 +2692,13 @@ th {
   font-size: 1rem;
 }
 
+.saleCreditSummary {
+  display: grid;
+  gap: 12px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .salePaymentHint {
   color: var(--primary-dark);
   font-size: 0.82rem;
@@ -3553,6 +3560,10 @@ th {
   .salesLayout,
   .saleFormGrid,
   .salePaymentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .saleCreditSummary {
     grid-template-columns: 1fr;
   }
 

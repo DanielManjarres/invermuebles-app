@@ -332,11 +332,16 @@ export function AdminSalesManager({
   const financeBase =
     saleType === "CREDIT_CASH" ? Math.max(cartTotal - amountPaid, 0) : cartTotal;
   const interestRate = interestPercent / 100;
-  const totalCreditWithInterest = cartTotal * (1 + interestRate);
+  const financedTotalWithInterest = isFinanced
+    ? financeBase * (1 + interestRate)
+    : 0;
   const suggestedFirstInstallment =
-    creditMonths > 0 ? Math.ceil(totalCreditWithInterest / creditMonths) : 0;
-  const estimatedCreditDebt = isFinanced
-    ? Math.max(financeBase * (1 + interestRate) - (saleType === "CREDIT" ? amountPaid : 0), 0)
+    creditMonths > 0 ? Math.ceil(financedTotalWithInterest / creditMonths) : 0;
+  const estimatedCreditBalance = isFinanced
+    ? Math.max(
+        financedTotalWithInterest - (saleType === "CREDIT" ? amountPaid : 0),
+        0
+      )
     : 0;
   const reservedMinimum = cartTotal * 0.1;
   const balance = Math.max(cartTotal - amountPaid, 0);
@@ -509,7 +514,7 @@ export function AdminSalesManager({
     }
 
     const maximumInitialPayment =
-      saleType === "CREDIT" ? totalCreditWithInterest : cartTotal;
+      saleType === "CREDIT" ? financedTotalWithInterest : cartTotal;
 
     if (amountPaid > maximumInitialPayment) {
       setNotice(
@@ -835,9 +840,19 @@ export function AdminSalesManager({
                   value={amountPaid}
                 />
               </label>
-              <div className="saleBalanceBox">
-                <span>Deuda estimada</span>
-                <strong>{formatMoney(estimatedCreditDebt)}</strong>
+              <div className="saleCreditSummary">
+                <div className="saleBalanceBox">
+                  <span>Deuda total con inter&eacute;s</span>
+                  <strong>{formatMoney(financedTotalWithInterest)}</strong>
+                </div>
+                <div className="saleBalanceBox">
+                  <span>
+                    {saleType === "CREDIT"
+                      ? "Saldo despu\u00e9s de la primera cuota"
+                      : "Saldo financiado"}
+                  </span>
+                  <strong>{formatMoney(estimatedCreditBalance)}</strong>
+                </div>
               </div>
               {amountPaid > 0 ? (
                 <label>
