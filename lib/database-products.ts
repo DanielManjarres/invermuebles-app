@@ -59,6 +59,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
 
 export async function getStockMovements(): Promise<StockMovement[]> {
   const movements = await prisma.stockMovement.findMany({
+    where: { archivedAt: null },
     include: {
       product: {
         include: {

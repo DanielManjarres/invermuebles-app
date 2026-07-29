@@ -14,6 +14,43 @@ function isSaleMovement(reason: string, note: string | null) {
   );
 }
 
+export async function PATCH(_request: Request, context: RouteContext) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
+  const { id } = await context.params;
+  const movement = await prisma.stockMovement.findUnique({
+    where: { id },
+    select: { id: true, archivedAt: true },
+  });
+
+  if (!movement) {
+    return NextResponse.json(
+      { message: "No se encontro el movimiento." },
+      { status: 404 }
+    );
+  }
+
+  if (movement.archivedAt) {
+    return NextResponse.json({
+      id: movement.id,
+      message: "El movimiento ya estaba retirado del historial visible.",
+    });
+  }
+
+  await prisma.stockMovement.update({
+    where: { id: movement.id },
+    data: { archivedAt: new Date() },
+  });
+
+  return NextResponse.json({
+    id: movement.id,
+    message: "Movimiento eliminado del historial visible. El stock no cambio.",
+  });
+}
+
 export async function DELETE(_request: Request, context: RouteContext) {
   const unauthorized = await requireAdminSession();
   if (unauthorized) {

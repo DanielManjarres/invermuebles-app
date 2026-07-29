@@ -79,6 +79,7 @@ model StockMovement {
   user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   userId        String?
   createdAt     DateTime          @default(now())
+  archivedAt    DateTime?
 }
 
 model Customer {

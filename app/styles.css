@@ -2168,6 +2168,22 @@ th {
   color: var(--text);
 }
 
+.movementCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.movementArchiveButton {
+  color: #9b2924;
+}
+
+.movementArchiveButton:hover {
+  border-color: #9b2924;
+  color: #9b2924;
+}
+
 .movementResultsBar {
   align-items: center;
   color: var(--muted);
