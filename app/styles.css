@@ -2168,22 +2168,15 @@ th {
   color: var(--text);
 }
 
-.movementCardActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  grid-column: 1 / -1;
-}
-
 .movementUserCell {
   min-width: 0;
 }
 
+.movementCorrectionLink,
 .movementArchiveLink {
   align-items: center;
   background: transparent;
   border: 0;
-  color: #9b2924;
   display: inline-flex;
   font-size: 0.72rem;
   font-weight: 800;
@@ -2192,8 +2185,17 @@ th {
   padding: 0;
 }
 
+.movementCorrectionLink {
+  color: var(--green-dark);
+}
+
 .movementArchiveLink:hover {
   color: #9b2924;
+  text-decoration: underline;
+}
+
+.movementCorrectionLink:hover {
+  color: var(--green-dark);
   text-decoration: underline;
 }
 

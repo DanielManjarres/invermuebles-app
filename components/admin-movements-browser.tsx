@@ -9,6 +9,7 @@ import {
   PackageSearch,
   Search,
   Trash2,
+  Undo2,
 } from "lucide-react";
 import {
   movementLabels,
@@ -532,6 +533,18 @@ export function AdminMovementsBrowser({
                   <div className="movementUserCell">
                     <dt>Usuario</dt>
                     <dd>{movement.user}</dd>
+                    {canCorrectMovement(movement) ? (
+                      <button
+                        aria-label="Corregir movimiento"
+                        className="movementCorrectionLink"
+                        title="Corregir movimiento"
+                        type="button"
+                        onClick={() => setMovementToCorrect(movement)}
+                      >
+                        <Undo2 size={13} />
+                        Corregir
+                      </button>
+                    ) : null}
                     <button
                       aria-label="Eliminar del historial"
                       className="movementArchiveLink"
@@ -549,19 +562,6 @@ export function AdminMovementsBrowser({
                   <strong>{movement.reason}</strong>
                   {movement.note ? ` - ${movement.note}` : ""}
                 </p>
-
-                {canCorrectMovement(movement) ? (
-                  <div className="movementCardActions">
-                    <button
-                      className="dangerButton"
-                      type="button"
-                      onClick={() => setMovementToCorrect(movement)}
-                    >
-                      <Trash2 size={17} />
-                      Corregir movimiento
-                    </button>
-                  </div>
-                ) : null}
               </article>
             ))}
           </div>
