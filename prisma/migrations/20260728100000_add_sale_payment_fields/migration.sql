@@ -1,0 +1,19 @@
+ALTER TABLE "Sale" ADD COLUMN "paymentMethod" TEXT NOT NULL DEFAULT 'CASH';
+ALTER TABLE "Sale" ADD COLUMN "amountPaid" DECIMAL(12,2) NOT NULL DEFAULT 0;
+ALTER TABLE "Sale" ADD COLUMN "balance" DECIMAL(12,2) NOT NULL DEFAULT 0;
+
+UPDATE "Sale"
+SET
+  "paymentMethod" = CASE
+    WHEN "type" = 'SISTECREDITO' THEN 'SISTECREDITO'
+    WHEN "type" IN ('CREDIT', 'RESERVED') THEN 'PENDING'
+    ELSE 'CASH'
+  END,
+  "amountPaid" = CASE
+    WHEN "type" IN ('CREDIT', 'RESERVED') THEN 0
+    ELSE "total"
+  END,
+  "balance" = CASE
+    WHEN "type" IN ('CREDIT', 'RESERVED') THEN "total"
+    ELSE 0
+  END;

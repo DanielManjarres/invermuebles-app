@@ -147,3 +147,60 @@ export async function PUT(request: Request) {
 
   return NextResponse.json({ id: body.id });
 }
+
+export async function DELETE(request: Request) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
+  const body = (await request.json()) as { id?: string };
+
+  if (!body.id) {
+    return NextResponse.json(
+      { message: "No se encontro el cliente a eliminar." },
+      { status: 400 }
+    );
+  }
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: body.id },
+    select: {
+      id: true,
+      fullName: true,
+      _count: {
+        select: {
+          credits: true,
+          orders: true,
+          sales: true,
+        },
+      },
+    },
+  });
+
+  if (!customer) {
+    return NextResponse.json(
+      { message: "No se encontro el cliente." },
+      { status: 404 }
+    );
+  }
+
+  const hasHistory =
+    customer._count.credits > 0 ||
+    customer._count.orders > 0 ||
+    customer._count.sales > 0;
+
+  if (hasHistory) {
+    return NextResponse.json(
+      {
+        message:
+          "Este cliente ya tiene historial de pedidos, ventas o creditos. No se puede eliminar; puedes marcarlo como inactivo para conservar sus registros.",
+      },
+      { status: 409 }
+    );
+  }
+
+  await prisma.customer.delete({ where: { id: customer.id } });
+
+  return NextResponse.json({ id: customer.id, fullName: customer.fullName });
+}

@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 
 const saleInclude = {
   customer: true,
+  credit: true,
   order: true,
+  payments: {
+    orderBy: { createdAt: "asc" },
+  },
   items: {
     orderBy: { createdAt: "asc" },
   },
@@ -45,6 +49,14 @@ function mapSale(sale: SaleWithRelations): AdminSale {
     source: sale.source,
     type: sale.type,
     status: sale.status,
+    paymentMethod:
+      sale.paymentMethod === "CASH" || sale.paymentMethod === "TRANSFER"
+        ? sale.paymentMethod
+        : null,
+    creditMonths: sale.credit?.months ?? null,
+    interestRate: sale.credit ? Number(sale.credit.interestRate) : null,
+    amountPaid: Number(sale.amountPaid),
+    balance: Number(sale.balance),
     notes: sale.notes ?? "",
     total: Number(sale.total),
     createdAt: formatDate(sale.createdAt),

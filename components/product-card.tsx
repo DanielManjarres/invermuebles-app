@@ -4,9 +4,14 @@ import { Check, ShoppingCart, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/products";
 import { useCart } from "@/components/use-cart";
+import type { AdminSaleCartResult } from "@/components/use-admin-sale-cart";
 
 type ProductCardProps = {
+  actionLabel?: string;
+  detailActionLabel?: string;
+  onAdminSaleAdd?: (product: Product) => AdminSaleCartResult;
   product: Product;
+  showAdminSaleAction?: boolean;
   showCartAction?: boolean;
 };
 
@@ -18,7 +23,11 @@ function createSummary(details: string) {
 }
 
 export function ProductCard({
+  actionLabel = "Agregar",
+  detailActionLabel = "Agregar al carrito",
+  onAdminSaleAdd,
   product,
+  showAdminSaleAction = false,
   showCartAction = true,
 }: ProductCardProps) {
   const { addItem } = useCart();
@@ -26,7 +35,9 @@ export function ProductCard({
   const [cartFeedback, setCartFeedback] = useState("");
   const isAvailable = product.stock > 0;
   const productSummary = createSummary(product.details);
-  const isAddedFeedback = cartFeedback === "Producto agregado al carrito";
+  const isAddedFeedback =
+    cartFeedback === "Producto agregado al carrito" ||
+    cartFeedback === "Producto agregado a venta local";
 
   useEffect(() => {
     if (!cartFeedback) {
@@ -39,6 +50,16 @@ export function ProductCard({
   }, [cartFeedback]);
 
   function handleAddToCart() {
+    if (showAdminSaleAction && onAdminSaleAdd) {
+      const result = onAdminSaleAdd(product);
+      setCartFeedback(
+        result.status === "added"
+          ? "Producto agregado a venta local"
+          : `Cantidad actualizada: ${result.quantity}`,
+      );
+      return;
+    }
+
     const result = addItem({
       category: product.category,
       details: product.details,
@@ -84,7 +105,7 @@ export function ProductCard({
             <span className={isAvailable ? "available" : "unavailable"}>
               {isAvailable ? "Disponible" : "Agotado"}
             </span>
-            {showCartAction ? (
+            {showCartAction || showAdminSaleAction ? (
               <button
                 className={`iconTextButton ${cartFeedback ? "cartButtonFeedback" : ""}`}
                 type="button"
@@ -99,12 +120,12 @@ export function ProductCard({
                   ? isAddedFeedback
                     ? "Agregado"
                     : "Actualizado"
-                  : "Agregar"}
+                  : actionLabel}
               </button>
             ) : (
               <span className="detailsHint">Ver detalle</span>
             )}
-            {showCartAction && cartFeedback ? (
+            {(showCartAction || showAdminSaleAction) && cartFeedback ? (
               <span className="cartFeedback" aria-live="polite">
                 {cartFeedback}
               </span>
@@ -142,7 +163,7 @@ export function ProductCard({
                   <dd>{isAvailable ? "Disponible" : "Agotado"}</dd>
                 </div>
               </dl>
-              {showCartAction ? (
+              {showCartAction || showAdminSaleAction ? (
                 <button
                   className={`primaryButton ${cartFeedback ? "cartButtonFeedback" : ""}`}
                   type="button"
@@ -154,10 +175,10 @@ export function ProductCard({
                     ? isAddedFeedback
                       ? "Agregado al carrito"
                       : "Cantidad actualizada"
-                    : "Agregar al carrito"}
+                    : detailActionLabel}
                 </button>
               ) : null}
-              {showCartAction && cartFeedback ? (
+              {(showCartAction || showAdminSaleAction) && cartFeedback ? (
                 <span className="cartFeedback productDetailFeedback" aria-live="polite">
                   {cartFeedback}
                 </span>

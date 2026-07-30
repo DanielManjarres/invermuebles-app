@@ -972,6 +972,33 @@ p {
   white-space: nowrap;
 }
 
+.adminSaleCartHint {
+  align-items: center;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  color: #fff;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.adminSaleCartHint span {
+  align-items: center;
+  background: #fff;
+  border-radius: 999px;
+  color: var(--primary);
+  display: inline-flex;
+  font-size: 0.78rem;
+  height: 22px;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 7px;
+}
+
 .catalogPagination {
   align-items: center;
   color: var(--muted);
@@ -1441,6 +1468,17 @@ th {
   z-index: 20;
 }
 
+.adminModalBackdrop {
+  align-items: center;
+  background: rgba(12, 18, 14, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 20;
+}
+
 .adminModal {
   background: #fff;
   border-radius: 8px;
@@ -1490,6 +1528,68 @@ th {
 .modalClose:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.recordDeleteModal {
+  max-width: 560px;
+  width: min(100%, 560px);
+}
+
+.recordDeleteWarning {
+  align-items: flex-start;
+  background: #fae4df;
+  border: 1px solid #efc2ba;
+  border-radius: 8px;
+  color: #8b2722;
+  display: flex;
+  gap: 10px;
+  font-weight: 800;
+  line-height: 1.45;
+  padding: 14px 16px;
+}
+
+.recordDeleteWarning p {
+  margin: 0;
+}
+
+.recordDeleteTarget {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.recordDeleteTarget span,
+.recordDeleteTarget small {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.recordDeleteTarget strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.customerHeaderActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.saleHistoryActions {
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+
+.saleHistoryActions .dangerButton {
+  min-height: 36px;
+  padding-inline: 12px;
 }
 
 .adminFormGrid {
@@ -2068,6 +2168,37 @@ th {
   color: var(--text);
 }
 
+.movementUserCell {
+  min-width: 0;
+}
+
+.movementCorrectionLink,
+.movementArchiveLink {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 0;
+}
+
+.movementCorrectionLink {
+  color: var(--green-dark);
+}
+
+.movementArchiveLink:hover {
+  color: #9b2924;
+  text-decoration: underline;
+}
+
+.movementCorrectionLink:hover {
+  color: var(--green-dark);
+  text-decoration: underline;
+}
+
 .movementResultsBar {
   align-items: center;
   color: var(--muted);
@@ -2415,14 +2546,14 @@ th {
   display: grid;
   gap: 18px;
   max-width: 1180px;
-  padding-top: 34px;
+  padding-top: 28px;
 }
 
 .salesLayout {
   align-items: start;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.72fr);
+  grid-template-columns: 1fr;
 }
 
 .localSalePanel,
@@ -2431,7 +2562,9 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
+  overflow: hidden;
   padding: 18px;
 }
 
@@ -2442,7 +2575,7 @@ th {
 
 .localSalePanel h2,
 .salesHistoryPanel h2 {
-  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-size: clamp(1.45rem, 2.5vw, 1.9rem);
   margin: 0;
 }
 
@@ -2453,16 +2586,23 @@ th {
 }
 
 .saleFormGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(220px, 0.7fr);
 }
 
 .saleProductPicker {
   align-items: end;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 0.9fr) 150px;
+}
+
+.saleProductPicker .secondaryButton {
+  min-height: 44px;
+  padding-inline: 14px;
+  white-space: nowrap;
 }
 
 .saleFormGrid label,
 .saleProductPicker label,
+.salePaymentGrid label,
 .saleNotes {
   color: var(--text);
   display: grid;
@@ -2486,24 +2626,70 @@ th {
   outline: 3px solid rgba(7, 85, 42, 0.12);
 }
 
+.saleStepHeader {
+  align-items: center;
+  background: #edf5ed;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.saleStepHeader > span {
+  align-items: center;
+  background: var(--primary);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 900;
+  height: 26px;
+  justify-content: center;
+  width: 26px;
+}
+
+.saleStepHeader strong {
+  color: var(--text);
+  display: block;
+  font-size: 0.92rem;
+}
+
+.saleStepHeader p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 2px 0 0;
+}
+
+.compactSearchBox {
+  margin: 0;
+}
+
+.compactSearchBox input {
+  min-height: 44px;
+}
+
 .saleCartList,
 .salesList {
   display: grid;
-  gap: 10px;
+  gap: 9px;
 }
 
 .saleCartItem {
   align-items: center;
-  background: var(--surface-strong);
+  background: #f4faf4;
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
-  padding: 10px;
+  gap: 12px;
+  grid-template-columns: minmax(230px, 1fr) 116px minmax(150px, 170px) 130px 42px;
+  padding: 12px 14px;
 }
 
-.saleCartItem div:first-child {
+.saleCartProductInfo {
   display: grid;
   gap: 4px;
   min-width: 0;
@@ -2511,6 +2697,7 @@ th {
 
 .saleCartItem strong {
   color: var(--text);
+  font-size: 0.98rem;
   line-height: 1.25;
 }
 
@@ -2518,6 +2705,123 @@ th {
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.saleQuantityBlock {
+  display: grid;
+  gap: 5px;
+  justify-content: start;
+}
+
+.saleQuantityBlock > span,
+.saleLineTotal > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.saleQuantityBlock .quantityControl {
+  background: #fff;
+}
+
+.salePriceField {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.76rem;
+  font-weight: 900;
+  gap: 5px;
+}
+
+.salePriceField input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.salePriceField input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.salePaymentGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(170px, 0.7fr);
+}
+
+.salePaymentGrid input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  min-height: 44px;
+  padding: 9px 12px;
+  width: 100%;
+}
+
+.salePaymentGrid input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.saleBalanceBox {
+  align-self: end;
+  background: #edf5ed;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  min-height: 66px;
+  padding: 10px 12px;
+}
+
+.saleBalanceBox span,
+.salePaymentSummary span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.saleBalanceBox strong,
+.salePaymentSummary strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.saleCreditSummary {
+  display: grid;
+  gap: 12px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.salePaymentHint {
+  color: var(--primary-dark);
+  font-size: 0.82rem;
+  font-weight: 900;
+  margin: -4px 0 0;
+}
+
+.salePaymentGrid .salePaymentHint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.saleLineTotal {
+  display: grid;
+  gap: 5px;
+}
+
+.saleLineTotal strong {
+  white-space: nowrap;
 }
 
 .saleSummaryBar {
@@ -2604,6 +2908,20 @@ th {
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 5px 8px;
+}
+
+.salePaymentSummary {
+  display: grid;
+  gap: 4px;
+}
+
+.saleHistoryFilters {
+  gap: 8px;
+  justify-content: start;
+}
+
+.salesHistoryPanel .searchBox {
+  max-width: 520px;
 }
 
 .customersSection {
@@ -2947,12 +3265,29 @@ th {
   overflow: hidden;
 }
 
-.quantityControl span {
+.quantityControl input {
+  appearance: textfield;
+  background: transparent;
+  border: 0;
   color: var(--text);
   font-size: 0.95rem;
   font-weight: 900;
+  min-height: 38px;
   min-width: 36px;
+  padding: 0 4px;
   text-align: center;
+  width: 48px;
+}
+
+.quantityControl input:focus {
+  box-shadow: inset 0 0 0 2px rgba(7, 85, 42, 0.22);
+  outline: 0;
+}
+
+.quantityControl input::-webkit-inner-spin-button,
+.quantityControl input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
 }
 
 .quantityButton {
@@ -3327,7 +3662,12 @@ th {
   .orderCustomerPanel,
   .orderFollowUp,
   .salesLayout,
-  .saleFormGrid {
+  .saleFormGrid,
+  .salePaymentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .saleCreditSummary {
     grid-template-columns: 1fr;
   }
 
@@ -3398,6 +3738,16 @@ th {
 
   .footerAccess {
     text-align: left;
+  }
+}
+
+@media (max-width: 1180px) {
+  .salesLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .salesHistoryPanel {
+    order: 2;
   }
 }
 
@@ -3521,6 +3871,11 @@ th {
     padding: 14px;
   }
 
+  .adminModalBackdrop {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
   .adminModal,
   .smallModal {
     gap: 14px;
@@ -3530,6 +3885,23 @@ th {
 
   .modalHeader h2 {
     font-size: 1.45rem;
+  }
+
+  .customerHeaderActions {
+    width: 100%;
+  }
+
+  .customerHeaderActions .secondaryButton,
+  .customerHeaderActions .dangerButton {
+    flex: 1;
+  }
+
+  .saleHistoryActions {
+    justify-content: stretch;
+  }
+
+  .saleHistoryActions .dangerButton {
+    width: 100%;
   }
 
   .productDetailInfo {
@@ -3614,6 +3986,10 @@ th {
   .saleCartItem {
     align-items: start;
     grid-template-columns: 1fr;
+  }
+
+  .salePriceField input {
+    width: 100%;
   }
 
   .saleSummaryBar {

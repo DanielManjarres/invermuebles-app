@@ -8,6 +8,8 @@ import {
   Layers3,
   PackageSearch,
   Search,
+  Trash2,
+  Undo2,
 } from "lucide-react";
 import {
   movementLabels,
@@ -126,6 +128,17 @@ function getSignedQuantity(movement: StockMovement) {
   return movement.quantity;
 }
 
+function canCorrectMovement(movement: StockMovement) {
+  return (
+    !movement.reason.startsWith("Venta ") &&
+    movement.reason !== "Venta desde pedido confirmado" &&
+    movement.reason !== "Devolucion por anulacion de venta" &&
+    !movement.reason.startsWith("Correccion de movimiento") &&
+    !movement.note?.includes("Venta ") &&
+    !movement.note?.includes("Se corrigio el movimiento")
+  );
+}
+
 type AdminMovementsBrowserProps = {
   movements: StockMovement[];
 };
@@ -143,6 +156,13 @@ export function AdminMovementsBrowser({
   const [activeProduct, setActiveProduct] = useState(allProducts);
   const [openFilter, setOpenFilter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [movementToCorrect, setMovementToCorrect] =
+    useState<StockMovement | null>(null);
+  const [movementToArchive, setMovementToArchive] =
+    useState<StockMovement | null>(null);
+  const [correctingMovementId, setCorrectingMovementId] = useState("");
+  const [archivingMovementId, setArchivingMovementId] = useState("");
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     setMovements(initialMovements);
@@ -151,6 +171,15 @@ export function AdminMovementsBrowser({
   useEffect(() => {
     setCurrentPage(1);
   }, [activeDate, activeProduct, activeProductType, activeType, query]);
+
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setNotice(""), 4500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -260,10 +289,67 @@ export function AdminMovementsBrowser({
     1,
     Math.ceil(filteredMovements.length / movementsPerPage)
   );
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
   const paginatedMovements = filteredMovements.slice(
     (currentPage - 1) * movementsPerPage,
     currentPage * movementsPerPage
   );
+
+  async function correctMovement(movement: StockMovement) {
+    setCorrectingMovementId(movement.id);
+
+    try {
+      const response = await fetch(`/api/stock-movements/${movement.id}`, {
+        method: "DELETE",
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        setNotice(result.message ?? "No se pudo corregir el movimiento.");
+        setMovementToCorrect(null);
+        return;
+      }
+
+      setMovementToCorrect(null);
+      setNotice(result.message ?? "Movimiento corregido y conservado en el historial.");
+      window.setTimeout(() => window.location.reload(), 500);
+    } catch {
+      setNotice("No se pudo conectar con el sistema.");
+    } finally {
+      setCorrectingMovementId("");
+    }
+  }
+
+  async function archiveMovement(movement: StockMovement) {
+    setArchivingMovementId(movement.id);
+
+    try {
+      const response = await fetch(`/api/stock-movements/${movement.id}`, {
+        method: "PATCH",
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        setNotice(result.message ?? "No se pudo eliminar el movimiento del historial.");
+        setMovementToArchive(null);
+        return;
+      }
+
+      setMovements((currentMovements) =>
+        currentMovements.filter((currentMovement) => currentMovement.id !== movement.id)
+      );
+      setMovementToArchive(null);
+      setNotice(result.message ?? "Movimiento eliminado del historial visible.");
+    } catch {
+      setNotice("No se pudo conectar con el sistema.");
+    } finally {
+      setArchivingMovementId("");
+    }
+  }
 
   return (
     <section className="tableSection movementSection">
@@ -386,6 +472,12 @@ export function AdminMovementsBrowser({
         />
       </div>
 
+      {notice ? (
+        <div className="orderToast" role="status">
+          <span>{notice}</span>
+        </div>
+      ) : null}
+
       {filteredMovements.length === 0 ? (
         <div className="emptyState">
           <h2>No hay movimientos registrados</h2>
@@ -438,9 +530,31 @@ export function AdminMovementsBrowser({
                       {movement.previousStock} → {movement.nextStock}
                     </dd>
                   </div>
-                  <div>
+                  <div className="movementUserCell">
                     <dt>Usuario</dt>
                     <dd>{movement.user}</dd>
+                    {canCorrectMovement(movement) ? (
+                      <button
+                        aria-label="Corregir movimiento"
+                        className="movementCorrectionLink"
+                        title="Corregir movimiento"
+                        type="button"
+                        onClick={() => setMovementToCorrect(movement)}
+                      >
+                        <Undo2 size={13} />
+                        Corregir
+                      </button>
+                    ) : null}
+                    <button
+                      aria-label="Eliminar del historial"
+                      className="movementArchiveLink"
+                      title="Eliminar del historial"
+                      type="button"
+                      onClick={() => setMovementToArchive(movement)}
+                    >
+                      <Trash2 size={13} />
+                      Eliminar
+                    </button>
                   </div>
                 </dl>
 
@@ -477,6 +591,122 @@ export function AdminMovementsBrowser({
           ) : null}
         </>
       )}
+
+      {movementToCorrect ? (
+        <div className="modalOverlay" role="presentation">
+          <div className="adminModal recordDeleteModal">
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Correccion de registros</p>
+                <h2>Corregir movimiento</h2>
+              </div>
+              <button
+                aria-label="Cerrar confirmacion"
+                className="modalClose"
+                type="button"
+                onClick={() => setMovementToCorrect(null)}
+              >
+                x
+              </button>
+            </div>
+
+            <div className="recordDeleteWarning">
+              <Trash2 size={20} />
+              <p>
+                El registro original se conservara. El sistema creara un
+                movimiento inverso para devolver el stock al estado anterior.
+              </p>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Movimiento seleccionado</span>
+              <strong>{movementToCorrect.productName}</strong>
+              <small>
+                Stock {movementToCorrect.previousStock} -&gt; {movementToCorrect.nextStock}
+              </small>
+            </div>
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={() => setMovementToCorrect(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="dangerButton"
+                disabled={correctingMovementId === movementToCorrect.id}
+                type="button"
+                onClick={() => correctMovement(movementToCorrect)}
+              >
+                <Trash2 size={18} />
+                {correctingMovementId === movementToCorrect.id
+                  ? "Corrigiendo..."
+                  : "Confirmar correccion"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {movementToArchive ? (
+        <div className="modalOverlay" role="presentation">
+          <div className="adminModal recordDeleteModal">
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Administracion del historial</p>
+                <h2>Eliminar movimiento</h2>
+              </div>
+              <button
+                aria-label="Cerrar confirmacion"
+                className="modalClose"
+                type="button"
+                onClick={() => setMovementToArchive(null)}
+              >
+                x
+              </button>
+            </div>
+
+            <div className="recordDeleteWarning">
+              <Trash2 size={20} />
+              <p>
+                El movimiento desaparecera del historial visible, pero se
+                conservara en el sistema. Esta accion no cambia el stock.
+              </p>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Movimiento seleccionado</span>
+              <strong>{movementToArchive.productName}</strong>
+              <small>
+                {movementToArchive.reason} - Stock {movementToArchive.previousStock} -&gt; {movementToArchive.nextStock}
+              </small>
+            </div>
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={() => setMovementToArchive(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="dangerButton"
+                disabled={archivingMovementId === movementToArchive.id}
+                type="button"
+                onClick={() => archiveMovement(movementToArchive)}
+              >
+                <Trash2 size={18} />
+                {archivingMovementId === movementToArchive.id
+                  ? "Eliminando..."
+                  : "Eliminar del historial"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

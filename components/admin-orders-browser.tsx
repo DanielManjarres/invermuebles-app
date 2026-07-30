@@ -2,12 +2,14 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   Clock3,
   MessageCircle,
   ReceiptText,
   Search,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import {
@@ -30,6 +32,10 @@ const statusOptions: AdminOrder["status"][] = [
   "CONFIRMED",
   "CANCELLED",
 ];
+
+const statusFilterOptions = statusOptions.filter(
+  (status) => status !== "CANCELLED"
+);
 
 const statusMenuOptions = statusOptions.map((status) => ({
   label: orderStatusLabels[status],
@@ -71,12 +77,15 @@ export function AdminOrdersBrowser({
   customers,
   orders: initialOrders,
 }: AdminOrdersBrowserProps) {
+  const router = useRouter();
   const [orders, setOrders] = useState(initialOrders);
   const [query, setQuery] = useState("");
   const [activeStatus, setActiveStatus] =
     useState<OrderStatusFilter>(allStatuses);
   const [currentPage, setCurrentPage] = useState(1);
   const [savingOrderId, setSavingOrderId] = useState("");
+  const [deletingOrderId, setDeletingOrderId] = useState("");
+  const [orderToDelete, setOrderToDelete] = useState<AdminOrder | null>(null);
   const [notice, setNotice] = useState("");
   const [draftNotes, setDraftNotes] = useState<Record<string, string>>(
     () =>
@@ -117,15 +126,17 @@ export function AdminOrdersBrowser({
   const filteredOrders = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return orders.filter((order) => {
-      const matchesStatus =
-        activeStatus === allStatuses || order.status === activeStatus;
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        getOrderSearchText(order).includes(normalizedQuery);
+    return orders
+      .filter((order) => order.status !== "CANCELLED")
+      .filter((order) => {
+        const matchesStatus =
+          activeStatus === allStatuses || order.status === activeStatus;
+        const matchesQuery =
+          normalizedQuery.length === 0 ||
+          getOrderSearchText(order).includes(normalizedQuery);
 
-      return matchesStatus && matchesQuery;
-    });
+        return matchesStatus && matchesQuery;
+      });
   }, [activeStatus, orders, query]);
 
   const orderStats = useMemo(
@@ -191,8 +202,14 @@ export function AdminOrdersBrowser({
         return;
       }
 
-      setOrders((currentOrders) =>
-        currentOrders.map((currentOrder) =>
+      setOrders((currentOrders) => {
+        if (nextStatus === "CANCELLED") {
+          return currentOrders.filter(
+            (currentOrder) => currentOrder.id !== order.id
+          );
+        }
+
+        return currentOrders.map((currentOrder) =>
           currentOrder.id === order.id
             ? {
                 ...currentOrder,
@@ -203,9 +220,13 @@ export function AdminOrdersBrowser({
                 status: nextStatus,
               }
             : currentOrder
-        )
+        );
+      });
+      setNotice(
+        nextStatus === "CANCELLED"
+          ? `Pedido #${order.shortId} cancelado y retirado de la bandeja.`
+          : `Pedido #${order.shortId} actualizado.`
       );
-      setNotice(`Pedido #${order.shortId} actualizado.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -213,54 +234,42 @@ export function AdminOrdersBrowser({
     }
   }
 
-  async function createSaleFromOrder(order: AdminOrder) {
-    if (order.saleId || savingOrderId === order.id) {
+  function prepareSaleFromOrder(order: AdminOrder) {
+    if (order.saleId) {
       return;
     }
 
     if (!order.customerId) {
-      setNotice("Asocia un cliente antes de crear la venta.");
+      setNotice("Asocia un cliente antes de preparar la venta.");
       return;
     }
+    router.push(`/admin/ventas?pedido=${order.id}`);
+  }
 
-    setSavingOrderId(order.id);
-    setNotice("");
+  async function deleteOrder(order: AdminOrder) {
+    setDeletingOrderId(order.id);
 
     try {
-      const response = await fetch("/api/sales", {
-        body: JSON.stringify({
-          customerId: order.customerId,
-          notes: draftNotes[order.id] || "Venta creada desde pedido web.",
-          orderId: order.id,
-          type: "CASH",
-        }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
+      const response = await fetch(`/api/orders/${order.id}`, {
+        method: "DELETE",
       });
-      const result = (await response.json()) as { id?: string; message?: string };
+      const result = (await response.json()) as { message?: string };
 
-      if (!response.ok || !result.id) {
-        setNotice(result.message ?? "No se pudo crear la venta.");
+      if (!response.ok) {
+        setNotice(result.message ?? "No se pudo eliminar el pedido.");
+        setOrderToDelete(null);
         return;
       }
 
-      const saleShortId = result.id.slice(-6).toUpperCase();
       setOrders((currentOrders) =>
-        currentOrders.map((currentOrder) =>
-          currentOrder.id === order.id
-            ? {
-                ...currentOrder,
-                saleId: result.id ?? "",
-                saleShortId,
-              }
-            : currentOrder
-        )
+        currentOrders.filter((currentOrder) => currentOrder.id !== order.id)
       );
-      setNotice(`Venta #${saleShortId} creada desde el pedido #${order.shortId}.`);
+      setOrderToDelete(null);
+      setNotice(`Pedido #${order.shortId} eliminado.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
-      setSavingOrderId("");
+      setDeletingOrderId("");
     }
   }
 
@@ -317,7 +326,7 @@ export function AdminOrdersBrowser({
           >
             Todos
           </button>
-          {statusOptions.map((status) => (
+          {statusFilterOptions.map((status) => (
             <button
               className={
                 activeStatus === status ? "filterButton active" : "filterButton"
@@ -485,17 +494,29 @@ export function AdminOrdersBrowser({
                             ? "Este pedido ya tiene venta creada."
                             : !order.customerId
                               ? "Asocia un cliente antes de crear la venta."
-                              : "Crear venta desde este pedido confirmado."
+                            : "Preparar la venta con cliente, modalidad y precios finales."
                         }
                         type="button"
-                        onClick={() => createSaleFromOrder(order)}
+                        onClick={() => prepareSaleFromOrder(order)}
                       >
                         <ReceiptText size={18} />
                         {order.saleId
                           ? `Venta #${order.saleShortId}`
                           : savingOrderId === order.id
-                            ? "Creando venta..."
-                            : "Crear venta"}
+                            ? "Preparando..."
+                            : "Preparar venta"}
+                      </button>
+                    ) : null}
+
+                    {!order.saleId ? (
+                      <button
+                        className="dangerButton"
+                        disabled={savingOrderId === order.id || deletingOrderId === order.id}
+                        type="button"
+                        onClick={() => setOrderToDelete(order)}
+                      >
+                        <Trash2 size={18} />
+                        Eliminar pedido
                       </button>
                     ) : null}
                   </div>
@@ -529,6 +550,61 @@ export function AdminOrdersBrowser({
           ) : null}
         </>
       )}
+
+      {orderToDelete ? (
+        <div className="modalOverlay" role="presentation">
+          <div className="adminModal recordDeleteModal">
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Correccion de registros</p>
+                <h2>Eliminar pedido</h2>
+              </div>
+              <button
+                aria-label="Cerrar confirmacion"
+                className="modalClose"
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+              >
+                x
+              </button>
+            </div>
+
+            <div className="recordDeleteWarning">
+              <Trash2 size={20} />
+              <p>
+                El pedido se puede eliminar porque todavia no tiene una venta
+                asociada. Las ventas creadas se conservan y se anulan desde su
+                historial.
+              </p>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Pedido seleccionado</span>
+              <strong>Pedido #{orderToDelete.shortId}</strong>
+              <small>{orderToDelete.totalQuantity} unidad(es)</small>
+            </div>
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="dangerButton"
+                disabled={deletingOrderId === orderToDelete.id}
+                type="button"
+                onClick={() => deleteOrder(orderToDelete)}
+              >
+                <Trash2 size={18} />
+                {deletingOrderId === orderToDelete.id ? "Eliminando..." : "Eliminar pedido"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
