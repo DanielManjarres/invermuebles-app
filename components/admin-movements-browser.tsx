@@ -529,9 +529,19 @@ export function AdminMovementsBrowser({
                       {movement.previousStock} → {movement.nextStock}
                     </dd>
                   </div>
-                  <div>
+                  <div className="movementUserCell">
                     <dt>Usuario</dt>
                     <dd>{movement.user}</dd>
+                    <button
+                      aria-label="Eliminar del historial"
+                      className="movementArchiveLink"
+                      title="Eliminar del historial"
+                      type="button"
+                      onClick={() => setMovementToArchive(movement)}
+                    >
+                      <Trash2 size={13} />
+                      Eliminar
+                    </button>
                   </div>
                 </dl>
 
@@ -540,8 +550,8 @@ export function AdminMovementsBrowser({
                   {movement.note ? ` - ${movement.note}` : ""}
                 </p>
 
-                <div className="movementCardActions">
-                  {canCorrectMovement(movement) ? (
+                {canCorrectMovement(movement) ? (
+                  <div className="movementCardActions">
                     <button
                       className="dangerButton"
                       type="button"
@@ -550,16 +560,8 @@ export function AdminMovementsBrowser({
                       <Trash2 size={17} />
                       Corregir movimiento
                     </button>
-                  ) : null}
-                  <button
-                    className="secondaryButton movementArchiveButton"
-                    type="button"
-                    onClick={() => setMovementToArchive(movement)}
-                  >
-                    <Trash2 size={17} />
-                    Eliminar del historial
-                  </button>
-                </div>
+                  </div>
+                ) : null}
               </article>
             ))}
           </div>

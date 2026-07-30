@@ -2175,13 +2175,26 @@ th {
   grid-column: 1 / -1;
 }
 
-.movementArchiveButton {
-  color: #9b2924;
+.movementUserCell {
+  min-width: 0;
 }
 
-.movementArchiveButton:hover {
-  border-color: #9b2924;
+.movementArchiveLink {
+  align-items: center;
+  background: transparent;
+  border: 0;
   color: #9b2924;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 0;
+}
+
+.movementArchiveLink:hover {
+  color: #9b2924;
+  text-decoration: underline;
 }
 
 .movementResultsBar {
