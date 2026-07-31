@@ -13,7 +13,7 @@ export default async function AdminCreditsPage() {
       <SiteHeader active="cartera" variant="admin" />
 
       <section className="pageHeader customersPageHeader">
-        <div className="container pageHeaderContent">
+        <div className="container pageHeaderRow">
           <div>
             <p className="eyebrow">Panel administrativo</p>
             <h1>Cartera</h1>
@@ -23,7 +23,7 @@ export default async function AdminCreditsPage() {
         </div>
       </section>
 
-      <div className="container creditsPageContent">
+      <div className="creditsPageContent">
         <div className="creditsPageHeading">
           <p className="eyebrow">Seguimiento financiero</p>
           <h2>Créditos y pagos</h2>

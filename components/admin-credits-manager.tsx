@@ -10,7 +10,7 @@ import {
   type PaymentMethod,
 } from "@/lib/credits";
 
-type CreditFilter = "ALL" | "ACTIVE" | "OVERDUE" | "PAID";
+type CreditFilter = "ALL" | "ACTIVE" | "OVERDUE" | "PAID" | "CANCELLED";
 
 type Props = {
   initialCredits: AdminCredit[];
@@ -27,6 +27,7 @@ const filters: Array<{ label: string; value: CreditFilter }> = [
   { label: "Activos", value: "ACTIVE" },
   { label: "En mora", value: "OVERDUE" },
   { label: "Pagados", value: "PAID" },
+  { label: "Cancelados", value: "CANCELLED" },
 ];
 
 function formatMoney(value: number) {
@@ -70,7 +71,9 @@ function calculateStats(credits: AdminCredit[], fallback: CreditStats): CreditSt
     active: credits.filter((credit) => credit.status === "ACTIVE").length,
     overdue: credits.filter((credit) => credit.status === "OVERDUE").length,
     paid: credits.filter((credit) => credit.status === "PAID").length,
-    totalBalance: credits.reduce((total, credit) => total + credit.balance, 0),
+    totalBalance: credits
+      .filter((credit) => credit.status === "ACTIVE" || credit.status === "OVERDUE")
+      .reduce((total, credit) => total + credit.balance, 0),
   };
 }
 
@@ -113,7 +116,7 @@ export function AdminCreditsManager({ initialCredits, initialStats }: Props) {
   }, [credits, filter, query]);
 
   const selectedCredit =
-    credits.find((credit) => credit.id === selectedId) ?? visibleCredits[0] ?? null;
+    visibleCredits.find((credit) => credit.id === selectedId) ?? visibleCredits[0] ?? null;
 
   async function handlePayment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -177,10 +180,9 @@ export function AdminCreditsManager({ initialCredits, initialStats }: Props) {
   return (
     <section className="creditsManager">
       <div className="creditStats" aria-label="Resumen de cartera">
-        <article><span>Total créditos</span><strong>{stats.total}</strong></article>
+        <article><span>Cuentas vigentes</span><strong>{stats.active + stats.overdue}</strong></article>
         <article><span>Activos</span><strong>{stats.active}</strong></article>
         <article><span>En mora</span><strong>{stats.overdue}</strong></article>
-        <article><span>Pagados</span><strong>{stats.paid}</strong></article>
         <article className="creditBalanceStat"><span>Saldo por cobrar</span><strong>{formatMoney(stats.totalBalance)}</strong></article>
       </div>
 
@@ -269,6 +271,12 @@ export function AdminCreditsManager({ initialCredits, initialStats }: Props) {
                   {selectedCredit.statusLabel}
                 </span>
               </div>
+
+              {selectedCredit.status === "CANCELLED" ? (
+                <p className="creditAccountNotice">
+                  Esta cuenta esta cancelada y se conserva unicamente como historial. No suma al saldo por cobrar.
+                </p>
+              ) : null}
 
               <div className="creditFigures">
                 <article><span>Capital inicial</span><strong>{formatMoney(selectedCredit.principal)}</strong></article>

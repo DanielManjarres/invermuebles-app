@@ -4028,16 +4028,20 @@ th {
   }
 }
 .creditsPageContent {
-  padding-bottom: 72px;
-  padding-top: 54px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 48px 20px 72px;
+  width: 100%;
 }
 
 .creditsPageHeading {
-  margin-bottom: 26px;
+  margin-bottom: 22px;
 }
 
 .creditsPageHeading h2 {
-  font-size: 42px;
+  font-size: 38px;
+  line-height: 1.1;
   margin: 4px 0 8px;
 }
 
@@ -4055,7 +4059,7 @@ th {
 .creditStats {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .creditStats article {
@@ -4064,8 +4068,8 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 6px;
-  min-height: 94px;
-  padding: 18px;
+  min-height: 88px;
+  padding: 16px 18px;
 }
 
 .creditStats span,
@@ -4089,6 +4093,7 @@ th {
   border: 1px solid var(--border);
   border-radius: 8px;
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
   padding: 14px;
@@ -4102,6 +4107,7 @@ th {
   flex: 1;
   gap: 10px;
   max-width: 560px;
+  min-width: 320px;
   padding: 0 14px;
 }
 
@@ -4148,7 +4154,17 @@ th {
   align-items: start;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(270px, 0.36fr) minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+}
+
+.creditAccountNotice {
+  background: #f7f4ed;
+  border: 1px solid #e5ddcf;
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 700;
+  margin: 14px 0 0;
+  padding: 12px 14px;
 }
 
 .creditList,
@@ -4458,12 +4474,11 @@ th {
 }
 
 @media (max-width: 820px) {
-  .creditsPageContent { padding-top: 36px; }
+  .creditsPageContent { padding: 36px 16px 56px; }
   .creditsPageHeading h2 { font-size: 34px; }
   .creditStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .creditBalanceStat { grid-column: 1 / -1; }
   .creditToolbar { align-items: stretch; flex-direction: column; }
-  .creditSearch { max-width: none; }
+  .creditSearch { max-width: none; min-width: 0; }
   .creditFilters { justify-content: flex-start; }
   .creditsWorkspace { grid-template-columns: 1fr; }
   .creditList { max-height: 360px; }
