@@ -9,11 +9,13 @@ import {
   type CreditStats,
   type PaymentMethod,
 } from "@/lib/credits";
+import type { AdminCustomer } from "@/lib/customers";
 
 type CreditFilter = "ALL" | "ACTIVE" | "OVERDUE" | "PAID" | "CANCELLED";
 
 type Props = {
   initialCredits: AdminCredit[];
+  initialCustomers: AdminCustomer[];
   initialStats: CreditStats;
 };
 
@@ -77,8 +79,11 @@ function calculateStats(credits: AdminCredit[], fallback: CreditStats): CreditSt
   };
 }
 
-export function AdminCreditsManager({ initialCredits, initialStats }: Props) {
+export function AdminCreditsManager({ initialCredits, initialCustomers, initialStats }: Props) {
   const [credits, setCredits] = useState(initialCredits);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(
+    initialCustomers[0]?.id ?? initialCredits[0]?.customerId ?? "",
+  );
   const [selectedId, setSelectedId] = useState(initialCredits[0]?.id ?? "");
   const [filter, setFilter] = useState<CreditFilter>("ALL");
   const [query, setQuery] = useState("");
@@ -95,28 +100,41 @@ export function AdminCreditsManager({ initialCredits, initialStats }: Props) {
     [credits, initialStats],
   );
 
-  const visibleCredits = useMemo(() => {
+  const visibleCustomers = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("es");
 
-    return credits.filter((credit) => {
-      const matchesStatus = filter === "ALL" || credit.status === filter;
+    return initialCustomers.filter((customer) => {
+      const customerCredits = credits.filter((credit) => credit.customerId === customer.id);
+      const matchesStatus =
+        filter === "ALL" || customerCredits.some((credit) => credit.status === filter);
       const searchable = [
-        credit.shortId,
-        credit.saleShortId,
-        credit.customerName,
-        credit.customerDocument,
-        credit.customerPhone,
-        ...credit.items.flatMap((item) => [item.productName, item.productReference]),
+        customer.fullName,
+        customer.document,
+        customer.phone,
+        customer.email,
+        customer.city,
+        ...customerCredits.flatMap((credit) => [
+          credit.shortId,
+          credit.saleShortId,
+          ...credit.items.flatMap((item) => [item.productName, item.productReference]),
+        ]),
       ]
         .join(" ")
         .toLocaleLowerCase("es");
 
       return matchesStatus && (!normalizedQuery || searchable.includes(normalizedQuery));
     });
-  }, [credits, filter, query]);
+  }, [credits, filter, initialCustomers, query]);
 
+  const selectedCustomer =
+    visibleCustomers.find((customer) => customer.id === selectedCustomerId) ??
+    visibleCustomers[0] ??
+    null;
+  const customerCredits = selectedCustomer
+    ? credits.filter((credit) => credit.customerId === selectedCustomer.id)
+    : [];
   const selectedCredit =
-    visibleCredits.find((credit) => credit.id === selectedId) ?? visibleCredits[0] ?? null;
+    customerCredits.find((credit) => credit.id === selectedId) ?? customerCredits[0] ?? null;
 
   async function handlePayment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
