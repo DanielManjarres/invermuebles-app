@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { CreditCard, Search, UserRound, WalletCards } from "lucide-react";
+import { CreditCard, Mail, MapPin, Phone, Search, UserRound, WalletCards } from "lucide-react";
+
 import { SelectMenu } from "@/components/select-menu";
 import {
   creditStatusLabels,
@@ -9,9 +10,10 @@ import {
   type CreditStats,
   type PaymentMethod,
 } from "@/lib/credits";
-import type { AdminCustomer } from "@/lib/customers";
+import { customerStatusLabels, type AdminCustomer } from "@/lib/customers";
 
 type CreditFilter = "ALL" | "ACTIVE" | "OVERDUE" | "PAID" | "CANCELLED";
+type CustomerCreditStatus = Exclude<CreditFilter, "ALL"> | "NONE";
 
 type Props = {
   initialCredits: AdminCredit[];
@@ -19,7 +21,7 @@ type Props = {
   initialStats: CreditStats;
 };
 
-const paymentOptions = [
+const paymentOptions: Array<{ label: string; value: PaymentMethod }> = [
   { label: "Efectivo", value: "CASH" },
   { label: "Transferencia", value: "TRANSFER" },
 ];
@@ -33,11 +35,14 @@ const filters: Array<{ label: string; value: CreditFilter }> = [
 ];
 
 function formatMoney(value: number) {
-  return new Intl.NumberFormat("es-CO", {
-    maximumFractionDigits: 0,
-    style: "currency",
-    currency: "COP",
-  }).format(value);
+  return `$ ${new Intl.NumberFormat("es-CO").format(value)}`;
+}
+
+function normalize(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function MoneyInput({
@@ -46,27 +51,27 @@ function MoneyInput({
   value,
 }: {
   id: string;
-  onChange: (value: number) => void;
   value: number;
+  onChange: (value: number) => void;
 }) {
   return (
     <input
       id={id}
       inputMode="numeric"
-      min="0"
-      onChange={(event) => {
-        const rawValue = event.target.value.replace(/\D/g, "");
-        onChange(rawValue ? Number(rawValue) : 0);
-      }}
-      placeholder="Ej: 150.000"
+      pattern="[0-9.]*"
       type="text"
-      value={value > 0 ? value.toLocaleString("es-CO") : ""}
+      value={value ? new Intl.NumberFormat("es-CO").format(value) : ""}
+      onChange={(event) => {
+        const numericValue = Number(event.target.value.replace(/\D/g, ""));
+        onChange(Number.isFinite(numericValue) ? numericValue : 0);
+      }}
+      placeholder="Ej: 100.000"
     />
   );
 }
 
 function calculateStats(credits: AdminCredit[], fallback: CreditStats): CreditStats {
-  if (credits.length === 0 && fallback.total > 0) return fallback;
+  if (!credits.length) return fallback;
 
   return {
     total: credits.length,
@@ -75,8 +80,36 @@ function calculateStats(credits: AdminCredit[], fallback: CreditStats): CreditSt
     paid: credits.filter((credit) => credit.status === "PAID").length,
     totalBalance: credits
       .filter((credit) => credit.status === "ACTIVE" || credit.status === "OVERDUE")
-      .reduce((total, credit) => total + credit.balance, 0),
+      .reduce((sum, credit) => sum + credit.balance, 0),
   };
+}
+
+function getCustomerCredits(customerId: string, credits: AdminCredit[]) {
+  return credits.filter((credit) => credit.customerId === customerId);
+}
+
+function getCustomerBalance(customerCredits: AdminCredit[]) {
+  return customerCredits
+    .filter((credit) => credit.status === "ACTIVE" || credit.status === "OVERDUE")
+    .reduce((sum, credit) => sum + credit.balance, 0);
+}
+
+function getCustomerCreditStatus(customerCredits: AdminCredit[]): CustomerCreditStatus {
+  if (customerCredits.some((credit) => credit.status === "OVERDUE")) return "OVERDUE";
+  if (customerCredits.some((credit) => credit.status === "ACTIVE")) return "ACTIVE";
+  if (customerCredits.some((credit) => credit.status === "PAID")) return "PAID";
+  if (customerCredits.some((credit) => credit.status === "CANCELLED")) return "CANCELLED";
+  return "NONE";
+}
+
+function getCustomerCreditStatusLabel(status: CustomerCreditStatus) {
+  if (status === "NONE") return "Sin cartera";
+  return creditStatusLabels[status];
+}
+
+function getCustomerCreditStatusClass(status: CustomerCreditStatus) {
+  if (status === "NONE") return "creditStatus-cancelled";
+  return `creditStatus-${status.toLowerCase()}`;
 }
 
 export function AdminCreditsManager({ initialCredits, initialCustomers, initialStats }: Props) {
@@ -95,34 +128,37 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const stats = useMemo(
-    () => calculateStats(credits, initialStats),
-    [credits, initialStats],
-  );
+  const stats = useMemo(() => calculateStats(credits, initialStats), [credits, initialStats]);
 
   const visibleCustomers = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("es");
+    const search = normalize(query.trim());
 
     return initialCustomers.filter((customer) => {
-      const customerCredits = credits.filter((credit) => credit.customerId === customer.id);
+      const customerCredits = getCustomerCredits(customer.id, credits);
       const matchesStatus =
         filter === "ALL" || customerCredits.some((credit) => credit.status === filter);
-      const searchable = [
-        customer.fullName,
-        customer.document,
-        customer.phone,
-        customer.email,
-        customer.city,
-        ...customerCredits.flatMap((credit) => [
-          credit.shortId,
-          credit.saleShortId,
-          ...credit.items.flatMap((item) => [item.productName, item.productReference]),
-        ]),
-      ]
-        .join(" ")
-        .toLocaleLowerCase("es");
 
-      return matchesStatus && (!normalizedQuery || searchable.includes(normalizedQuery));
+      if (!matchesStatus) return false;
+      if (!search) return true;
+
+      const searchable = normalize(
+        [
+          customer.fullName,
+          customer.document,
+          customer.phone,
+          customer.email,
+          customer.city,
+          customerCredits.map((credit) => credit.shortId).join(" "),
+          customerCredits.map((credit) => credit.saleShortId).join(" "),
+          customerCredits
+            .flatMap((credit) =>
+              credit.items.flatMap((item) => [item.productName, item.productReference]),
+            )
+            .join(" "),
+        ].join(" "),
+      );
+
+      return searchable.includes(search);
     });
   }, [credits, filter, initialCustomers, query]);
 
@@ -130,21 +166,48 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     visibleCustomers.find((customer) => customer.id === selectedCustomerId) ??
     visibleCustomers[0] ??
     null;
-  const customerCredits = selectedCustomer
-    ? credits.filter((credit) => credit.customerId === selectedCustomer.id)
-    : [];
+
+  const customerCredits = selectedCustomer ? getCustomerCredits(selectedCustomer.id, credits) : [];
   const selectedCredit =
     customerCredits.find((credit) => credit.id === selectedId) ?? customerCredits[0] ?? null;
 
+  function resetPaymentForm() {
+    setAmount(0);
+    setMethod("");
+    setReference("");
+    setNote("");
+  }
+
+  function clearFeedback() {
+    setMessage("");
+    setError("");
+  }
+
+  function handleCustomerSelect(customer: AdminCustomer) {
+    const customerCredits = getCustomerCredits(customer.id, credits);
+    setSelectedCustomerId(customer.id);
+    setSelectedId(customerCredits[0]?.id ?? "");
+    resetPaymentForm();
+    clearFeedback();
+  }
+
+  function handleCreditSelect(creditId: string) {
+    setSelectedId(creditId);
+    resetPaymentForm();
+    clearFeedback();
+  }
+
   async function handlePayment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedCredit) return;
+    clearFeedback();
 
-    setError("");
-    setMessage("");
+    if (!selectedCredit) {
+      setError("Selecciona una cuenta para registrar el abono.");
+      return;
+    }
 
-    if (amount <= 0) {
-      setError("Ingresa un valor mayor que cero.");
+    if (!amount || amount <= 0) {
+      setError("Ingresa un valor de abono valido.");
       return;
     }
 
@@ -154,7 +217,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     }
 
     if (!method) {
-      setError("Selecciona si el pago fue en efectivo o transferencia.");
+      setError("Selecciona el medio del abono.");
       return;
     }
 
@@ -164,32 +227,23 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       const response = await fetch(`/api/credits/${selectedCredit.id}/payments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, method, note, reference }),
+        body: JSON.stringify({ amount, method, reference, note }),
       });
-      const result = await response.json();
+
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.error ?? result.message ?? "No fue posible registrar el abono.",
-        );
+        throw new Error(data?.message ?? "No se pudo registrar el abono.");
       }
 
-      const updatedCredit = result.credit as AdminCredit;
       setCredits((current) =>
-        current.map((credit) => (credit.id === updatedCredit.id ? updatedCredit : credit)),
+        current.map((credit) => (credit.id === data.credit.id ? data.credit : credit)),
       );
-      setSelectedId(updatedCredit.id);
-      setAmount(0);
-      setMethod("");
-      setReference("");
-      setNote("");
-      setMessage(`Abono de ${formatMoney(result.payment.amount)} registrado correctamente.`);
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "No fue posible registrar el abono.",
-      );
+      setSelectedId(data.credit.id);
+      resetPaymentForm();
+      setMessage("Abono registrado correctamente.");
+    } catch (paymentError) {
+      setError(paymentError instanceof Error ? paymentError.message : "No se pudo registrar el abono.");
     } finally {
       setSaving(false);
     }
@@ -197,31 +251,47 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
 
   return (
     <section className="creditsManager">
-      <div className="creditStats" aria-label="Resumen de cartera">
-        <article><span>Cuentas vigentes</span><strong>{stats.active + stats.overdue}</strong></article>
-        <article><span>Activos</span><strong>{stats.active}</strong></article>
-        <article><span>En mora</span><strong>{stats.overdue}</strong></article>
-        <article className="creditBalanceStat"><span>Saldo por cobrar</span><strong>{formatMoney(stats.totalBalance)}</strong></article>
+      <div className="creditStats">
+        <article>
+          <span>Total creditos</span>
+          <strong>{stats.total}</strong>
+        </article>
+        <article>
+          <span>Activos</span>
+          <strong>{stats.active}</strong>
+        </article>
+        <article>
+          <span>En mora</span>
+          <strong>{stats.overdue}</strong>
+        </article>
+        <article>
+          <span>Saldo por cobrar</span>
+          <strong>{formatMoney(stats.totalBalance)}</strong>
+        </article>
       </div>
 
       <div className="creditToolbar">
-        <label className="creditSearch">
-          <Search size={20} aria-hidden="true" />
+        <label className="searchBox" htmlFor="credit-search">
+          <Search size={22} />
           <input
-            aria-label="Buscar crédito"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por cliente, cédula, venta o producto"
+            id="credit-search"
             type="search"
             value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por cliente, cedula, telefono, venta o producto"
           />
         </label>
-        <div className="creditFilters" aria-label="Filtrar créditos">
+
+        <div className="filterChips" aria-label="Filtrar cartera">
           {filters.map((option) => (
             <button
               className={filter === option.value ? "active" : ""}
               key={option.value}
-              onClick={() => setFilter(option.value)}
               type="button"
+              onClick={() => {
+                setFilter(option.value);
+                clearFeedback();
+              }}
             >
               {option.label}
             </button>
@@ -229,174 +299,282 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
         </div>
       </div>
 
+      {message ? <p className="formMessage success">{message}</p> : null}
+      {error ? <p className="formMessage error">{error}</p> : null}
+
       <div className="creditsWorkspace">
-        <aside className="creditList" aria-label="Créditos registrados">
+        <aside className="creditList" aria-label="Clientes con cartera">
           <div className="creditListHeading">
-            <div>
-              <span>Cartera registrada</span>
-              <strong>{visibleCredits.length} resultado(s)</strong>
-            </div>
+            <span>Clientes encontrados</span>
+            <strong>{visibleCustomers.length} resultado(s)</strong>
           </div>
 
-          {visibleCredits.length === 0 ? (
+          {!visibleCustomers.length ? (
             <div className="creditEmpty">
-              <WalletCards size={28} aria-hidden="true" />
-              <strong>No hay créditos para mostrar</strong>
-              <span>Prueba con otro término o estado.</span>
+              <WalletCards size={30} />
+              <strong>No hay clientes para mostrar</strong>
+              <span>Cambia la busqueda o el filtro para revisar otras cuentas.</span>
             </div>
           ) : (
-            visibleCredits.map((credit) => (
-              <button
-                className={`creditListItem${selectedCredit?.id === credit.id ? " selected" : ""}`}
-                key={credit.id}
-                onClick={() => {
-                  setSelectedId(credit.id);
-                  setError("");
-                  setMessage("");
-                }}
-                type="button"
-              >
-                <span className={`creditStatus creditStatus-${credit.status.toLowerCase()}`}>
-                  {creditStatusLabels[credit.status]}
-                </span>
-                <strong>{credit.customerName}</strong>
-                <span>CC {credit.customerDocument || "Sin documento"}</span>
-                <span>{credit.saleTypeLabel} · Venta #{credit.saleShortId}</span>
-                <b>{formatMoney(credit.balance)}</b>
-              </button>
-            ))
+            visibleCustomers.map((customer) => {
+              const listCredits = getCustomerCredits(customer.id, credits);
+              const status = getCustomerCreditStatus(listCredits);
+              const balance = getCustomerBalance(listCredits);
+
+              return (
+                <button
+                  className={`creditListItem creditCustomerItem${
+                    selectedCustomer?.id === customer.id ? " selected" : ""
+                  }`}
+                  key={customer.id}
+                  type="button"
+                  onClick={() => handleCustomerSelect(customer)}
+                >
+                  <div className="creditCustomerTop">
+                    <span className={`creditStatus ${getCustomerCreditStatusClass(status)}`}>
+                      {getCustomerCreditStatusLabel(status)}
+                    </span>
+                    <span>{listCredits.length} cuenta(s)</span>
+                  </div>
+                  <strong>{customer.fullName}</strong>
+                  <span>CC {customer.document}</span>
+                  <span>
+                    {customer.phone || "Sin telefono"} · {customer.city || "Sin ciudad"}
+                  </span>
+                  <b>{formatMoney(balance)}</b>
+                </button>
+              );
+            })
           )}
         </aside>
 
         <div className="creditDetail">
-          {!selectedCredit ? (
-            <div className="creditEmpty creditDetailEmpty">
-              <CreditCard size={32} aria-hidden="true" />
-              <strong>Selecciona un crédito</strong>
-              <span>Aquí podrás revisar su deuda y registrar abonos.</span>
+          {!selectedCustomer ? (
+            <div className="creditEmpty">
+              <UserRound size={34} />
+              <strong>Selecciona un cliente</strong>
+              <span>Desde aqui podras ver sus creditos, saldos y pagos registrados.</span>
             </div>
           ) : (
             <>
-              <div className="creditDetailHeader">
-                <div>
-                  <span>Crédito #{selectedCredit.shortId}</span>
-                  <h2>{selectedCredit.customerName}</h2>
-                  <p>
-                    CC {selectedCredit.customerDocument || "Sin documento"} · {selectedCredit.customerPhone}
-                  </p>
+              <div className="creditCustomerProfile">
+                <div className="creditCustomerProfileHeader">
+                  <div>
+                    <span>Perfil de cartera</span>
+                    <h2>{selectedCustomer.fullName}</h2>
+                    <p>
+                      CC {selectedCustomer.document} · {selectedCustomer.phone || "Sin telefono"}
+                    </p>
+                  </div>
+                  <span className="creditStatus creditStatus-active">
+                    {customerStatusLabels[selectedCustomer.status]}
+                  </span>
                 </div>
-                <span className={`creditStatus creditStatus-${selectedCredit.status.toLowerCase()}`}>
-                  {selectedCredit.statusLabel}
-                </span>
+
+                <div className="creditCustomerInfoGrid">
+                  <div className="creditCustomerInfoCard">
+                    <Phone size={18} />
+                    <span>Telefono</span>
+                    <strong>{selectedCustomer.phone || "Sin registrar"}</strong>
+                  </div>
+                  <div className="creditCustomerInfoCard">
+                    <Mail size={18} />
+                    <span>Correo</span>
+                    <strong>{selectedCustomer.email || "Sin registrar"}</strong>
+                  </div>
+                  <div className="creditCustomerInfoCard">
+                    <MapPin size={18} />
+                    <span>Ciudad</span>
+                    <strong>{selectedCustomer.city || "Sin registrar"}</strong>
+                  </div>
+                  <div className="creditCustomerInfoCard">
+                    <WalletCards size={18} />
+                    <span>Saldo cartera</span>
+                    <strong>{formatMoney(getCustomerBalance(customerCredits))}</strong>
+                  </div>
+                </div>
               </div>
 
-              {selectedCredit.status === "CANCELLED" ? (
-                <p className="creditAccountNotice">
-                  Esta cuenta esta cancelada y se conserva unicamente como historial. No suma al saldo por cobrar.
-                </p>
-              ) : null}
-
-              <div className="creditFigures">
-                <article><span>Capital inicial</span><strong>{formatMoney(selectedCredit.principal)}</strong></article>
-                <article><span>Interés acordado</span><strong>{selectedCredit.interestRate}%</strong></article>
-                <article><span>Capital pendiente</span><strong>{formatMoney(selectedCredit.outstandingPrincipal)}</strong></article>
-                <article><span>Interés pendiente</span><strong>{formatMoney(selectedCredit.interestBalance)}</strong></article>
-                <article className="creditFigureBalance"><span>Saldo total</span><strong>{formatMoney(selectedCredit.balance)}</strong></article>
-              </div>
-
-              <div className="creditSaleSummary">
-                <div>
-                  <CreditCard size={19} aria-hidden="true" />
-                  <strong>{selectedCredit.saleTypeLabel}</strong>
-                  <span>{selectedCredit.months} mes(es) · Venta #{selectedCredit.saleShortId}</span>
+              {!customerCredits.length ? (
+                <div className="creditEmpty">
+                  <CreditCard size={34} />
+                  <strong>Este cliente no tiene creditos registrados</strong>
+                  <span>Cuando una venta genere cartera, aparecera en este perfil.</span>
                 </div>
-                <ul>
-                  {selectedCredit.items.map((item) => (
-                    <li key={item.id}>
-                      <span>{item.productName} × {item.quantity}</span>
-                      <strong>{formatMoney(item.lineTotal)}</strong>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              ) : (
+                <>
+                  <div className="creditAccounts">
+                    <div className="creditAccountsHeader">
+                      <strong>Cuentas del cliente</strong>
+                      <span>Selecciona una cuenta para revisar saldos y registrar abonos.</span>
+                    </div>
 
-              {selectedCredit.status !== "PAID" && selectedCredit.status !== "CANCELLED" ? (
-                <form className="creditPaymentForm" onSubmit={handlePayment}>
-                  <div className="creditSectionTitle">
-                    <WalletCards size={21} aria-hidden="true" />
-                    <div><strong>Registrar abono</strong><span>El pago actualizará la deuda y el historial del cliente.</span></div>
+                    <div className="creditAccountList">
+                      {customerCredits.map((credit) => (
+                        <button
+                          className={`creditAccountButton${
+                            selectedCredit?.id === credit.id ? " selected" : ""
+                          }`}
+                          key={credit.id}
+                          type="button"
+                          onClick={() => handleCreditSelect(credit.id)}
+                        >
+                          <div className="creditAccountTop">
+                            <strong>Credito #{credit.shortId}</strong>
+                            <span className={`creditStatus creditStatus-${credit.status.toLowerCase()}`}>
+                              {credit.statusLabel}
+                            </span>
+                          </div>
+                          <span className="creditAccountMeta">
+                            {credit.saleTypeLabel} · Venta #{credit.saleShortId}
+                          </span>
+                          <span className="creditAccountAmount">{formatMoney(credit.balance)}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="creditPaymentFields">
-                    <label htmlFor="credit-payment-amount">
-                      Valor recibido
-                      <MoneyInput id="credit-payment-amount" onChange={setAmount} value={amount} />
-                    </label>
-                    <label>
-                      Medio de pago
-                      <SelectMenu
-                        onChange={(value) => setMethod(value as PaymentMethod)}
-                        options={paymentOptions}
-                        placeholder="Selecciona un medio"
-                        value={method}
-                      />
-                    </label>
-                    <label htmlFor="credit-payment-reference">
-                      Comprobante
-                      <input
-                        id="credit-payment-reference"
-                        onChange={(event) => setReference(event.target.value)}
-                        placeholder="Opcional"
-                        value={reference}
-                      />
-                    </label>
-                  </div>
-                  <label htmlFor="credit-payment-note">
-                    Observación
-                    <textarea
-                      id="credit-payment-note"
-                      onChange={(event) => setNote(event.target.value)}
-                      placeholder="Ej: Abono realizado por el cliente en el almacén."
-                      rows={2}
-                      value={note}
-                    />
-                  </label>
-                  {error ? <p className="creditFormMessage error">{error}</p> : null}
-                  {message ? <p className="creditFormMessage success">{message}</p> : null}
-                  <div className="creditPaymentActions">
-                    <span>Saldo actual: <strong>{formatMoney(selectedCredit.balance)}</strong></span>
-                    <button disabled={saving} type="submit">
-                      {saving ? "Guardando..." : "Registrar abono"}
-                    </button>
-                  </div>
-                </form>
-              ) : null}
 
-              <div className="creditPayments">
-                <div className="creditSectionTitle">
-                  <UserRound size={21} aria-hidden="true" />
-                  <div><strong>Historial de pagos</strong><span>{selectedCredit.payments.length} registro(s)</span></div>
-                </div>
-                {selectedCredit.payments.length === 0 ? (
-                  <p className="creditNoPayments">Todavía no se han registrado abonos.</p>
-                ) : (
-                  <div className="creditPaymentList">
-                    {selectedCredit.payments.map((payment) => (
-                      <article key={payment.id}>
+                  {selectedCredit ? (
+                    <div className="creditSelectedAccount">
+                      <div className="creditDetailHeader">
                         <div>
-                          <strong>{formatMoney(payment.amount)}</strong>
-                          <span>{payment.createdAt} · {payment.methodLabel}</span>
+                          <span className="sectionEyebrow">Cuenta #{selectedCredit.shortId}</span>
+                          <h3>{selectedCredit.saleTypeLabel}</h3>
+                          <p>
+                            Venta #{selectedCredit.saleShortId} · {selectedCredit.months} mes(es) ·{" "}
+                            {selectedCredit.interestRate}% interes
+                          </p>
                         </div>
+                        <span className={`creditStatus creditStatus-${selectedCredit.status.toLowerCase()}`}>
+                          {selectedCredit.statusLabel}
+                        </span>
+                      </div>
+
+                      {selectedCredit.status === "CANCELLED" ? (
+                        <p className="formMessage error">
+                          Esta cuenta fue cancelada. No se pueden registrar abonos nuevos.
+                        </p>
+                      ) : null}
+
+                      <div className="creditFigures">
+                        <article>
+                          <span>Capital inicial</span>
+                          <strong>{formatMoney(selectedCredit.principal)}</strong>
+                        </article>
+                        <article>
+                          <span>Interes acordado</span>
+                          <strong>{selectedCredit.interestRate}%</strong>
+                        </article>
+                        <article>
+                          <span>Capital pendiente</span>
+                          <strong>{formatMoney(selectedCredit.outstandingPrincipal)}</strong>
+                        </article>
+                        <article>
+                          <span>Interes pendiente</span>
+                          <strong>{formatMoney(selectedCredit.interestBalance)}</strong>
+                        </article>
+                        <article>
+                          <span>Saldo total</span>
+                          <strong>{formatMoney(selectedCredit.balance)}</strong>
+                        </article>
+                      </div>
+
+                      <div className="creditSaleSummary">
+                        <strong>
+                          {selectedCredit.saleTypeLabel} · Venta #{selectedCredit.saleShortId}
+                        </strong>
+                        {selectedCredit.items.map((item) => (
+                          <div key={item.id}>
+                            <span>
+                              {item.productName} x {item.quantity}
+                            </span>
+                  <b>{formatMoney(item.lineTotal)}</b>
+                          </div>
+                        ))}
+                      </div>
+
+                      {selectedCredit.status !== "PAID" && selectedCredit.status !== "CANCELLED" ? (
+                        <form className="creditPaymentForm" onSubmit={handlePayment}>
+                          <div className="formSectionTitle">
+                            <span>Registrar abono</span>
+                            <strong>El pago baja primero capital y luego interes pendiente.</strong>
+                          </div>
+
+                          <label>
+                            Valor recibido
+                            <MoneyInput id="payment-amount" value={amount} onChange={setAmount} />
+                          </label>
+
+                          <label>
+                            Medio
+                            <SelectMenu
+                              options={paymentOptions}
+                              placeholder="Selecciona medio"
+                              value={method}
+                              onChange={(value) => setMethod(value as PaymentMethod)}
+                            />
+                          </label>
+
+                          <label>
+                            Comprobante
+                            <input
+                              type="text"
+                              value={reference}
+                              onChange={(event) => setReference(event.target.value)}
+                              placeholder="Opcional"
+                            />
+                          </label>
+
+                          <label className="fullWidth">
+                            Observacion
+                            <textarea
+                              value={note}
+                              onChange={(event) => setNote(event.target.value)}
+                              placeholder="Ej: abono a capital, pago mensual, transferencia confirmada."
+                            />
+                          </label>
+
+                          <button className="primaryButton" disabled={saving} type="submit">
+                            <WalletCards size={20} />
+                            {saving ? "Guardando..." : "Registrar abono"}
+                          </button>
+                        </form>
+                      ) : null}
+
+                      <div className="creditPayments">
                         <div>
-                          <span>Capital: {formatMoney(payment.principalAmount)}</span>
-                          <span>Interés: {formatMoney(payment.interestAmount)}</span>
+                          <UserRound size={24} />
+                          <div>
+                            <h3>Historial de pagos</h3>
+                            <p>{selectedCredit.payments.length} registro(s)</p>
+                          </div>
                         </div>
-                        {payment.reference ? <span>Comprobante: {payment.reference}</span> : null}
-                        {payment.note ? <p>{payment.note}</p> : null}
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </div>
+
+                        {!selectedCredit.payments.length ? (
+                          <p className="emptyNote">Todavia no se han registrado abonos.</p>
+                        ) : (
+                          selectedCredit.payments.map((payment) => (
+                            <article key={payment.id}>
+                              <div>
+                                <strong>{formatMoney(payment.amount)}</strong>
+                                <span>
+                                  {payment.createdAt} · {payment.methodLabel}
+                                </span>
+                              </div>
+                              <div>
+                                <span>Capital: {formatMoney(payment.principalAmount)}</span>
+                                <span>Interes: {formatMoney(payment.interestAmount)}</span>
+                              </div>
+                              {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
+                              {payment.note ? <small>{payment.note}</small> : null}
+                            </article>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              )}
             </>
           )}
         </div>
