@@ -4064,7 +4064,7 @@ th {
 
 .creditStats article {
   background: #fff;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
   gap: 6px;
@@ -4084,13 +4084,13 @@ th {
 }
 
 .creditStats .creditBalanceStat {
-  background: var(--soft-green);
+  background: var(--surface-strong);
 }
 
 .creditToolbar {
   align-items: center;
   background: #fff;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   display: flex;
   flex-wrap: wrap;
@@ -4101,7 +4101,7 @@ th {
 
 .creditSearch {
   align-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   display: flex;
   flex: 1;
@@ -4134,7 +4134,7 @@ th {
 
 .creditFilters button {
   background: #fff;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
   cursor: pointer;
@@ -4145,8 +4145,8 @@ th {
 }
 
 .creditFilters button.active {
-  background: var(--green);
-  border-color: var(--green);
+  background: var(--primary);
+  border-color: var(--primary);
   color: #fff;
 }
 
@@ -4170,7 +4170,7 @@ th {
 .creditList,
 .creditDetail {
   background: #fff;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -4181,8 +4181,8 @@ th {
 }
 
 .creditListHeading {
-  background: var(--soft-green);
-  border-bottom: 1px solid var(--border);
+  background: var(--surface-strong);
+  border-bottom: 1px solid var(--line);
   padding: 16px;
 }
 
@@ -4192,7 +4192,7 @@ th {
 }
 
 .creditListHeading span {
-  color: var(--green);
+  color: var(--primary);
   font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
@@ -4201,7 +4201,7 @@ th {
 .creditListItem {
   background: #fff;
   border: 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   cursor: pointer;
   display: grid;
   gap: 5px;
@@ -4220,7 +4220,7 @@ th {
 }
 
 .creditListItem.selected {
-  box-shadow: inset 4px 0 0 var(--green);
+  box-shadow: inset 4px 0 0 var(--primary);
 }
 
 .creditListItem > strong {
@@ -4234,7 +4234,7 @@ th {
 }
 
 .creditListItem b {
-  color: var(--green);
+  color: var(--primary);
   font-size: 18px;
   margin-top: 4px;
 }
@@ -4281,7 +4281,7 @@ th {
 }
 
 .creditDetailHeader > div > span {
-  color: var(--green);
+  color: var(--primary);
   font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
@@ -4305,8 +4305,8 @@ th {
 }
 
 .creditFigures article {
-  background: var(--soft-green);
-  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
   gap: 5px;
@@ -4318,8 +4318,8 @@ th {
 }
 
 .creditFigures .creditFigureBalance {
-  background: var(--green);
-  border-color: var(--green);
+  background: var(--primary);
+  border-color: var(--primary);
   color: #fff;
 }
 
@@ -4328,7 +4328,7 @@ th {
 }
 
 .creditSaleSummary {
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   margin-top: 18px;
   padding: 16px;
@@ -4341,7 +4341,7 @@ th {
   gap: 8px;
 }
 
-.creditSaleSummary > div svg { color: var(--green); }
+.creditSaleSummary > div svg { color: var(--primary); }
 .creditSaleSummary > div span { color: var(--muted); }
 
 .creditSaleSummary ul {
@@ -4350,7 +4350,7 @@ th {
   list-style: none;
   margin: 14px 0 0;
   padding: 14px 0 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
 }
 
 .creditSaleSummary li {
@@ -4360,8 +4360,8 @@ th {
 }
 
 .creditPaymentForm,
-.creditPayments {
-  border-top: 1px solid var(--border);
+.creditPaymentList {
+  border-top: 1px solid var(--line);
   margin-top: 22px;
   padding-top: 22px;
 }
@@ -4373,7 +4373,7 @@ th {
   margin-bottom: 16px;
 }
 
-.creditSectionTitle svg { color: var(--green); }
+.creditSectionTitle svg { color: var(--primary); }
 .creditSectionTitle div { display: grid; gap: 2px; }
 .creditSectionTitle strong { font-size: 19px; }
 .creditSectionTitle span { color: var(--muted); font-size: 13px; }
@@ -4393,7 +4393,7 @@ th {
 
 .creditPaymentForm input,
 .creditPaymentForm textarea {
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
   font: inherit;
   padding: 13px 14px;
@@ -4416,7 +4416,7 @@ th {
 .creditPaymentActions > span { color: var(--muted); }
 
 .creditPaymentActions button {
-  background: var(--green);
+  background: var(--primary);
   border: 0;
   border-radius: 8px;
   color: #fff;
@@ -4440,7 +4440,7 @@ th {
 .creditFormMessage.success { background: #e2f2dd; color: #075e2a; }
 
 .creditNoPayments {
-  background: var(--soft-green);
+  background: var(--surface-strong);
   border-radius: 8px;
   color: var(--muted);
   margin: 0;
@@ -4455,8 +4455,8 @@ th {
 
 .creditPaymentList article {
   align-items: center;
-  background: var(--soft-green);
-  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
   gap: 8px 16px;

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CreditCard, Mail, MapPin, Phone, Search, UserRound, WalletCards } from "lucide-react";
 
 import { SelectMenu } from "@/components/select-menu";
@@ -113,11 +113,13 @@ function getCustomerCreditStatusClass(status: CustomerCreditStatus) {
 }
 
 export function AdminCreditsManager({ initialCredits, initialCustomers, initialStats }: Props) {
+  const initialCustomerId = initialCustomers[0]?.id ?? initialCredits[0]?.customerId ?? "";
+  const initialCreditId =
+    initialCredits.find((credit) => credit.customerId === initialCustomerId)?.id ?? "";
+
   const [credits, setCredits] = useState(initialCredits);
-  const [selectedCustomerId, setSelectedCustomerId] = useState(
-    initialCustomers[0]?.id ?? initialCredits[0]?.customerId ?? "",
-  );
-  const [selectedId, setSelectedId] = useState(initialCredits[0]?.id ?? "");
+  const [selectedCustomerId, setSelectedCustomerId] = useState(initialCustomerId);
+  const [selectedId, setSelectedId] = useState(initialCreditId);
   const [filter, setFilter] = useState<CreditFilter>("ALL");
   const [query, setQuery] = useState("");
   const [amount, setAmount] = useState(0);
@@ -168,8 +170,29 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     null;
 
   const customerCredits = selectedCustomer ? getCustomerCredits(selectedCustomer.id, credits) : [];
+  const filteredCustomerCredits =
+    filter === "ALL"
+      ? customerCredits
+      : customerCredits.filter((credit) => credit.status === filter);
   const selectedCredit =
-    customerCredits.find((credit) => credit.id === selectedId) ?? customerCredits[0] ?? null;
+    filteredCustomerCredits.find((credit) => credit.id === selectedId) ??
+    filteredCustomerCredits[0] ??
+    null;
+
+  const visibleCustomerId = selectedCustomer?.id ?? "";
+  const visibleCreditId = selectedCredit?.id ?? "";
+
+  useEffect(() => {
+    if (saving) return;
+
+    if (selectedCustomerId !== visibleCustomerId) {
+      setSelectedCustomerId(visibleCustomerId);
+    }
+
+    if (selectedId !== visibleCreditId) {
+      setSelectedId(visibleCreditId);
+    }
+  }, [saving, selectedCustomerId, selectedId, visibleCreditId, visibleCustomerId]);
 
   function resetPaymentForm() {
     setAmount(0);
@@ -184,14 +207,22 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   }
 
   function handleCustomerSelect(customer: AdminCustomer) {
+    if (saving) return;
+
     const customerCredits = getCustomerCredits(customer.id, credits);
+    const filteredCredits =
+      filter === "ALL"
+        ? customerCredits
+        : customerCredits.filter((credit) => credit.status === filter);
     setSelectedCustomerId(customer.id);
-    setSelectedId(customerCredits[0]?.id ?? "");
+    setSelectedId(filteredCredits[0]?.id ?? "");
     resetPaymentForm();
     clearFeedback();
   }
 
   function handleCreditSelect(creditId: string) {
+    if (saving) return;
+
     setSelectedId(creditId);
     resetPaymentForm();
     clearFeedback();
@@ -207,7 +238,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     }
 
     if (!amount || amount <= 0) {
-      setError("Ingresa un valor de abono valido.");
+      setError("Ingresa un valor de abono válido.");
       return;
     }
 
@@ -253,7 +284,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     <section className="creditsManager">
       <div className="creditStats">
         <article>
-          <span>Total creditos</span>
+          <span>Total créditos</span>
           <strong>{stats.total}</strong>
         </article>
         <article>
@@ -271,23 +302,25 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       </div>
 
       <div className="creditToolbar">
-        <label className="searchBox" htmlFor="credit-search">
+        <label className="creditSearch" htmlFor="credit-search">
           <Search size={22} />
           <input
             id="credit-search"
             type="search"
+            disabled={saving}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por cliente, cedula, telefono, venta o producto"
+            placeholder="Buscar por cliente, cédula, teléfono, venta o producto"
           />
         </label>
 
-        <div className="filterChips" aria-label="Filtrar cartera">
+        <div className="creditFilters" aria-label="Filtrar cartera">
           {filters.map((option) => (
             <button
               className={filter === option.value ? "active" : ""}
               key={option.value}
               type="button"
+              disabled={saving}
               onClick={() => {
                 setFilter(option.value);
                 clearFeedback();
@@ -299,8 +332,8 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
         </div>
       </div>
 
-      {message ? <p className="formMessage success">{message}</p> : null}
-      {error ? <p className="formMessage error">{error}</p> : null}
+      {message ? <p className="creditFormMessage success">{message}</p> : null}
+      {error ? <p className="creditFormMessage error">{error}</p> : null}
 
       <div className="creditsWorkspace">
         <aside className="creditList" aria-label="Clientes con cartera">
@@ -313,7 +346,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
             <div className="creditEmpty">
               <WalletCards size={30} />
               <strong>No hay clientes para mostrar</strong>
-              <span>Cambia la busqueda o el filtro para revisar otras cuentas.</span>
+              <span>Cambia la búsqueda o el filtro para revisar otras cuentas.</span>
             </div>
           ) : (
             visibleCustomers.map((customer) => {
@@ -328,6 +361,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                   }`}
                   key={customer.id}
                   type="button"
+                  disabled={saving}
                   onClick={() => handleCustomerSelect(customer)}
                 >
                   <div className="creditCustomerTop">
@@ -339,7 +373,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                   <strong>{customer.fullName}</strong>
                   <span>CC {customer.document}</span>
                   <span>
-                    {customer.phone || "Sin telefono"} · {customer.city || "Sin ciudad"}
+                    {customer.phone || "Sin teléfono"} · {customer.city || "Sin ciudad"}
                   </span>
                   <b>{formatMoney(balance)}</b>
                 </button>
@@ -353,7 +387,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
             <div className="creditEmpty">
               <UserRound size={34} />
               <strong>Selecciona un cliente</strong>
-              <span>Desde aqui podras ver sus creditos, saldos y pagos registrados.</span>
+              <span>Desde aquí podrás ver sus créditos, saldos y pagos registrados.</span>
             </div>
           ) : (
             <>
@@ -363,10 +397,10 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                     <span>Perfil de cartera</span>
                     <h2>{selectedCustomer.fullName}</h2>
                     <p>
-                      CC {selectedCustomer.document} · {selectedCustomer.phone || "Sin telefono"}
+                      CC {selectedCustomer.document} · {selectedCustomer.phone || "Sin teléfono"}
                     </p>
                   </div>
-                  <span className="creditStatus creditStatus-active">
+                  <span className={`customerStatus ${selectedCustomer.status.toLowerCase()}`}>
                     {customerStatusLabels[selectedCustomer.status]}
                   </span>
                 </div>
@@ -374,7 +408,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                 <div className="creditCustomerInfoGrid">
                   <div className="creditCustomerInfoCard">
                     <Phone size={18} />
-                    <span>Telefono</span>
+                    <span>Teléfono</span>
                     <strong>{selectedCustomer.phone || "Sin registrar"}</strong>
                   </div>
                   <div className="creditCustomerInfoCard">
@@ -398,8 +432,8 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
               {!customerCredits.length ? (
                 <div className="creditEmpty">
                   <CreditCard size={34} />
-                  <strong>Este cliente no tiene creditos registrados</strong>
-                  <span>Cuando una venta genere cartera, aparecera en este perfil.</span>
+                  <strong>Este cliente no tiene créditos registrados</strong>
+                  <span>Cuando una venta genere cartera, aparecerá en este perfil.</span>
                 </div>
               ) : (
                 <>
@@ -410,17 +444,18 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                     </div>
 
                     <div className="creditAccountList">
-                      {customerCredits.map((credit) => (
+                      {filteredCustomerCredits.map((credit) => (
                         <button
                           className={`creditAccountButton${
                             selectedCredit?.id === credit.id ? " selected" : ""
                           }`}
                           key={credit.id}
                           type="button"
+                          disabled={saving}
                           onClick={() => handleCreditSelect(credit.id)}
                         >
                           <div className="creditAccountTop">
-                            <strong>Credito #{credit.shortId}</strong>
+                            <strong>Crédito #{credit.shortId}</strong>
                             <span className={`creditStatus creditStatus-${credit.status.toLowerCase()}`}>
                               {credit.statusLabel}
                             </span>
@@ -442,7 +477,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                           <h3>{selectedCredit.saleTypeLabel}</h3>
                           <p>
                             Venta #{selectedCredit.saleShortId} · {selectedCredit.months} mes(es) ·{" "}
-                            {selectedCredit.interestRate}% interes
+                            {selectedCredit.interestRate}% interés
                           </p>
                         </div>
                         <span className={`creditStatus creditStatus-${selectedCredit.status.toLowerCase()}`}>
@@ -451,7 +486,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                       </div>
 
                       {selectedCredit.status === "CANCELLED" ? (
-                        <p className="formMessage error">
+                        <p className="creditFormMessage error">
                           Esta cuenta fue cancelada. No se pueden registrar abonos nuevos.
                         </p>
                       ) : null}
@@ -462,7 +497,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                           <strong>{formatMoney(selectedCredit.principal)}</strong>
                         </article>
                         <article>
-                          <span>Interes acordado</span>
+                          <span>Interés acordado</span>
                           <strong>{selectedCredit.interestRate}%</strong>
                         </article>
                         <article>
@@ -470,63 +505,71 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                           <strong>{formatMoney(selectedCredit.outstandingPrincipal)}</strong>
                         </article>
                         <article>
-                          <span>Interes pendiente</span>
+                          <span>Interés pendiente</span>
                           <strong>{formatMoney(selectedCredit.interestBalance)}</strong>
                         </article>
-                        <article>
+                        <article className="creditFigureBalance">
                           <span>Saldo total</span>
                           <strong>{formatMoney(selectedCredit.balance)}</strong>
                         </article>
                       </div>
 
                       <div className="creditSaleSummary">
-                        <strong>
-                          {selectedCredit.saleTypeLabel} · Venta #{selectedCredit.saleShortId}
-                        </strong>
-                        {selectedCredit.items.map((item) => (
-                          <div key={item.id}>
-                            <span>
-                              {item.productName} x {item.quantity}
-                            </span>
-                  <b>{formatMoney(item.lineTotal)}</b>
-                          </div>
-                        ))}
+                        <div>
+                          <strong>
+                            {selectedCredit.saleTypeLabel} · Venta #{selectedCredit.saleShortId}
+                          </strong>
+                        </div>
+                        <ul>
+                          {selectedCredit.items.map((item) => (
+                            <li key={item.id}>
+                              <span>
+                                {item.productName} x {item.quantity}
+                              </span>
+                              <b>{formatMoney(item.lineTotal)}</b>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
 
                       {selectedCredit.status !== "PAID" && selectedCredit.status !== "CANCELLED" ? (
                         <form className="creditPaymentForm" onSubmit={handlePayment}>
-                          <div className="formSectionTitle">
-                            <span>Registrar abono</span>
-                            <strong>El pago baja primero capital y luego interes pendiente.</strong>
+                          <div className="creditSectionTitle">
+                            <div>
+                              <strong>Registrar abono</strong>
+                              <span>El pago baja primero capital y luego interés pendiente.</span>
+                            </div>
                           </div>
 
-                          <label>
-                            Valor recibido
-                            <MoneyInput id="payment-amount" value={amount} onChange={setAmount} />
-                          </label>
+                          <div className="creditPaymentFields">
+                            <label>
+                              Valor recibido
+                              <MoneyInput id="payment-amount" value={amount} onChange={setAmount} />
+                            </label>
 
-                          <label>
-                            Medio
-                            <SelectMenu
-                              options={paymentOptions}
-                              placeholder="Selecciona medio"
-                              value={method}
-                              onChange={(value) => setMethod(value as PaymentMethod)}
-                            />
-                          </label>
+                            <label>
+                              Medio
+                              <SelectMenu
+                                options={paymentOptions}
+                                placeholder="Selecciona medio"
+                                value={method}
+                                onChange={(value) => setMethod(value as PaymentMethod)}
+                              />
+                            </label>
 
-                          <label>
-                            Comprobante
-                            <input
-                              type="text"
-                              value={reference}
-                              onChange={(event) => setReference(event.target.value)}
-                              placeholder="Opcional"
-                            />
-                          </label>
+                            <label>
+                              Comprobante
+                              <input
+                                type="text"
+                                value={reference}
+                                onChange={(event) => setReference(event.target.value)}
+                                placeholder="Opcional"
+                              />
+                            </label>
+                          </div>
 
                           <label className="fullWidth">
-                            Observacion
+                            Observación
                             <textarea
                               value={note}
                               onChange={(event) => setNote(event.target.value)}
@@ -534,14 +577,16 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                             />
                           </label>
 
-                          <button className="primaryButton" disabled={saving} type="submit">
-                            <WalletCards size={20} />
-                            {saving ? "Guardando..." : "Registrar abono"}
-                          </button>
+                          <div className="creditPaymentActions">
+                            <button className="primaryButton" disabled={saving} type="submit">
+                              <WalletCards size={20} />
+                              {saving ? "Guardando..." : "Registrar abono"}
+                            </button>
+                          </div>
                         </form>
                       ) : null}
 
-                      <div className="creditPayments">
+                      <div className="creditPaymentList">
                         <div>
                           <UserRound size={24} />
                           <div>
@@ -551,7 +596,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                         </div>
 
                         {!selectedCredit.payments.length ? (
-                          <p className="emptyNote">Todavia no se han registrado abonos.</p>
+                          <p className="creditNoPayments">Todavía no se han registrado abonos.</p>
                         ) : (
                           selectedCredit.payments.map((payment) => (
                             <article key={payment.id}>
@@ -563,7 +608,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                               </div>
                               <div>
                                 <span>Capital: {formatMoney(payment.principalAmount)}</span>
-                                <span>Interes: {formatMoney(payment.interestAmount)}</span>
+                                <span>Interés: {formatMoney(payment.interestAmount)}</span>
                               </div>
                               {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
                               {payment.note ? <small>{payment.note}</small> : null}
