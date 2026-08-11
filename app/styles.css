@@ -4534,6 +4534,11 @@ th {
   padding-inline: 12px;
 }
 
+.creditHeaderActions button.isDisabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .creditDetailHeader > div > span {
   color: var(--primary);
   font-size: 13px;

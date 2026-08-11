@@ -152,6 +152,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   const [editStatus, setEditStatus] = useState<"ACTIVE" | "OVERDUE">("ACTIVE");
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [managingCredit, setManagingCredit] = useState(false);
+  const [managementNoticeKey, setManagementNoticeKey] = useState(0);
 
   const stats = useMemo(() => calculateStats(credits, initialStats), [credits, initialStats]);
 
@@ -224,6 +225,13 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     }
   }, [saving, selectedCustomerId, selectedId, visibleCreditId, visibleCustomerId]);
 
+  useEffect(() => {
+    if (!managementNoticeKey) return;
+
+    const timeout = window.setTimeout(() => setManagementNoticeKey(0), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [managementNoticeKey]);
+
   function resetPaymentForm() {
     setAmount(0);
     setMethod("");
@@ -234,6 +242,11 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   function clearFeedback() {
     setMessage("");
     setError("");
+    setManagementNoticeKey(0);
+  }
+
+  function showManagementNotice() {
+    setManagementNoticeKey((current) => current + 1);
   }
 
   function handleCustomerSelect(customer: AdminCustomer) {
@@ -650,19 +663,33 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                             </button>
                           ) : null}
                           <button
-                            className="secondaryButton"
-                            disabled={!canManageSelectedCredit || managingCredit}
+                            aria-disabled={!canManageSelectedCredit || managingCredit}
+                            className={`secondaryButton${!canManageSelectedCredit ? " isDisabled" : ""}`}
+                            disabled={managingCredit}
                             type="button"
-                            onClick={() => openCreditEditor(selectedCredit)}
+                            onClick={() => {
+                              if (!canManageSelectedCredit) {
+                                showManagementNotice();
+                                return;
+                              }
+                              openCreditEditor(selectedCredit);
+                            }}
                           >
                             <Pencil size={16} />
                             Editar crédito
                           </button>
                           <button
-                            className="dangerButton"
-                            disabled={!canManageSelectedCredit || managingCredit}
+                            aria-disabled={!canManageSelectedCredit || managingCredit}
+                            className={`dangerButton${!canManageSelectedCredit ? " isDisabled" : ""}`}
+                            disabled={managingCredit}
                             type="button"
-                            onClick={() => openCreditDelete(selectedCredit)}
+                            onClick={() => {
+                              if (!canManageSelectedCredit) {
+                                showManagementNotice();
+                                return;
+                              }
+                              openCreditDelete(selectedCredit);
+                            }}
                           >
                             <Trash2 size={16} />
                             Eliminar crédito
@@ -670,7 +697,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                         </div>
                       </div>
 
-                      {!canManageSelectedCredit ? (
+                      {managementNoticeKey ? (
                         <p className="creditFormMessage error">
                           Este crédito conserva abonos posteriores o un estado final y no permite editar ni eliminar su financiación.
                         </p>
