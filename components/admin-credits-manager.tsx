@@ -1,7 +1,19 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { CreditCard, Mail, MapPin, Pencil, Phone, Search, Trash2, UserRound, WalletCards } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  Search,
+  Trash2,
+  UserRound,
+  WalletCards,
+} from "lucide-react";
 
 import { SelectMenu } from "@/components/select-menu";
 import {
@@ -117,6 +129,7 @@ function getCustomerCreditStatusClass(status: CustomerCreditStatus) {
 }
 
 export function AdminCreditsManager({ initialCredits, initialCustomers, initialStats }: Props) {
+  const creditAccountListRef = useRef<HTMLDivElement>(null);
   const [credits, setCredits] = useState(initialCredits);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedId, setSelectedId] = useState("");
@@ -556,11 +569,35 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                 <>
                   <div className="creditAccounts">
                     <div className="creditAccountsHeader">
-                      <strong>Cuentas del cliente</strong>
-                      <span>Selecciona una cuenta para revisar saldos y registrar abonos.</span>
+                      <div>
+                        <strong>Cuentas del cliente</strong>
+                        <span>Desliza y selecciona una cuenta para revisar sus saldos.</span>
+                      </div>
+                      {filteredCustomerCredits.length > 1 ? (
+                        <div className="creditAccountControls" aria-label="Desplazar cuentas" role="group">
+                          <button
+                            aria-label="Ver cuentas anteriores"
+                            type="button"
+                            onClick={() =>
+                              creditAccountListRef.current?.scrollBy({ left: -290, behavior: "smooth" })
+                            }
+                          >
+                            <ChevronLeft size={18} />
+                          </button>
+                          <button
+                            aria-label="Ver cuentas siguientes"
+                            type="button"
+                            onClick={() =>
+                              creditAccountListRef.current?.scrollBy({ left: 290, behavior: "smooth" })
+                            }
+                          >
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
 
-                    <div className="creditAccountList">
+                    <div className="creditAccountList" ref={creditAccountListRef}>
                       {filteredCustomerCredits.map((credit) => (
                         <button
                           className={`creditAccountButton${
