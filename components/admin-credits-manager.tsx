@@ -118,13 +118,9 @@ function getCustomerCreditStatusClass(status: CustomerCreditStatus) {
 }
 
 export function AdminCreditsManager({ initialCredits, initialCustomers, initialStats }: Props) {
-  const initialCustomerId = initialCustomers[0]?.id ?? initialCredits[0]?.customerId ?? "";
-  const initialCreditId =
-    initialCredits.find((credit) => credit.customerId === initialCustomerId)?.id ?? "";
-
   const [credits, setCredits] = useState(initialCredits);
-  const [selectedCustomerId, setSelectedCustomerId] = useState(initialCustomerId);
-  const [selectedId, setSelectedId] = useState(initialCreditId);
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [selectedId, setSelectedId] = useState("");
   const [filter, setFilter] = useState<CreditFilter>("ALL");
   const [query, setQuery] = useState("");
   const [amount, setAmount] = useState(0);
@@ -134,6 +130,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [creditToEdit, setCreditToEdit] = useState<AdminCredit | null>(null);
   const [creditToDelete, setCreditToDelete] = useState<AdminCredit | null>(null);
   const [editMonths, setEditMonths] = useState(6);
@@ -148,6 +145,10 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
 
   const visibleCustomers = useMemo(() => {
     const search = normalize(query.trim());
+
+    if (filter === "ALL" && !search) {
+      return [];
+    }
 
     return initialCustomers.filter((customer) => {
       const customerCredits = getCustomerCredits(customer.id, credits);
@@ -179,9 +180,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   }, [credits, filter, initialCustomers, query]);
 
   const selectedCustomer =
-    visibleCustomers.find((customer) => customer.id === selectedCustomerId) ??
-    visibleCustomers[0] ??
-    null;
+    visibleCustomers.find((customer) => customer.id === selectedCustomerId) ?? null;
 
   const customerCredits = selectedCustomer ? getCustomerCredits(selectedCustomer.id, credits) : [];
   const filteredCustomerCredits =
@@ -291,12 +290,25 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       );
       setSelectedId(data.credit.id);
       resetPaymentForm();
+      setPaymentModalOpen(false);
       setMessage("Abono registrado correctamente.");
     } catch (paymentError) {
       setError(paymentError instanceof Error ? paymentError.message : "No se pudo registrar el abono.");
     } finally {
       setSaving(false);
     }
+  }
+
+  function openPaymentModal() {
+    resetPaymentForm();
+    clearFeedback();
+    setPaymentModalOpen(true);
+  }
+
+  function closePaymentModal() {
+    if (saving) return;
+    resetPaymentForm();
+    setPaymentModalOpen(false);
   }
 
   function openCreditEditor(credit: AdminCredit) {
@@ -443,8 +455,16 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
           {!visibleCustomers.length ? (
             <div className="creditEmpty">
               <WalletCards size={30} />
-              <strong>No hay clientes para mostrar</strong>
-              <span>Cambia la búsqueda o el filtro para revisar otras cuentas.</span>
+              <strong>
+                {filter === "ALL" && !query.trim()
+                  ? "Busca un cliente para comenzar"
+                  : "No hay clientes para mostrar"}
+              </strong>
+              <span>
+                {filter === "ALL" && !query.trim()
+                  ? "Escribe su nombre, cédula, teléfono, venta o producto."
+                  : "Cambia la búsqueda o el filtro para revisar otras cuentas."}
+              </span>
             </div>
           ) : (
             visibleCustomers.map((customer) => {
@@ -582,6 +602,17 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                           <span className={`creditStatus creditStatus-${selectedCredit.status.toLowerCase()}`}>
                             {selectedCredit.statusLabel}
                           </span>
+                          {selectedCredit.status === "ACTIVE" || selectedCredit.status === "OVERDUE" ? (
+                            <button
+                              className="primaryButton"
+                              disabled={saving || managingCredit}
+                              type="button"
+                              onClick={openPaymentModal}
+                            >
+                              <WalletCards size={16} />
+                              Registrar abono
+                            </button>
+                          ) : null}
                           <button
                             className="secondaryButton"
                             disabled={!canManageSelectedCredit || managingCredit}
@@ -656,60 +687,6 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                         </ul>
                       </div>
 
-                      {selectedCredit.status !== "PAID" && selectedCredit.status !== "CANCELLED" ? (
-                        <form className="creditPaymentForm" onSubmit={handlePayment}>
-                          <div className="creditSectionTitle">
-                            <div>
-                              <strong>Registrar abono</strong>
-                              <span>El pago baja primero capital y luego interés pendiente.</span>
-                            </div>
-                          </div>
-
-                          <div className="creditPaymentFields">
-                            <label>
-                              Valor recibido
-                              <MoneyInput id="payment-amount" value={amount} onChange={setAmount} />
-                            </label>
-
-                            <label>
-                              Medio
-                              <SelectMenu
-                                options={paymentOptions}
-                                placeholder="Selecciona medio"
-                                value={method}
-                                onChange={(value) => setMethod(value as PaymentMethod)}
-                              />
-                            </label>
-
-                            <label>
-                              Comprobante
-                              <input
-                                type="text"
-                                value={reference}
-                                onChange={(event) => setReference(event.target.value)}
-                                placeholder="Opcional"
-                              />
-                            </label>
-                          </div>
-
-                          <label className="fullWidth">
-                            Observación
-                            <textarea
-                              value={note}
-                              onChange={(event) => setNote(event.target.value)}
-                              placeholder="Ej: abono a capital, pago mensual, transferencia confirmada."
-                            />
-                          </label>
-
-                          <div className="creditPaymentActions">
-                            <button className="primaryButton" disabled={saving} type="submit">
-                              <WalletCards size={20} />
-                              {saving ? "Guardando..." : "Registrar abono"}
-                            </button>
-                          </div>
-                        </form>
-                      ) : null}
-
                       <div className="creditPaymentList">
                         <div>
                           <UserRound size={24} />
@@ -748,6 +725,88 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
           )}
         </div>
       </div>
+
+      {paymentModalOpen && selectedCredit ? (
+        <div className="adminModalBackdrop" role="presentation">
+          <form
+            aria-labelledby="payment-modal-title"
+            aria-modal="true"
+            className="adminModal creditPaymentModal"
+            role="dialog"
+            onSubmit={handlePayment}
+          >
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Crédito #{selectedCredit.shortId}</p>
+                <h2 id="payment-modal-title">Registrar abono</h2>
+              </div>
+              <button className="iconButton" disabled={saving} type="button" onClick={closePaymentModal}>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Cuenta seleccionada</span>
+              <strong>{selectedCredit.customerName}</strong>
+              <small>
+                Venta #{selectedCredit.saleShortId} · Saldo disponible {formatMoney(selectedCredit.balance)}
+              </small>
+            </div>
+
+            {error ? <p className="creditFormMessage error">{error}</p> : null}
+
+            <div className="creditPaymentFields">
+              <label>
+                Valor recibido
+                <MoneyInput id="payment-amount" value={amount} onChange={setAmount} />
+              </label>
+
+              <label>
+                Medio
+                <SelectMenu
+                  options={paymentOptions}
+                  placeholder="Selecciona medio"
+                  value={method}
+                  onChange={(value) => setMethod(value as PaymentMethod)}
+                />
+              </label>
+
+              <label>
+                Comprobante
+                <input
+                  type="text"
+                  value={reference}
+                  onChange={(event) => setReference(event.target.value)}
+                  placeholder="Opcional"
+                />
+              </label>
+            </div>
+
+            <label>
+              Observación
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Ej: abono a capital, pago mensual, transferencia confirmada."
+              />
+            </label>
+
+            <p className="creditPaymentHint">
+              El pago se distribuirá entre capital e interés según el saldo pendiente.
+            </p>
+
+            <div className="modalActions">
+              <button className="secondaryButton" disabled={saving} type="button" onClick={closePaymentModal}>
+                Cancelar
+              </button>
+              <button className="primaryButton" disabled={saving} type="submit">
+                <WalletCards size={18} />
+                {saving ? "Guardando..." : "Registrar abono"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
 
       {creditToEdit ? (
         <div className="adminModalBackdrop" role="presentation">
