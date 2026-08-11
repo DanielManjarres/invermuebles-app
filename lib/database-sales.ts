@@ -50,9 +50,11 @@ function mapSale(sale: SaleWithRelations): AdminSale {
     type: sale.type,
     status: sale.status,
     paymentMethod:
-      sale.paymentMethod === "CASH" || sale.paymentMethod === "TRANSFER"
+      Number(sale.amountPaid) > 0 &&
+      (sale.paymentMethod === "CASH" || sale.paymentMethod === "TRANSFER")
         ? sale.paymentMethod
         : null,
+    creditId: sale.credit?.id ?? "",
     creditMonths: sale.credit?.months ?? null,
     interestRate: sale.credit ? Number(sale.credit.interestRate) : null,
     amountPaid: Number(sale.amountPaid),

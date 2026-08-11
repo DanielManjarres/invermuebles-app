@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { CreditCard, Mail, MapPin, Phone, Search, UserRound, WalletCards } from "lucide-react";
+import { CreditCard, Mail, MapPin, Pencil, Phone, Search, Trash2, UserRound, WalletCards } from "lucide-react";
 
 import { SelectMenu } from "@/components/select-menu";
 import {
@@ -32,6 +32,11 @@ const filters: Array<{ label: string; value: CreditFilter }> = [
   { label: "En mora", value: "OVERDUE" },
   { label: "Pagados", value: "PAID" },
   { label: "Cancelados", value: "CANCELLED" },
+];
+
+const editableStatusOptions = [
+  { label: "Activo", value: "ACTIVE" },
+  { label: "En mora", value: "OVERDUE" },
 ];
 
 function formatMoney(value: number) {
@@ -129,6 +134,15 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [creditToEdit, setCreditToEdit] = useState<AdminCredit | null>(null);
+  const [creditToDelete, setCreditToDelete] = useState<AdminCredit | null>(null);
+  const [editMonths, setEditMonths] = useState(6);
+  const [editInterestRate, setEditInterestRate] = useState(0);
+  const [editInitialPayment, setEditInitialPayment] = useState(0);
+  const [editMethod, setEditMethod] = useState<PaymentMethod | "">("");
+  const [editStatus, setEditStatus] = useState<"ACTIVE" | "OVERDUE">("ACTIVE");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [managingCredit, setManagingCredit] = useState(false);
 
   const stats = useMemo(() => calculateStats(credits, initialStats), [credits, initialStats]);
 
@@ -181,6 +195,11 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
 
   const visibleCustomerId = selectedCustomer?.id ?? "";
   const visibleCreditId = selectedCredit?.id ?? "";
+  const canManageSelectedCredit = Boolean(
+    selectedCredit &&
+      (selectedCredit.status === "ACTIVE" || selectedCredit.status === "OVERDUE") &&
+      !selectedCredit.payments.some((payment) => !payment.isInitial),
+  );
 
   useEffect(() => {
     if (saving) return;
@@ -277,6 +296,85 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       setError(paymentError instanceof Error ? paymentError.message : "No se pudo registrar el abono.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  function openCreditEditor(credit: AdminCredit) {
+    const initialPayment = credit.payments.find((payment) => payment.isInitial);
+    setCreditToEdit(credit);
+    setEditMonths(credit.months);
+    setEditInterestRate(credit.interestRate);
+    setEditInitialPayment(initialPayment?.amount ?? 0);
+    setEditMethod(initialPayment?.method ?? "");
+    setEditStatus(credit.status === "OVERDUE" ? "OVERDUE" : "ACTIVE");
+    clearFeedback();
+  }
+
+  async function updateCredit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!creditToEdit || managingCredit) return;
+
+    setManagingCredit(true);
+    clearFeedback();
+
+    try {
+      const response = await fetch(`/api/credits/${creditToEdit.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initialPayment: editInitialPayment,
+          interestRate: editInterestRate,
+          method: editMethod || undefined,
+          months: editMonths,
+          status: editStatus,
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message ?? "No se pudo actualizar el crédito.");
+      }
+
+      setCredits((current) =>
+        current.map((credit) => (credit.id === result.credit.id ? result.credit : credit)),
+      );
+      setCreditToEdit(null);
+      setMessage(result.message ?? "Crédito actualizado correctamente.");
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : "No se pudo actualizar el crédito.");
+    } finally {
+      setManagingCredit(false);
+    }
+  }
+
+  function openCreditDelete(credit: AdminCredit) {
+    setCreditToDelete(credit);
+    setDeleteConfirmation("");
+    clearFeedback();
+  }
+
+  async function deleteCredit() {
+    if (!creditToDelete || managingCredit || deleteConfirmation !== "ELIMINAR") return;
+
+    setManagingCredit(true);
+    clearFeedback();
+
+    try {
+      const response = await fetch(`/api/credits/${creditToDelete.id}`, { method: "DELETE" });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message ?? "No se pudo eliminar el crédito.");
+      }
+
+      setCredits((current) => current.filter((credit) => credit.id !== creditToDelete.id));
+      setCreditToDelete(null);
+      setDeleteConfirmation("");
+      setMessage(result.message ?? "Crédito eliminado correctamente.");
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "No se pudo eliminar el crédito.");
+    } finally {
+      setManagingCredit(false);
     }
   }
 
@@ -480,10 +578,36 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
                             {selectedCredit.interestRate}% interés
                           </p>
                         </div>
-                        <span className={`creditStatus creditStatus-${selectedCredit.status.toLowerCase()}`}>
-                          {selectedCredit.statusLabel}
-                        </span>
+                        <div className="creditHeaderActions">
+                          <span className={`creditStatus creditStatus-${selectedCredit.status.toLowerCase()}`}>
+                            {selectedCredit.statusLabel}
+                          </span>
+                          <button
+                            className="secondaryButton"
+                            disabled={!canManageSelectedCredit || managingCredit}
+                            type="button"
+                            onClick={() => openCreditEditor(selectedCredit)}
+                          >
+                            <Pencil size={16} />
+                            Editar crédito
+                          </button>
+                          <button
+                            className="dangerButton"
+                            disabled={!canManageSelectedCredit || managingCredit}
+                            type="button"
+                            onClick={() => openCreditDelete(selectedCredit)}
+                          >
+                            <Trash2 size={16} />
+                            Eliminar crédito
+                          </button>
+                        </div>
                       </div>
+
+                      {!canManageSelectedCredit ? (
+                        <p className="creditFormMessage error">
+                          Este crédito conserva abonos posteriores o un estado final y no permite editar ni eliminar su financiación.
+                        </p>
+                      ) : null}
 
                       {selectedCredit.status === "CANCELLED" ? (
                         <p className="creditFormMessage error">
@@ -624,6 +748,125 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
           )}
         </div>
       </div>
+
+      {creditToEdit ? (
+        <div className="adminModalBackdrop" role="presentation">
+          <form
+            aria-labelledby="edit-credit-title"
+            aria-modal="true"
+            className="adminModal"
+            role="dialog"
+            onSubmit={updateCredit}
+          >
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Corrección administrativa</p>
+                <h2 id="edit-credit-title">Editar crédito #{creditToEdit.shortId}</h2>
+              </div>
+              <button className="iconButton" disabled={managingCredit} type="button" onClick={() => setCreditToEdit(null)}>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+
+            <div className="recordDeleteWarning">
+              Solo se permite corregir la financiación mientras no existan abonos posteriores al pago inicial.
+            </div>
+
+            <div className="adminFormGrid">
+              <label>
+                Plazo en meses
+                <input
+                  min="1"
+                  max="120"
+                  type="number"
+                  value={editMonths}
+                  onChange={(event) => setEditMonths(Number(event.target.value))}
+                />
+              </label>
+              <label>
+                Interés (%)
+                <input
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  type="number"
+                  value={editInterestRate}
+                  onChange={(event) => setEditInterestRate(Number(event.target.value))}
+                />
+              </label>
+              <label>
+                Pago inicial
+                <MoneyInput id="edit-initial-payment" value={editInitialPayment} onChange={setEditInitialPayment} />
+              </label>
+              <label>
+                Medio del pago inicial
+                <SelectMenu
+                  disabled={!editInitialPayment}
+                  options={paymentOptions}
+                  placeholder="Sin pago inicial"
+                  value={editMethod}
+                  onChange={(value) => setEditMethod(value as PaymentMethod)}
+                />
+              </label>
+              <label>
+                Estado
+                <SelectMenu
+                  options={editableStatusOptions}
+                  placeholder="Selecciona estado"
+                  value={editStatus}
+                  onChange={(value) => setEditStatus(value as "ACTIVE" | "OVERDUE")}
+                />
+              </label>
+            </div>
+
+            <div className="modalActions">
+              <button className="secondaryButton" disabled={managingCredit} type="button" onClick={() => setCreditToEdit(null)}>
+                Cancelar
+              </button>
+              <button className="primaryButton" disabled={managingCredit} type="submit">
+                {managingCredit ? "Guardando..." : "Guardar corrección"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      {creditToDelete ? (
+        <div className="adminModalBackdrop" role="presentation">
+          <div aria-labelledby="delete-credit-title" aria-modal="true" className="adminModal recordDeleteModal" role="dialog">
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Acción permanente</p>
+                <h2 id="delete-credit-title">Eliminar crédito</h2>
+              </div>
+              <button className="iconButton" disabled={managingCredit} type="button" onClick={() => setCreditToDelete(null)}>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div className="recordDeleteWarning">
+              El crédito y su pago inicial se eliminarán permanentemente. La venta se conservará pendiente para configurar otra financiación.
+            </div>
+            <div className="recordDeleteTarget">
+              <span>Crédito seleccionado</span>
+              <strong>Crédito #{creditToDelete.shortId}</strong>
+              <small>Venta #{creditToDelete.saleShortId} · {creditToDelete.customerName}</small>
+            </div>
+            <label className="deleteConfirmationField">
+              Escribe ELIMINAR para confirmar
+              <input value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} />
+            </label>
+            <div className="modalActions">
+              <button className="secondaryButton" disabled={managingCredit} type="button" onClick={() => setCreditToDelete(null)}>
+                Cancelar
+              </button>
+              <button className="dangerButton" disabled={managingCredit || deleteConfirmation !== "ELIMINAR"} type="button" onClick={deleteCredit}>
+                <Trash2 size={17} />
+                {managingCredit ? "Eliminando..." : "Eliminar permanentemente"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -1583,13 +1583,30 @@ th {
 .saleHistoryActions {
   border-top: 1px solid var(--line);
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: flex-end;
   padding-top: 10px;
 }
 
-.saleHistoryActions .dangerButton {
+.saleHistoryActions .dangerButton,
+.saleHistoryActions .secondaryButton {
   min-height: 36px;
   padding-inline: 12px;
+}
+
+.deleteConfirmationField {
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.deleteConfirmationField input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  padding: 12px 14px;
 }
 
 .adminFormGrid {
@@ -3900,7 +3917,8 @@ th {
     justify-content: stretch;
   }
 
-  .saleHistoryActions .dangerButton {
+  .saleHistoryActions .dangerButton,
+  .saleHistoryActions .secondaryButton {
     width: 100%;
   }
 
@@ -4280,6 +4298,19 @@ th {
   justify-content: space-between;
 }
 
+.creditHeaderActions {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.creditHeaderActions .secondaryButton,
+.creditHeaderActions .dangerButton {
+  min-height: 38px;
+  padding-inline: 12px;
+}
+
 .creditDetailHeader > div > span {
   color: var(--primary);
   font-size: 13px;
@@ -4491,7 +4522,11 @@ th {
   .creditStats article { min-height: 82px; padding: 14px; }
   .creditStats strong { font-size: 23px; }
   .creditDetail { padding: 17px; }
+  .creditDetailHeader { flex-direction: column; }
   .creditDetailHeader h2 { font-size: 26px; }
+  .creditHeaderActions { align-items: stretch; width: 100%; }
+  .creditHeaderActions .secondaryButton,
+  .creditHeaderActions .dangerButton { justify-content: center; width: 100%; }
   .creditFigures { grid-template-columns: 1fr 1fr; }
   .creditFigureBalance { grid-column: 1 / -1; }
   .creditPaymentActions { align-items: stretch; flex-direction: column; }

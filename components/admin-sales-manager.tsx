@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  CreditCard,
   Minus,
   PackageSearch,
   Plus,
@@ -56,6 +57,11 @@ const sourceFilters = [
   { label: "Todas", value: "ALL" },
   { label: "Locales", value: "LOCAL" },
   { label: "Desde pedidos", value: "ORDER" },
+];
+
+const creditStatusOptions = [
+  { label: "Activo", value: "ACTIVE" },
+  { label: "En mora", value: "OVERDUE" },
 ];
 
 function formatMoney(value: number) {
@@ -275,6 +281,13 @@ export function AdminSalesManager({
   const [notice, setNotice] = useState("");
   const [saleToCancel, setSaleToCancel] = useState<AdminSale | null>(null);
   const [cancellingSaleId, setCancellingSaleId] = useState("");
+  const [saleToFinance, setSaleToFinance] = useState<AdminSale | null>(null);
+  const [financeMonths, setFinanceMonths] = useState(6);
+  const [financeInterestRate, setFinanceInterestRate] = useState(20);
+  const [financeInitialPayment, setFinanceInitialPayment] = useState(0);
+  const [financePaymentMethod, setFinancePaymentMethod] = useState<PaymentMethod | "">("");
+  const [financeStatus, setFinanceStatus] = useState<"ACTIVE" | "OVERDUE">("ACTIVE");
+  const [isFinancingSale, setIsFinancingSale] = useState(false);
   const adminSaleCart = useAdminSaleCart(products);
 
   const preparedOrder = useMemo(
@@ -620,6 +633,78 @@ export function AdminSalesManager({
       setNotice("No se pudo conectar con el sistema.");
     } finally {
       setCancellingSaleId("");
+    }
+  }
+
+  function openCreditConfiguration(sale: AdminSale) {
+    setSaleToFinance(sale);
+    setFinanceMonths(6);
+    setFinanceInterestRate(20);
+    setFinanceInitialPayment(0);
+    setFinancePaymentMethod("");
+    setFinanceStatus("ACTIVE");
+    setNotice("");
+  }
+
+  async function configureCredit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!saleToFinance || isFinancingSale) return;
+
+    setIsFinancingSale(true);
+    setNotice("");
+
+    try {
+      const response = await fetch(`/api/sales/${saleToFinance.id}/credit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initialPayment: financeInitialPayment,
+          interestRate: financeInterestRate,
+          method: financePaymentMethod || undefined,
+          months: financeMonths,
+          status: financeStatus,
+        }),
+      });
+      const result = (await response.json()) as {
+        amountPaid?: number;
+        balance?: number;
+        creditId?: string;
+        creditMonths?: number;
+        interestRate?: number;
+        message?: string;
+        status?: AdminSale["status"];
+      };
+
+      if (!response.ok || !result.creditId) {
+        throw new Error(result.message ?? "No se pudo configurar el crédito.");
+      }
+
+      setSales((currentSales) =>
+        currentSales.map((sale) =>
+          sale.id === saleToFinance.id
+            ? {
+                ...sale,
+                amountPaid: result.amountPaid ?? 0,
+                balance: result.balance ?? sale.balance,
+                creditId: result.creditId!,
+                creditMonths: result.creditMonths ?? financeMonths,
+                interestRate: result.interestRate ?? financeInterestRate,
+                paymentMethod: financeInitialPayment > 0 ? financePaymentMethod || null : null,
+                status: result.status ?? sale.status,
+              }
+            : sale,
+        ),
+      );
+      setSaleToFinance(null);
+      setNotice(result.message ?? "Crédito configurado nuevamente.");
+    } catch (configurationError) {
+      setNotice(
+        configurationError instanceof Error
+          ? configurationError.message
+          : "No se pudo configurar el crédito.",
+      );
+    } finally {
+      setIsFinancingSale(false);
     }
   }
 
@@ -1079,6 +1164,16 @@ export function AdminSalesManager({
                   </div>
                   {sale.status !== "CANCELLED" ? (
                     <div className="saleHistoryActions">
+                      {(sale.type === "CREDIT" || sale.type === "CREDIT_CASH") && !sale.creditId ? (
+                        <button
+                          className="secondaryButton"
+                          type="button"
+                          onClick={() => openCreditConfiguration(sale)}
+                        >
+                          <CreditCard size={16} />
+                          Configurar crédito
+                        </button>
+                      ) : null}
                       <button
                         className="dangerButton"
                         type="button"
@@ -1148,6 +1243,77 @@ export function AdminSalesManager({
               </button>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {saleToFinance ? (
+        <div className="adminModalBackdrop" role="presentation">
+          <form
+            aria-labelledby="configure-credit-title"
+            aria-modal="true"
+            className="adminModal"
+            role="dialog"
+            onSubmit={configureCredit}
+          >
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Venta #{saleToFinance.shortId}</p>
+                <h2 id="configure-credit-title">Configurar crédito</h2>
+              </div>
+              <button className="iconButton" disabled={isFinancingSale} type="button" onClick={() => setSaleToFinance(null)}>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Venta conservada</span>
+              <strong>{saleToFinance.customerName}</strong>
+              <small>Total de la venta: {formatMoney(saleToFinance.total)}</small>
+            </div>
+
+            <div className="adminFormGrid">
+              <label>
+                Plazo en meses
+                <input min="1" max="120" type="number" value={financeMonths} onChange={(event) => setFinanceMonths(Number(event.target.value))} />
+              </label>
+              <label>
+                Interés (%)
+                <input min="0" max="100" step="0.01" type="number" value={financeInterestRate} onChange={(event) => setFinanceInterestRate(Number(event.target.value))} />
+              </label>
+              <label>
+                Pago inicial
+                <MoneyInput value={financeInitialPayment} onValueChange={setFinanceInitialPayment} />
+              </label>
+              <label>
+                Medio del pago inicial
+                <SelectMenu
+                  disabled={!financeInitialPayment}
+                  options={paymentMethodOptions}
+                  placeholder="Sin pago inicial"
+                  value={financePaymentMethod}
+                  onChange={(value) => setFinancePaymentMethod(value as PaymentMethod)}
+                />
+              </label>
+              <label>
+                Estado
+                <SelectMenu
+                  options={creditStatusOptions}
+                  placeholder="Selecciona estado"
+                  value={financeStatus}
+                  onChange={(value) => setFinanceStatus(value as "ACTIVE" | "OVERDUE")}
+                />
+              </label>
+            </div>
+
+            <div className="modalActions">
+              <button className="secondaryButton" disabled={isFinancingSale} type="button" onClick={() => setSaleToFinance(null)}>
+                Cancelar
+              </button>
+              <button className="primaryButton" disabled={isFinancingSale} type="submit">
+                {isFinancingSale ? "Configurando..." : "Crear crédito"}
+              </button>
+            </div>
+          </form>
         </div>
       ) : null}
     </section>

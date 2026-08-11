@@ -11,13 +11,13 @@ const creditInclude = {
       items: {
         orderBy: { createdAt: "asc" },
       },
+      payments: {
+        include: {
+          user: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
-  },
-  salePayments: {
-    include: {
-      user: true,
-    },
-    orderBy: { createdAt: "desc" },
   },
 } satisfies Prisma.CreditInclude;
 
@@ -47,7 +47,7 @@ function mapCredit(credit: CreditWithRelations): AdminCredit {
     })) ?? [];
 
   const saleType = credit.sale?.type ?? "CREDIT";
-  const payments = credit.salePayments.map((payment) => ({
+  const payments = (credit.sale?.payments ?? []).map((payment) => ({
     id: payment.id,
     amount: Number(payment.amount),
     method: payment.method,
@@ -56,6 +56,7 @@ function mapCredit(credit: CreditWithRelations): AdminCredit {
     note: payment.note ?? "",
     principalAmount: Number(payment.principalAmount ?? 0),
     interestAmount: Number(payment.interestAmount ?? 0),
+    isInitial: payment.isInitial,
     createdAt: formatDate(payment.createdAt),
     createdAtISO: payment.createdAt.toISOString(),
     userName: payment.user?.name ?? "Administrador",

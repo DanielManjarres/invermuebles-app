@@ -16,6 +16,7 @@ export type AdminCreditPayment = {
   note: string;
   principalAmount: number;
   interestAmount: number;
+  isInitial: boolean;
   createdAt: string;
   createdAtISO: string;
   userName: string;

@@ -308,6 +308,7 @@ export async function POST(request: Request) {
               saleType === SaleType.CREDIT
                 ? amountPaid - (principal - outstandingPrincipal)
                 : null,
+            isInitial: financingTypes.has(saleType),
             method: paymentMethod,
             note: "Pago inicial al registrar la venta.",
             principalAmount:
