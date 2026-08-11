@@ -14,7 +14,7 @@ export default async function AdminCreditsPage() {
   ]);
 
   return (
-    <main>
+    <main className="creditsPage">
       <SiteHeader active="cartera" variant="admin" />
 
       <section className="pageHeader customersPageHeader">

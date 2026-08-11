@@ -31,7 +31,6 @@ const filters: Array<{ label: string; value: CreditFilter }> = [
   { label: "Activos", value: "ACTIVE" },
   { label: "En mora", value: "OVERDUE" },
   { label: "Pagados", value: "PAID" },
-  { label: "Cancelados", value: "CANCELLED" },
 ];
 
 const editableStatusOptions = [

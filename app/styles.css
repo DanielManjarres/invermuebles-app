@@ -4049,29 +4049,50 @@ th {
   box-sizing: border-box;
   margin: 0 auto;
   max-width: 1180px;
-  padding: 48px 20px 72px;
+  padding: 34px 20px 56px;
   width: 100%;
 }
 
 .creditsPageHeading {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
+}
+
+.creditsPage .topbar {
+  position: static;
+}
+
+.creditsPage .pageHeader {
+  padding-bottom: 26px;
+  padding-top: 26px;
+}
+
+.creditsPage .pageHeaderRow {
+  align-items: center;
+}
+
+.creditsPage .pageHeader h1 {
+  font-size: clamp(2rem, 3.5vw, 2.35rem);
+}
+
+.creditsPage .pageHeader p:not(.eyebrow) {
+  font-size: 16px;
 }
 
 .creditsPageHeading h2 {
-  font-size: 38px;
+  font-size: 34px;
   line-height: 1.1;
   margin: 4px 0 8px;
 }
 
 .creditsPageHeading > p:last-child {
   color: var(--muted);
-  font-size: 18px;
+  font-size: 16px;
   margin: 0;
 }
 
 .creditsManager {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .creditStats {
@@ -4086,19 +4107,19 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 6px;
-  min-height: 88px;
-  padding: 16px 18px;
+  min-height: 76px;
+  padding: 13px 16px;
 }
 
 .creditStats span,
 .creditFigures span {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .creditStats strong {
-  font-size: 27px;
+  font-size: 23px;
 }
 
 .creditStats .creditBalanceStat {
@@ -4112,9 +4133,9 @@ th {
   border-radius: 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 10px;
   justify-content: space-between;
-  padding: 14px;
+  padding: 10px;
 }
 
 .creditSearch {
@@ -4137,7 +4158,7 @@ th {
 .creditSearch input {
   border: 0;
   font: inherit;
-  height: 48px;
+  height: 42px;
   outline: 0;
   padding: 0;
   width: 100%;
@@ -4157,9 +4178,10 @@ th {
   color: var(--muted);
   cursor: pointer;
   font: inherit;
+  font-size: 14px;
   font-weight: 800;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 40px;
+  padding: 0 15px;
 }
 
 .creditFilters button.active {
@@ -4172,7 +4194,7 @@ th {
   align-items: start;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(270px, 300px) minmax(0, 1fr);
 }
 
 .creditAccountNotice {
@@ -4196,12 +4218,16 @@ th {
 .creditList {
   max-height: 760px;
   overflow-y: auto;
+  position: sticky;
+  top: 16px;
 }
 
 .creditListHeading {
   background: var(--surface-strong);
   border-bottom: 1px solid var(--line);
-  padding: 16px;
+  display: grid;
+  gap: 2px;
+  padding: 13px;
 }
 
 .creditListHeading div {
@@ -4223,7 +4249,7 @@ th {
   cursor: pointer;
   display: grid;
   gap: 5px;
-  padding: 16px;
+  padding: 13px;
   text-align: left;
   width: 100%;
 }
@@ -4242,7 +4268,7 @@ th {
 }
 
 .creditListItem > strong {
-  font-size: 17px;
+  font-size: 16px;
   margin-top: 4px;
 }
 
@@ -4253,7 +4279,7 @@ th {
 
 .creditListItem b {
   color: var(--primary);
-  font-size: 18px;
+  font-size: 17px;
   margin-top: 4px;
 }
 
@@ -4274,8 +4300,8 @@ th {
 .creditCustomerProfile {
   border-bottom: 1px solid var(--line);
   display: grid;
-  gap: 18px;
-  padding-bottom: 22px;
+  gap: 14px;
+  padding-bottom: 18px;
 }
 
 .creditCustomerProfileHeader {
@@ -4297,7 +4323,7 @@ th {
 }
 
 .creditCustomerProfileHeader h2 {
-  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-size: clamp(1.5rem, 2.6vw, 1.8rem);
   line-height: 1.1;
   margin: 5px 0 8px;
 }
@@ -4320,7 +4346,7 @@ th {
   display: grid;
   gap: 5px;
   min-width: 0;
-  padding: 13px;
+  padding: 11px;
 }
 
 .creditCustomerInfoCard svg {
@@ -4334,7 +4360,8 @@ th {
 }
 
 .creditCustomerInfoCard strong {
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
@@ -4342,7 +4369,7 @@ th {
   border-bottom: 1px solid var(--line);
   display: grid;
   gap: 12px;
-  padding: 20px 0;
+  padding: 16px 0;
 }
 
 .creditAccountsHeader {
@@ -4353,7 +4380,7 @@ th {
 }
 
 .creditAccountsHeader strong {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .creditAccountsHeader span {
@@ -4375,7 +4402,7 @@ th {
   cursor: pointer;
   display: grid;
   gap: 7px;
-  padding: 14px;
+  padding: 12px;
   text-align: left;
 }
 
@@ -4406,12 +4433,12 @@ th {
 
 .creditAccountAmount {
   color: var(--primary);
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 900;
 }
 
 .creditSelectedAccount {
-  padding-top: 22px;
+  padding-top: 18px;
 }
 
 .creditStatus {
@@ -4441,7 +4468,7 @@ th {
 }
 
 .creditDetail {
-  padding: 24px;
+  padding: 20px;
 }
 
 .creditDetailEmpty {
@@ -4456,16 +4483,18 @@ th {
 }
 
 .creditHeaderActions {
-  align-items: flex-end;
+  align-items: center;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
+  justify-content: flex-end;
+  max-width: 560px;
 }
 
 .creditHeaderActions .primaryButton,
 .creditHeaderActions .secondaryButton,
 .creditHeaderActions .dangerButton {
-  min-height: 38px;
+  min-height: 36px;
   padding-inline: 12px;
 }
 
@@ -4478,7 +4507,7 @@ th {
 
 .creditDetailHeader h2,
 .creditDetailHeader h3 {
-  font-size: 32px;
+  font-size: 28px;
   margin: 4px 0;
 }
 
@@ -4491,7 +4520,7 @@ th {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  margin-top: 22px;
+  margin-top: 18px;
 }
 
 .creditFigures article {
@@ -4500,11 +4529,11 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 5px;
-  padding: 14px;
+  padding: 12px;
 }
 
 .creditFigures strong {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .creditFigures .creditFigureBalance {
@@ -4520,8 +4549,8 @@ th {
 .creditSaleSummary {
   border: 1px solid var(--line);
   border-radius: 8px;
-  margin-top: 18px;
-  padding: 16px;
+  margin-top: 15px;
+  padding: 14px;
 }
 
 .creditSaleSummary > div {
@@ -4551,8 +4580,23 @@ th {
 
 .creditPaymentList {
   border-top: 1px solid var(--line);
-  margin-top: 22px;
-  padding-top: 22px;
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.creditPaymentList > div:first-child {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.creditPaymentList > div:first-child h3,
+.creditPaymentList > div:first-child p {
+  margin: 0;
+}
+
+.creditPaymentList > div:first-child h3 {
+  font-size: 18px;
 }
 
 .creditPaymentModal {
@@ -4663,10 +4707,11 @@ th {
   .creditDetailHeader { flex-direction: column; }
   .creditDetailHeader h2,
   .creditDetailHeader h3 { font-size: 26px; }
-  .creditHeaderActions { align-items: stretch; width: 100%; }
+  .creditHeaderActions { align-items: stretch; flex-direction: column; max-width: none; width: 100%; }
   .creditHeaderActions .primaryButton,
   .creditHeaderActions .secondaryButton,
   .creditHeaderActions .dangerButton { justify-content: center; width: 100%; }
+  .creditList { position: static; }
   .creditFigures { grid-template-columns: 1fr 1fr; }
   .creditFigureBalance { grid-column: 1 / -1; }
 }
