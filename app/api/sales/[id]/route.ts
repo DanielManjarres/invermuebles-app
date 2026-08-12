@@ -1,4 +1,4 @@
-import { CreditStatus, StockMovementType, UserRole } from "@prisma/client";
+import { StockMovementType, UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
@@ -27,37 +27,38 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
-  const sale = await prisma.sale.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      credit: { select: { id: true } },
-      items: { select: { productId: true, quantity: true } },
-      notes: true,
-      orderId: true,
-      status: true,
-      stockApplied: true,
-    },
-  });
-
-  if (!sale) {
-    return NextResponse.json(
-      { message: "No se encontro la venta." },
-      { status: 404 }
-    );
-  }
-
-  if (sale.status === "CANCELLED") {
-    return NextResponse.json(
-      { message: "Esta venta ya fue anulada." },
-      { status: 409 }
-    );
-  }
 
   try {
     const adminUserId = await getAdminUserId();
 
     await prisma.$transaction(async (tx) => {
+      const sale = await tx.sale.findUnique({
+        where: { id },
+        select: {
+          credit: {
+            select: {
+              id: true,
+              payments: { select: { id: true } },
+            },
+          },
+          id: true,
+          items: { select: { productId: true, quantity: true } },
+          orderId: true,
+          payments: { select: { isInitial: true } },
+          status: true,
+          stockApplied: true,
+        },
+      });
+
+      if (!sale) throw new Error("SALE_NOT_FOUND");
+      if (sale.status === "CANCELLED") throw new Error("SALE_CANCELLED");
+
+      const hasLaterCreditPayments = Boolean(
+        sale.credit &&
+          (sale.credit.payments.length || sale.payments.some((payment) => !payment.isInitial)),
+      );
+      if (hasLaterCreditPayments) throw new Error("CREDIT_HAS_PAYMENTS");
+
       if (sale.stockApplied) {
         for (const item of sale.items) {
           const product = await tx.product.findUnique({
@@ -80,8 +81,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
               previousStock: product.stock,
               productId: product.id,
               quantity: item.quantity,
-              reason: "Devolucion por anulacion de venta",
-              note: `Venta ${sale.id} anulada por correccion administrativa.`,
+              reason: "Devolución por eliminación de venta",
+              note: `Venta ${sale.id} eliminada permanentemente por corrección administrativa.`,
               type: StockMovementType.ENTRY,
               userId: adminUserId,
             },
@@ -89,53 +90,55 @@ export async function DELETE(_request: Request, context: RouteContext) {
         }
       }
 
-      await tx.sale.update({
-        where: { id: sale.id },
-        data: {
-          balance: 0,
-          notes: [sale.notes, "Venta anulada por correccion administrativa."]
-            .filter(Boolean)
-            .join(" "),
-          status: "CANCELLED",
-          stockApplied: false,
-        },
-      });
-
       if (sale.credit) {
-        await tx.credit.update({
-          where: { id: sale.credit.id },
-          data: {
-            interestBalance: 0,
-            outstandingPrincipal: 0,
-            status: CreditStatus.CANCELLED,
-          },
-        });
+        await tx.credit.delete({ where: { id: sale.credit.id } });
       }
 
       if (sale.orderId) {
         await tx.order.update({
           where: { id: sale.orderId },
-          data: { status: "CANCELLED" },
+          data: { status: "CONFIRMED" },
         });
       }
-    });
+
+      await tx.sale.delete({ where: { id: sale.id } });
+    }, { isolationLevel: "Serializable" });
 
     return NextResponse.json({
-      id: sale.id,
-      message: "Venta anulada y movimientos de devolucion registrados.",
-      status: "CANCELLED",
+      id,
+      message: "Venta eliminada permanentemente y existencias devueltas al inventario.",
     });
   } catch (error) {
-    if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
+    const message = error instanceof Error ? error.message : "";
+
+    if (message === "SALE_NOT_FOUND") {
+      return NextResponse.json({ message: "No se encontró la venta." }, { status: 404 });
+    }
+
+    if (message === "SALE_CANCELLED") {
       return NextResponse.json(
-        { message: "No se encontro uno de los productos de la venta." },
-        { status: 404 }
+        { message: "Esta venta ya estaba anulada y no puede eliminarse desde este flujo." },
+        { status: 409 },
+      );
+    }
+
+    if (message === "CREDIT_HAS_PAYMENTS") {
+      return NextResponse.json(
+        { message: "No se puede eliminar una venta con abonos posteriores al pago inicial." },
+        { status: 409 },
+      );
+    }
+
+    if (message === "PRODUCT_NOT_FOUND") {
+      return NextResponse.json(
+        { message: "No se encontró uno de los productos de la venta." },
+        { status: 404 },
       );
     }
 
     return NextResponse.json(
-      { message: "No se pudo anular la venta." },
-      { status: 500 }
+      { message: "No se pudo eliminar la venta." },
+      { status: 500 },
     );
   }
 }

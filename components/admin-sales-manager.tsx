@@ -279,8 +279,9 @@ export function AdminSalesManager({
   const [preparedOrderId, setPreparedOrderId] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
-  const [saleToCancel, setSaleToCancel] = useState<AdminSale | null>(null);
-  const [cancellingSaleId, setCancellingSaleId] = useState("");
+  const [saleToDelete, setSaleToDelete] = useState<AdminSale | null>(null);
+  const [deletingSaleId, setDeletingSaleId] = useState("");
+  const [saleDeleteConfirmation, setSaleDeleteConfirmation] = useState("");
   const [saleToFinance, setSaleToFinance] = useState<AdminSale | null>(null);
   const [financeMonths, setFinanceMonths] = useState(6);
   const [financeInterestRate, setFinanceInterestRate] = useState(20);
@@ -607,10 +608,10 @@ export function AdminSalesManager({
     }
   }
 
-  async function cancelSale(sale: AdminSale) {
-    if (cancellingSaleId) return;
+  async function deleteSale(sale: AdminSale) {
+    if (deletingSaleId || saleDeleteConfirmation !== "ELIMINAR") return;
 
-    setCancellingSaleId(sale.id);
+    setDeletingSaleId(sale.id);
 
     try {
       const response = await fetch(`/api/sales/${sale.id}`, {
@@ -619,20 +620,22 @@ export function AdminSalesManager({
       const result = (await response.json()) as { message?: string };
 
       if (!response.ok) {
-        setNotice(result.message ?? "No se pudo anular la venta.");
-        setSaleToCancel(null);
+        setNotice(result.message ?? "No se pudo eliminar la venta.");
+        setSaleToDelete(null);
+        setSaleDeleteConfirmation("");
         return;
       }
 
       setSales((currentSales) =>
         currentSales.filter((currentSale) => currentSale.id !== sale.id)
       );
-      setSaleToCancel(null);
-      setNotice(result.message ?? `Venta #${sale.shortId} anulada correctamente.`);
+      setSaleToDelete(null);
+      setSaleDeleteConfirmation("");
+      setNotice(result.message ?? `Venta #${sale.shortId} eliminada permanentemente.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
-      setCancellingSaleId("");
+      setDeletingSaleId("");
     }
   }
 
@@ -1177,10 +1180,13 @@ export function AdminSalesManager({
                       <button
                         className="dangerButton"
                         type="button"
-                        onClick={() => setSaleToCancel(sale)}
+                        onClick={() => {
+                          setSaleToDelete(sale);
+                          setSaleDeleteConfirmation("");
+                        }}
                       >
                         <Trash2 size={16} />
-                        Anular venta
+                        Eliminar venta
                       </button>
                     </div>
                   ) : null}
@@ -1191,55 +1197,68 @@ export function AdminSalesManager({
         </article>
       </div>
 
-      {saleToCancel ? (
+      {saleToDelete ? (
         <div className="adminModalBackdrop" role="presentation">
           <div
-            aria-labelledby="cancel-sale-title"
+            aria-labelledby="delete-sale-title"
             aria-modal="true"
             className="adminModal recordDeleteModal"
             role="dialog"
           >
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Correccion administrativa</p>
-                <h2 id="cancel-sale-title">Anular venta</h2>
+                <p className="eyebrow">Acción permanente</p>
+                <h2 id="delete-sale-title">Eliminar venta</h2>
               </div>
               <button
                 className="iconButton"
                 type="button"
                 title="Cerrar"
-                onClick={() => setSaleToCancel(null)}
+                onClick={() => {
+                  setSaleToDelete(null);
+                  setSaleDeleteConfirmation("");
+                }}
               >
                 <span aria-hidden="true">×</span>
               </button>
             </div>
             <div className="recordDeleteWarning">
-              La venta no se eliminara. Se conservara en el historial como anulada y,
-              si afecto el inventario, se registrara una devolucion de stock.
+              La venta se eliminará permanentemente. Si tiene un crédito sin abonos posteriores,
+              también se eliminarán el crédito y su pago inicial. Las existencias volverán al inventario.
             </div>
             <div className="recordDeleteTarget">
               <span>Venta seleccionada</span>
-              <strong>Venta #{saleToCancel.shortId}</strong>
-              <small>{saleToCancel.customerName}</small>
+              <strong>Venta #{saleToDelete.shortId}</strong>
+              <small>{saleToDelete.customerName}</small>
             </div>
+            <label className="deleteConfirmationField">
+              Escribe ELIMINAR para confirmar
+              <input
+                value={saleDeleteConfirmation}
+                onChange={(event) => setSaleDeleteConfirmation(event.target.value)}
+              />
+            </label>
             <div className="modalActions">
               <button
                 className="secondaryButton"
                 type="button"
-                onClick={() => setSaleToCancel(null)}
+                onClick={() => {
+                  setSaleToDelete(null);
+                  setSaleDeleteConfirmation("");
+                }}
               >
                 Cancelar
               </button>
               <button
                 className="dangerButton"
-                disabled={cancellingSaleId === saleToCancel.id}
+                disabled={deletingSaleId === saleToDelete.id || saleDeleteConfirmation !== "ELIMINAR"}
                 type="button"
-                onClick={() => cancelSale(saleToCancel)}
+                onClick={() => deleteSale(saleToDelete)}
               >
                 <Trash2 size={17} />
-                {cancellingSaleId === saleToCancel.id
-                  ? "Anulando..."
-                  : "Anular venta"}
+                {deletingSaleId === saleToDelete.id
+                  ? "Eliminando..."
+                  : "Eliminar permanentemente"}
               </button>
             </div>
           </div>
