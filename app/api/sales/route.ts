@@ -319,14 +319,34 @@ export async function POST(request: Request) {
       }
 
       if (stockApplied) {
-        for (const item of saleItems) {
+        const stockItems = [...saleItems].sort((first, second) =>
+          first.productId.localeCompare(second.productId),
+        );
+
+        for (const item of stockItems) {
           const product = productsById.get(item.productId)!;
-          const nextStock = product.stock - item.quantity;
-          await tx.product.update({ where: { id: product.id }, data: { stock: nextStock } });
+          const stockUpdate = await tx.product.updateMany({
+            where: { id: product.id, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+
+          if (!stockUpdate.count) {
+            const currentProduct = await tx.product.findUnique({
+              where: { id: product.id },
+              select: { stock: true },
+            });
+            throw new Error(`OUT_OF_STOCK:${product.name}:${currentProduct?.stock ?? 0}`);
+          }
+
+          const updatedProduct = await tx.product.findUniqueOrThrow({
+            where: { id: product.id },
+            select: { stock: true },
+          });
+          const nextStock = updatedProduct.stock;
           await tx.stockMovement.create({
             data: {
               nextStock,
-              previousStock: product.stock,
+              previousStock: nextStock + item.quantity,
               productId: product.id,
               quantity: item.quantity,
               reason: orderId ? "Venta desde pedido confirmado" : `Venta ${saleType}`,

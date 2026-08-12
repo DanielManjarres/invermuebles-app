@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { calculateReservedPayment } from "@/lib/sale-payment-policy";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -62,17 +63,29 @@ export async function POST(request: Request, context: RouteContext) {
       if (amount > currentBalance) throw new Error("PAYMENT_OVER_BALANCE");
 
       if (!sale.stockApplied) {
-        for (const item of sale.items) {
+        const stockItems = [...sale.items].sort((first, second) =>
+          first.productId.localeCompare(second.productId),
+        );
+
+        for (const item of stockItems) {
           const product = await tx.product.findUnique({ where: { id: item.productId } });
           if (!product) throw new Error("PRODUCT_NOT_FOUND");
-          if (product.stock < item.quantity) throw new Error("OUT_OF_STOCK");
 
-          const nextStock = product.stock - item.quantity;
-          await tx.product.update({ where: { id: product.id }, data: { stock: nextStock } });
+          const stockUpdate = await tx.product.updateMany({
+            where: { id: product.id, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (!stockUpdate.count) throw new Error("OUT_OF_STOCK");
+
+          const updatedProduct = await tx.product.findUniqueOrThrow({
+            where: { id: product.id },
+            select: { stock: true },
+          });
+          const nextStock = updatedProduct.stock;
           await tx.stockMovement.create({
             data: {
               nextStock,
-              previousStock: product.stock,
+              previousStock: nextStock + item.quantity,
               productId: product.id,
               quantity: item.quantity,
               reason: "Inventario reservado por separado",
@@ -84,9 +97,14 @@ export async function POST(request: Request, context: RouteContext) {
         }
       }
 
-      const nextBalance = Math.max(0, currentBalance - amount);
-      const nextAmountPaid = Number(sale.amountPaid) + amount;
-      const nextStatus = nextBalance === 0 ? SaleStatus.PENDING_DELIVERY : SaleStatus.PENDING_PAYMENT;
+      const paymentResult = calculateReservedPayment(
+        currentBalance,
+        Number(sale.amountPaid),
+        amount,
+      );
+      const nextBalance = paymentResult.balance;
+      const nextAmountPaid = paymentResult.amountPaid;
+      const nextStatus = paymentResult.status;
 
       const payment = await tx.salePayment.create({
         data: {
