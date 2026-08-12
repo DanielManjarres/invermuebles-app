@@ -65,6 +65,15 @@ function mapSale(sale: SaleWithRelations): AdminSale {
     createdAtISO: sale.createdAt.toISOString(),
     totalQuantity: items.reduce((total, item) => total + item.quantity, 0),
     items,
+    payments: sale.payments.map((payment) => ({
+      id: payment.id,
+      amount: Number(payment.amount),
+      method: payment.method,
+      reference: payment.reference ?? "",
+      note: payment.note ?? "",
+      isInitial: payment.isInitial,
+      createdAt: formatDate(payment.createdAt),
+    })),
   };
 }
 

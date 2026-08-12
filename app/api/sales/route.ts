@@ -207,7 +207,7 @@ export async function POST(request: Request) {
       let amountPaid = initialPayment;
       let balance = 0;
       let status: SaleStatus = SaleStatus.PENDING_DELIVERY;
-      let stockApplied = saleType !== SaleType.RESERVED;
+      let stockApplied = true;
       let reservedUntil: Date | null = null;
       let interestRate = 0;
       let principal = 0;
@@ -230,7 +230,6 @@ export async function POST(request: Request) {
         if (amountPaid > total) throw new Error("PAYMENT_OVER_TOTAL");
         balance = total - amountPaid;
         status = balance === 0 ? SaleStatus.PENDING_DELIVERY : SaleStatus.PENDING_PAYMENT;
-        stockApplied = balance === 0;
         reservedUntil = new Date();
         reservedUntil.setMonth(reservedUntil.getMonth() + 3);
       }

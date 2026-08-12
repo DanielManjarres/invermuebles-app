@@ -14,6 +14,16 @@ export type AdminSaleItem = {
   lineTotal: number;
 };
 
+export type AdminSalePayment = {
+  id: string;
+  amount: number;
+  method: PaymentMethod;
+  reference: string;
+  note: string;
+  isInitial: boolean;
+  createdAt: string;
+};
+
 export type AdminSale = {
   id: string;
   shortId: string;
@@ -37,6 +47,7 @@ export type AdminSale = {
   createdAtISO: string;
   totalQuantity: number;
   items: AdminSaleItem[];
+  payments: AdminSalePayment[];
 };
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = {
