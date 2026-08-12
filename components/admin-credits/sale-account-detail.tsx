@@ -39,7 +39,7 @@ export function AdminSaleAccountDetail({ account, paymentDisabled, onPayment }: 
           <span>Total de la venta</span>
           <strong>{formatMoney(account.total)}</strong>
         </article>
-        <article>
+        <article className={account.status === "PAID" ? "creditFigureBalance" : ""}>
           <span>Total pagado</span>
           <strong>{formatMoney(account.amountPaid)}</strong>
         </article>

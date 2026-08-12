@@ -4479,8 +4479,8 @@ th {
 
 .creditAccountList {
   display: grid;
-  gap: 10px;
-  grid-auto-columns: minmax(240px, 280px);
+  gap: 8px;
+  grid-auto-columns: minmax(225px, 250px);
   grid-auto-flow: column;
   overflow-x: auto;
   padding-bottom: 8px;
@@ -4497,8 +4497,8 @@ th {
   color: var(--text);
   cursor: pointer;
   display: grid;
-  gap: 7px;
-  padding: 12px;
+  gap: 5px;
+  padding: 10px;
   scroll-snap-align: start;
   text-align: left;
 }
@@ -4525,7 +4525,7 @@ th {
 
 .creditAccountProduct {
   color: var(--text);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1.3;
 }
@@ -4537,7 +4537,7 @@ th {
 
 .creditAccountAmount {
   color: var(--primary);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 900;
 }
 
@@ -4594,7 +4594,23 @@ th {
 }
 
 .creditDetailEmpty {
-  min-height: 420px;
+  align-items: center;
+  color: var(--muted);
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  min-height: 180px;
+  padding: 28px 16px;
+  text-align: center;
+}
+
+.creditDetailEmpty strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.creditDetailEmpty span {
+  font-size: 14px;
 }
 
 .creditDetailHeader {
@@ -4825,7 +4841,7 @@ th {
   .creditList { max-height: 360px; }
   .creditPaymentFields { grid-template-columns: 1fr; }
   .creditPaymentList article { grid-template-columns: 1fr; }
-  .creditAccountList { grid-auto-columns: minmax(230px, 82%); }
+  .creditAccountList { grid-auto-columns: minmax(215px, 78%); }
 }
 
 @media (max-width: 560px) {

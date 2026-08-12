@@ -49,26 +49,30 @@ export function AdminCreditDetail({
               Registrar abono
             </button>
           ) : null}
-          <button
-            aria-disabled={!canManage || managing}
-            className={`secondaryButton${!canManage ? " isDisabled" : ""}`}
-            disabled={managing}
-            type="button"
-            onClick={canManage ? onEdit : onLockedAction}
-          >
-            <Pencil size={16} />
-            Editar crédito
-          </button>
-          <button
-            aria-disabled={!canManage || managing}
-            className={`dangerButton${!canManage ? " isDisabled" : ""}`}
-            disabled={managing}
-            type="button"
-            onClick={canManage ? onDelete : onLockedAction}
-          >
-            <Trash2 size={16} />
-            Eliminar crédito
-          </button>
+          {credit.status === "ACTIVE" || credit.status === "OVERDUE" ? (
+            <>
+              <button
+                aria-disabled={!canManage || managing}
+                className={`secondaryButton${!canManage ? " isDisabled" : ""}`}
+                disabled={managing}
+                type="button"
+                onClick={canManage ? onEdit : onLockedAction}
+              >
+                <Pencil size={16} />
+                Editar crédito
+              </button>
+              <button
+                aria-disabled={!canManage || managing}
+                className={`dangerButton${!canManage ? " isDisabled" : ""}`}
+                disabled={managing}
+                type="button"
+                onClick={canManage ? onDelete : onLockedAction}
+              >
+                <Trash2 size={16} />
+                Eliminar crédito
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -102,8 +106,8 @@ export function AdminCreditDetail({
           <strong>{formatMoney(credit.interestBalance)}</strong>
         </article>
         <article className="creditFigureBalance">
-          <span>Saldo total</span>
-          <strong>{formatMoney(credit.balance)}</strong>
+          <span>{credit.status === "PAID" ? "Total pagado" : "Saldo total"}</span>
+          <strong>{formatMoney(credit.status === "PAID" ? credit.total : credit.balance)}</strong>
         </article>
       </div>
 

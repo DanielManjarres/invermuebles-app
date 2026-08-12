@@ -28,6 +28,10 @@ function getProductSummary(account: PortfolioAccount) {
   return `${firstItem.productName} y ${account.items.length - 1} producto(s) más`;
 }
 
+function getSaleDate(account: PortfolioAccount) {
+  return account.createdAt.split(",")[0];
+}
+
 export function AdminCreditAccountCarousel({
   accounts,
   activeGroup,
@@ -114,7 +118,7 @@ export function AdminCreditAccountCarousel({
               </span>
             </div>
             <span className="creditAccountProduct">{getProductSummary(account)}</span>
-            <span className="creditAccountMeta">Venta del {account.createdAt}</span>
+            <span className="creditAccountMeta">Venta del {getSaleDate(account)}</span>
             <span className="creditAccountAmount">
               {account.status === "PAID"
                 ? `Total pagado: ${formatMoney(account.amountPaid)}`
