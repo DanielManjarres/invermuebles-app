@@ -20,6 +20,49 @@ async function getAdminUserId() {
   return admin.id;
 }
 
+export async function PATCH(_request: Request, context: RouteContext) {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
+  const { id } = await context.params;
+
+  try {
+    const result = await prisma.sale.updateMany({
+      where: { id, status: "PENDING_DELIVERY" },
+      data: { status: "DELIVERED" },
+    });
+
+    if (!result.count) {
+      const sale = await prisma.sale.findUnique({
+        where: { id },
+        select: { id: true },
+      });
+
+      return NextResponse.json(
+        {
+          message: sale
+            ? "Solo una venta pendiente de entrega puede marcarse como entregada."
+            : "No se encontró la venta.",
+        },
+        { status: sale ? 409 : 404 },
+      );
+    }
+
+    return NextResponse.json({
+      id,
+      message: "Venta marcada como entregada.",
+      status: "DELIVERED",
+    });
+  } catch {
+    return NextResponse.json(
+      { message: "No se pudo confirmar la entrega de la venta." },
+      { status: 500 },
+    );
+  }
+}
+
 export async function DELETE(_request: Request, context: RouteContext) {
   const unauthorized = await requireAdminSession();
   if (unauthorized) {

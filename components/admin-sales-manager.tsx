@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import {
   CreditCard,
   Minus,
+  PackageCheck,
   PackageSearch,
   Plus,
   ReceiptText,
@@ -282,6 +283,7 @@ export function AdminSalesManager({
   const [notice, setNotice] = useState("");
   const [saleToDelete, setSaleToDelete] = useState<AdminSale | null>(null);
   const [deletingSaleId, setDeletingSaleId] = useState("");
+  const [deliveringSaleId, setDeliveringSaleId] = useState("");
   const [saleDeleteConfirmation, setSaleDeleteConfirmation] = useState("");
   const [saleToFinance, setSaleToFinance] = useState<AdminSale | null>(null);
   const [financeMonths, setFinanceMonths] = useState(6);
@@ -643,6 +645,42 @@ export function AdminSalesManager({
       setNotice("No se pudo conectar con el sistema.");
     } finally {
       setDeletingSaleId("");
+    }
+  }
+
+  async function deliverSale(sale: AdminSale) {
+    if (deliveringSaleId) return;
+
+    setDeliveringSaleId(sale.id);
+    setNotice("");
+
+    try {
+      const response = await fetch(`/api/sales/${sale.id}`, { method: "PATCH" });
+      const result = (await response.json()) as {
+        message?: string;
+        status?: AdminSale["status"];
+      };
+
+      if (!response.ok || result.status !== "DELIVERED") {
+        throw new Error(result.message ?? "No se pudo confirmar la entrega.");
+      }
+
+      setSales((currentSales) =>
+        currentSales.map((currentSale) =>
+          currentSale.id === sale.id
+            ? { ...currentSale, status: "DELIVERED" }
+            : currentSale,
+        ),
+      );
+      setNotice(result.message ?? `Venta #${sale.shortId} marcada como entregada.`);
+    } catch (deliveryError) {
+      setNotice(
+        deliveryError instanceof Error
+          ? deliveryError.message
+          : "No se pudo confirmar la entrega.",
+      );
+    } finally {
+      setDeliveringSaleId("");
     }
   }
 
@@ -1258,6 +1296,17 @@ export function AdminSalesManager({
                   ) : null}
                   {sale.status !== "CANCELLED" ? (
                     <div className="saleHistoryActions">
+                      {sale.status === "PENDING_DELIVERY" ? (
+                        <button
+                          className="primaryButton"
+                          disabled={Boolean(deliveringSaleId)}
+                          type="button"
+                          onClick={() => deliverSale(sale)}
+                        >
+                          <PackageCheck size={16} />
+                          {deliveringSaleId === sale.id ? "Confirmando..." : "Marcar entregada"}
+                        </button>
+                      ) : null}
                       {sale.type === "RESERVED" && sale.status === "PENDING_PAYMENT" ? (
                         <button
                           className="primaryButton"
