@@ -8,17 +8,20 @@ import { AdminCreditsCustomerWorkspace } from "@/components/admin-credits/custom
 import { AdminCreditManagementModals } from "@/components/admin-credits/management-modals";
 import { AdminCreditsOverview, type CreditFilter } from "@/components/admin-credits/overview";
 import { AdminCreditPaymentModal } from "@/components/admin-credits/payment-modal";
+import { AdminSaleAccountDetail } from "@/components/admin-credits/sale-account-detail";
 import {
   type AdminCredit,
   type CreditStats,
   type PaymentMethod,
 } from "@/lib/credits";
 import type { AdminCustomer } from "@/lib/customers";
+import { buildPortfolioAccounts, type PortfolioAccountGroup } from "@/lib/portfolio";
+import type { AdminSale } from "@/lib/sales";
 
 type Props = {
   initialCredits: AdminCredit[];
   initialCustomers: AdminCustomer[];
-  initialStats: CreditStats;
+  initialSales: AdminSale[];
 };
 
 function formatMoney(value: number) {
@@ -32,26 +35,15 @@ function normalize(value: string) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function calculateStats(credits: AdminCredit[], fallback: CreditStats): CreditStats {
-  if (!credits.length) {
-    return {
-      ...fallback,
-      active: 0,
-      overdue: 0,
-      paid: 0,
-      total: 0,
-      totalBalance: 0,
-    };
-  }
-
+function calculateStats(accounts: ReturnType<typeof buildPortfolioAccounts>): CreditStats {
   return {
-    total: credits.length,
-    active: credits.filter((credit) => credit.status === "ACTIVE").length,
-    overdue: credits.filter((credit) => credit.status === "OVERDUE").length,
-    paid: credits.filter((credit) => credit.status === "PAID").length,
-    totalBalance: credits
-      .filter((credit) => credit.status === "ACTIVE" || credit.status === "OVERDUE")
-      .reduce((sum, credit) => sum + credit.balance, 0),
+    total: accounts.length,
+    active: accounts.filter((account) => account.status === "ACTIVE").length,
+    overdue: accounts.filter((account) => account.status === "OVERDUE").length,
+    paid: accounts.filter((account) => account.status === "PAID").length,
+    totalBalance: accounts
+      .filter((account) => account.status === "ACTIVE" || account.status === "OVERDUE")
+      .reduce((sum, account) => sum + account.balance, 0),
   };
 }
 
@@ -59,10 +51,12 @@ function getCustomerCredits(customerId: string, credits: AdminCredit[]) {
   return credits.filter((credit) => credit.customerId === customerId);
 }
 
-export function AdminCreditsManager({ initialCredits, initialCustomers, initialStats }: Props) {
+export function AdminCreditsManager({ initialCredits, initialCustomers, initialSales }: Props) {
   const [credits, setCredits] = useState(initialCredits);
+  const [sales, setSales] = useState(initialSales);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedId, setSelectedId] = useState("");
+  const [accountGroup, setAccountGroup] = useState<PortfolioAccountGroup>("OPEN");
   const [filter, setFilter] = useState<CreditFilter>("ALL");
   const [query, setQuery] = useState("");
   const [amount, setAmount] = useState(0);
@@ -84,7 +78,8 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   const [managingCredit, setManagingCredit] = useState(false);
   const [managementNoticeKey, setManagementNoticeKey] = useState(0);
 
-  const stats = useMemo(() => calculateStats(credits, initialStats), [credits, initialStats]);
+  const accounts = useMemo(() => buildPortfolioAccounts(credits, sales), [credits, sales]);
+  const stats = useMemo(() => calculateStats(accounts), [accounts]);
 
   const visibleCustomers = useMemo(() => {
     const search = normalize(query.trim());
@@ -95,8 +90,9 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
 
     return initialCustomers.filter((customer) => {
       const customerCredits = getCustomerCredits(customer.id, credits);
+      const customerAccounts = accounts.filter((account) => account.customerId === customer.id);
       const matchesStatus =
-        filter === "ALL" || customerCredits.some((credit) => credit.status === filter);
+        filter === "ALL" || customerAccounts.some((account) => account.status === filter);
 
       if (!matchesStatus) return false;
       if (!search) return true;
@@ -115,28 +111,42 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
               credit.items.flatMap((item) => [item.productName, item.productReference]),
             )
             .join(" "),
+          customerAccounts.map((account) => account.title).join(" "),
+          customerAccounts.map((account) => account.shortId).join(" "),
+          customerAccounts.map((account) => account.saleShortId).join(" "),
+          customerAccounts
+            .flatMap((account) =>
+              account.items.flatMap((item) => [item.productName, item.productReference]),
+            )
+            .join(" "),
         ].join(" "),
       );
 
       return searchable.includes(search);
     });
-  }, [credits, filter, initialCustomers, query]);
+  }, [accounts, credits, filter, initialCustomers, query]);
 
   const selectedCustomer =
     visibleCustomers.find((customer) => customer.id === selectedCustomerId) ?? null;
 
   const customerCredits = selectedCustomer ? getCustomerCredits(selectedCustomer.id, credits) : [];
-  const filteredCustomerCredits =
+  const customerAccounts = selectedCustomer
+    ? accounts.filter((account) => account.customerId === selectedCustomer.id)
+    : [];
+  const openAccounts = customerAccounts.filter((account) => account.status !== "PAID");
+  const paidAccounts = customerAccounts.filter((account) => account.status === "PAID");
+  const visibleAccountGroup =
+    filter === "PAID" ? "PAID" : filter === "ALL" ? accountGroup : "OPEN";
+  const groupedAccounts = visibleAccountGroup === "OPEN" ? openAccounts : paidAccounts;
+  const filteredAccounts =
     filter === "ALL"
-      ? customerCredits
-      : customerCredits.filter((credit) => credit.status === filter);
-  const selectedCredit =
-    filteredCustomerCredits.find((credit) => credit.id === selectedId) ??
-    filteredCustomerCredits[0] ??
-    null;
+      ? groupedAccounts
+      : groupedAccounts.filter((account) => account.status === filter);
+  const selectedAccount = filteredAccounts.find((account) => account.id === selectedId) ?? null;
+  const selectedCredit = selectedAccount?.credit ?? null;
 
   const visibleCustomerId = selectedCustomer?.id ?? "";
-  const visibleCreditId = selectedCredit?.id ?? "";
+  const visibleCreditId = selectedAccount?.id ?? "";
   const canManageSelectedCredit = Boolean(
     selectedCredit &&
       (selectedCredit.status === "ACTIVE" || selectedCredit.status === "OVERDUE") &&
@@ -150,8 +160,8 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       setSelectedCustomerId(visibleCustomerId);
     }
 
-    if (selectedId !== visibleCreditId) {
-      setSelectedId(visibleCreditId);
+    if (selectedId && selectedId !== visibleCreditId) {
+      setSelectedId("");
     }
   }, [saving, selectedCustomerId, selectedId, visibleCreditId, visibleCustomerId]);
 
@@ -182,13 +192,9 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   function handleCustomerSelect(customer: AdminCustomer) {
     if (saving) return;
 
-    const customerCredits = getCustomerCredits(customer.id, credits);
-    const filteredCredits =
-      filter === "ALL"
-        ? customerCredits
-        : customerCredits.filter((credit) => credit.status === filter);
     setSelectedCustomerId(customer.id);
-    setSelectedId(filteredCredits[0]?.id ?? "");
+    setSelectedId("");
+    setAccountGroup("OPEN");
     resetPaymentForm();
     clearFeedback();
   }
@@ -196,7 +202,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
   function handleCreditSelect(creditId: string) {
     if (saving) return;
 
-    setSelectedId(creditId);
+    setSelectedId((current) => current === creditId ? "" : creditId);
     resetPaymentForm();
     clearFeedback();
   }
@@ -205,7 +211,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     event.preventDefault();
     clearFeedback();
 
-    if (!selectedCredit) {
+    if (!selectedAccount) {
       setError("Selecciona una cuenta para registrar el abono.");
       return;
     }
@@ -215,7 +221,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       return;
     }
 
-    if (amount > selectedCredit.balance) {
+    if (amount > selectedAccount.balance) {
       setError("El abono no puede superar el saldo pendiente.");
       return;
     }
@@ -228,7 +234,10 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/credits/${selectedCredit.id}/payments`, {
+      const endpoint = selectedAccount.source === "CREDIT"
+        ? `/api/credits/${selectedAccount.entityId}/payments`
+        : `/api/sales/${selectedAccount.entityId}/payments`;
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount, method, reference, note }),
@@ -240,10 +249,28 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
         throw new Error(data?.message ?? "No se pudo registrar el abono.");
       }
 
-      setCredits((current) =>
-        current.map((credit) => (credit.id === data.credit.id ? data.credit : credit)),
-      );
-      setSelectedId(data.credit.id);
+      if (selectedAccount.source === "CREDIT" && data.credit) {
+        setCredits((current) =>
+          current.map((credit) => (credit.id === data.credit.id ? data.credit : credit)),
+        );
+      } else if (selectedAccount.source === "SALE" && data.payment) {
+        setSales((current) =>
+          current.map((sale) =>
+            sale.id === selectedAccount.entityId
+              ? {
+                  ...sale,
+                  amountPaid: data.amountPaid,
+                  balance: data.balance,
+                  paymentMethod: method || sale.paymentMethod,
+                  payments: [...sale.payments, data.payment],
+                  status: data.status,
+                }
+              : sale,
+          ),
+        );
+      } else {
+        throw new Error("No se pudo actualizar la cuenta después del abono.");
+      }
       resetPaymentForm();
       setPaymentModalOpen(false);
       setMessage("Abono registrado correctamente.");
@@ -363,8 +390,8 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       {error && !paymentModalOpen ? <p className="creditFormMessage error">{error}</p> : null}
 
       <AdminCreditsCustomerWorkspace
-        credits={credits}
-        customerCredits={customerCredits}
+        accounts={accounts}
+        customerAccounts={customerAccounts}
         customers={visibleCustomers}
         disabled={saving}
         initialSearch={filter === "ALL" && !query.trim()}
@@ -372,9 +399,18 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
         onCustomerSelect={handleCustomerSelect}
       >
         <AdminCreditAccountCarousel
-          credits={filteredCustomerCredits}
+          accounts={filteredAccounts}
+          activeGroup={visibleAccountGroup}
           disabled={saving}
-          selectedId={selectedCredit?.id}
+          openCount={openAccounts.length}
+          paidCount={paidAccounts.length}
+          showGroups={filter === "ALL"}
+          selectedId={selectedAccount?.id}
+          onGroupChange={(group) => {
+            setAccountGroup(group);
+            setSelectedId("");
+            clearFeedback();
+          }}
           onSelect={handleCreditSelect}
         />
 
@@ -391,12 +427,27 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
             onPayment={openPaymentModal}
           />
         ) : null}
+
+        {selectedAccount?.source === "SALE" ? (
+          <AdminSaleAccountDetail
+            account={selectedAccount}
+            paymentDisabled={saving || managingCredit}
+            onPayment={openPaymentModal}
+          />
+        ) : null}
+
+        {!selectedAccount ? (
+          <div className="creditDetailEmpty">
+            <strong>Selecciona una cuenta</strong>
+            <span>Haz clic en una tarjeta para ver sus detalles y pagos.</span>
+          </div>
+        ) : null}
       </AdminCreditsCustomerWorkspace>
 
-      {paymentModalOpen && selectedCredit ? (
+      {paymentModalOpen && selectedAccount ? (
         <AdminCreditPaymentModal
+          account={selectedAccount}
           amount={amount}
-          credit={selectedCredit}
           error={error}
           method={method}
           note={note}

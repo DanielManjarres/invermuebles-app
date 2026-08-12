@@ -36,7 +36,7 @@ export function AdminCreditsOverview({
     <>
       <div className="creditStats">
         <article>
-          <span>Total créditos</span>
+          <span>Total cuentas</span>
           <strong>{stats.total}</strong>
         </article>
         <article>
@@ -66,7 +66,7 @@ export function AdminCreditsOverview({
           />
         </label>
 
-        <div className="creditFilters" aria-label="Filtrar cartera">
+        <div className="creditFilters" aria-label="Filtrar cuentas">
           {filters.map((option) => (
             <button
               className={filter === option.value ? "active" : ""}

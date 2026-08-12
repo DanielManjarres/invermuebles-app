@@ -42,6 +42,7 @@ export type AdminSale = {
   amountPaid: number;
   balance: number;
   notes: string;
+  sistecreditoApproval: string;
   total: number;
   createdAt: string;
   createdAtISO: string;

@@ -60,6 +60,7 @@ function mapSale(sale: SaleWithRelations): AdminSale {
     amountPaid: Number(sale.amountPaid),
     balance: Number(sale.balance),
     notes: sale.notes ?? "",
+    sistecreditoApproval: sale.sistecreditoApproval ?? "",
     total: Number(sale.total),
     createdAt: formatDate(sale.createdAt),
     createdAtISO: sale.createdAt.toISOString(),

@@ -3,11 +3,12 @@ import { WalletCards } from "lucide-react";
 
 import { MoneyInput, paymentOptions } from "@/components/admin-credits/form-controls";
 import { SelectMenu } from "@/components/select-menu";
-import type { AdminCredit, PaymentMethod } from "@/lib/credits";
+import type { PaymentMethod } from "@/lib/credits";
+import type { PortfolioAccount } from "@/lib/portfolio";
 
 type Props = {
+  account: PortfolioAccount;
   amount: number;
-  credit: AdminCredit;
   error: string;
   method: PaymentMethod | "";
   note: string;
@@ -26,8 +27,8 @@ function formatMoney(value: number) {
 }
 
 export function AdminCreditPaymentModal({
+  account,
   amount,
-  credit,
   error,
   method,
   note,
@@ -51,7 +52,7 @@ export function AdminCreditPaymentModal({
       >
         <div className="modalHeader">
           <div>
-            <p className="eyebrow">Crédito #{credit.shortId}</p>
+            <p className="eyebrow">{account.title} #{account.shortId}</p>
             <h2 id="payment-modal-title">Registrar abono</h2>
           </div>
           <button className="iconButton" disabled={saving} type="button" onClick={onClose}>
@@ -61,10 +62,8 @@ export function AdminCreditPaymentModal({
 
         <div className="recordDeleteTarget">
           <span>Cuenta seleccionada</span>
-          <strong>{credit.customerName}</strong>
-          <small>
-            Venta #{credit.saleShortId} · Saldo disponible {formatMoney(credit.balance)}
-          </small>
+          <strong>{account.customerName}</strong>
+          <small>Venta #{account.saleShortId} · Saldo disponible {formatMoney(account.balance)}</small>
         </div>
 
         {error ? <p className="creditFormMessage error">{error}</p> : null}
@@ -74,7 +73,6 @@ export function AdminCreditPaymentModal({
             Valor recibido
             <MoneyInput id="payment-amount" value={amount} onChange={onAmountChange} />
           </label>
-
           <label>
             Medio
             <SelectMenu
@@ -84,7 +82,6 @@ export function AdminCreditPaymentModal({
               onChange={(value) => onMethodChange(value as PaymentMethod)}
             />
           </label>
-
           <label>
             Comprobante
             <input
@@ -101,12 +98,12 @@ export function AdminCreditPaymentModal({
           <textarea
             value={note}
             onChange={(event) => onNoteChange(event.target.value)}
-            placeholder="Ej: abono a capital, pago mensual, transferencia confirmada."
+            placeholder="Ej: abono mensual o transferencia confirmada."
           />
         </label>
 
         <p className="creditPaymentHint">
-          El pago se distribuirá entre capital e interés según el saldo pendiente.
+          El pago se aplicará según las condiciones de la cuenta seleccionada.
         </p>
 
         <div className="modalActions">

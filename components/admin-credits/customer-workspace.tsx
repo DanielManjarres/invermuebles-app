@@ -1,15 +1,15 @@
 import type { ReactNode } from "react";
 import { CreditCard, Mail, MapPin, Phone, UserRound, WalletCards } from "lucide-react";
 
-import { creditStatusLabels, type AdminCredit } from "@/lib/credits";
 import { customerStatusLabels, type AdminCustomer } from "@/lib/customers";
+import type { PortfolioAccount } from "@/lib/portfolio";
 
-type CustomerCreditStatus = AdminCredit["status"] | "NONE";
+type CustomerCreditStatus = PortfolioAccount["status"] | "NONE";
 
 type Props = {
   children: ReactNode;
-  credits: AdminCredit[];
-  customerCredits: AdminCredit[];
+  accounts: PortfolioAccount[];
+  customerAccounts: PortfolioAccount[];
   customers: AdminCustomer[];
   disabled: boolean;
   initialSearch: boolean;
@@ -21,27 +21,26 @@ function formatMoney(value: number) {
   return `$ ${new Intl.NumberFormat("es-CO").format(value)}`;
 }
 
-function getCustomerCredits(customerId: string, credits: AdminCredit[]) {
-  return credits.filter((credit) => credit.customerId === customerId);
+function getCustomerCredits(customerId: string, accounts: PortfolioAccount[]) {
+  return accounts.filter((account) => account.customerId === customerId);
 }
 
-function getCustomerBalance(customerCredits: AdminCredit[]) {
-  return customerCredits
-    .filter((credit) => credit.status === "ACTIVE" || credit.status === "OVERDUE")
-    .reduce((sum, credit) => sum + credit.balance, 0);
+function getCustomerBalance(customerAccounts: PortfolioAccount[]) {
+  return customerAccounts
+    .filter((account) => account.status === "ACTIVE" || account.status === "OVERDUE")
+    .reduce((sum, account) => sum + account.balance, 0);
 }
 
-function getCustomerCreditStatus(customerCredits: AdminCredit[]): CustomerCreditStatus {
+function getCustomerCreditStatus(customerCredits: PortfolioAccount[]): CustomerCreditStatus {
   if (customerCredits.some((credit) => credit.status === "OVERDUE")) return "OVERDUE";
   if (customerCredits.some((credit) => credit.status === "ACTIVE")) return "ACTIVE";
   if (customerCredits.some((credit) => credit.status === "PAID")) return "PAID";
-  if (customerCredits.some((credit) => credit.status === "CANCELLED")) return "CANCELLED";
   return "NONE";
 }
 
 function getCustomerCreditStatusLabel(status: CustomerCreditStatus) {
   if (status === "NONE") return "Sin cartera";
-  return creditStatusLabels[status];
+  return { ACTIVE: "Activo", OVERDUE: "En mora", PAID: "Pagado" }[status];
 }
 
 function getCustomerCreditStatusClass(status: CustomerCreditStatus) {
@@ -51,8 +50,8 @@ function getCustomerCreditStatusClass(status: CustomerCreditStatus) {
 
 export function AdminCreditsCustomerWorkspace({
   children,
-  credits,
-  customerCredits,
+  accounts,
+  customerAccounts,
   customers,
   disabled,
   initialSearch,
@@ -79,7 +78,7 @@ export function AdminCreditsCustomerWorkspace({
           </div>
         ) : (
           customers.map((customer) => {
-            const listCredits = getCustomerCredits(customer.id, credits);
+            const listCredits = getCustomerCredits(customer.id, accounts);
             const status = getCustomerCreditStatus(listCredits);
 
             return (
@@ -152,16 +151,16 @@ export function AdminCreditsCustomerWorkspace({
                 <div className="creditCustomerInfoCard">
                   <WalletCards size={18} />
                   <span>Saldo cartera</span>
-                  <strong>{formatMoney(getCustomerBalance(customerCredits))}</strong>
+                  <strong>{formatMoney(getCustomerBalance(customerAccounts))}</strong>
                 </div>
               </div>
             </div>
 
-            {!customerCredits.length ? (
+            {!customerAccounts.length ? (
               <div className="creditEmpty">
                 <CreditCard size={34} />
-                <strong>Este cliente no tiene créditos registrados</strong>
-                <span>Cuando una venta genere cartera, aparecerá en este perfil.</span>
+                <strong>Este cliente no tiene cuentas registradas</strong>
+                <span>Cuando una venta genere un pago o saldo, aparecerá en este perfil.</span>
               </div>
             ) : (
               children

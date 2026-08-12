@@ -4456,6 +4456,27 @@ th {
   border-color: var(--primary);
 }
 
+.creditAccountTabs {
+  display: flex;
+  gap: 8px;
+}
+
+.creditAccountTabs button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 7px 12px;
+}
+
+.creditAccountTabs button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
 .creditAccountList {
   display: grid;
   gap: 10px;
@@ -4502,6 +4523,13 @@ th {
   font-size: 15px;
 }
 
+.creditAccountProduct {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
 .creditAccountMeta {
   color: var(--muted);
   font-size: 13px;
@@ -4511,6 +4539,24 @@ th {
   color: var(--primary);
   font-size: 17px;
   font-weight: 900;
+}
+
+.creditAccountButton small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.creditAccountEmpty {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+  padding: 12px 2px;
+}
+
+.creditSaleFigures {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .creditSelectedAccount {

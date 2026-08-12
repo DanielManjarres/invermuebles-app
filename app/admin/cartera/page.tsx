@@ -1,16 +1,17 @@
 import { AdminCreditsManager } from "@/components/admin-credits-manager";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
-import { getCreditStats, getCredits } from "@/lib/database-credits";
+import { getCredits } from "@/lib/database-credits";
 import { getCustomers } from "@/lib/database-customers";
+import { getSales } from "@/lib/database-sales";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCreditsPage() {
-  const [credits, customers, stats] = await Promise.all([
+  const [credits, customers, sales] = await Promise.all([
     getCredits(),
     getCustomers(),
-    getCreditStats(),
+    getSales(),
   ]);
 
   return (
@@ -22,7 +23,7 @@ export default async function AdminCreditsPage() {
           <div>
             <p className="eyebrow">Panel administrativo</p>
             <h1>Cartera</h1>
-            <p>Consulta clientes, créditos, saldos pendientes y pagos realizados.</p>
+            <p>Consulta clientes, cuentas, saldos pendientes y pagos realizados.</p>
           </div>
           <LogoutButton />
         </div>
@@ -31,13 +32,13 @@ export default async function AdminCreditsPage() {
       <div className="creditsPageContent">
         <div className="creditsPageHeading">
           <p className="eyebrow">Seguimiento financiero</p>
-          <h2>Créditos y pagos</h2>
-          <p>Busca un cliente para consultar sus créditos y registrar abonos.</p>
+          <h2>Cuentas y pagos</h2>
+          <p>Busca un cliente para consultar sus cuentas y registrar abonos.</p>
         </div>
         <AdminCreditsManager
           initialCredits={credits}
           initialCustomers={customers}
-          initialStats={stats}
+          initialSales={sales}
         />
       </div>
     </main>
