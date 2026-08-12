@@ -33,7 +33,16 @@ function normalize(value: string) {
 }
 
 function calculateStats(credits: AdminCredit[], fallback: CreditStats): CreditStats {
-  if (!credits.length) return fallback;
+  if (!credits.length) {
+    return {
+      ...fallback,
+      active: 0,
+      overdue: 0,
+      paid: 0,
+      total: 0,
+      totalBalance: 0,
+    };
+  }
 
   return {
     total: credits.length,
@@ -351,7 +360,7 @@ export function AdminCreditsManager({ initialCredits, initialCustomers, initialS
       />
 
       {message ? <p className="creditFormMessage success">{message}</p> : null}
-      {error ? <p className="creditFormMessage error">{error}</p> : null}
+      {error && !paymentModalOpen ? <p className="creditFormMessage error">{error}</p> : null}
 
       <AdminCreditsCustomerWorkspace
         credits={credits}
