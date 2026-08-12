@@ -86,6 +86,7 @@ export function AdminOrdersBrowser({
   const [savingOrderId, setSavingOrderId] = useState("");
   const [deletingOrderId, setDeletingOrderId] = useState("");
   const [orderToDelete, setOrderToDelete] = useState<AdminOrder | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [notice, setNotice] = useState("");
   const [draftNotes, setDraftNotes] = useState<Record<string, string>>(
     () =>
@@ -247,6 +248,8 @@ export function AdminOrdersBrowser({
   }
 
   async function deleteOrder(order: AdminOrder) {
+    if (deletingOrderId || deleteConfirmation !== "ELIMINAR") return;
+
     setDeletingOrderId(order.id);
 
     try {
@@ -258,6 +261,7 @@ export function AdminOrdersBrowser({
       if (!response.ok) {
         setNotice(result.message ?? "No se pudo eliminar el pedido.");
         setOrderToDelete(null);
+        setDeleteConfirmation("");
         return;
       }
 
@@ -265,7 +269,8 @@ export function AdminOrdersBrowser({
         currentOrders.filter((currentOrder) => currentOrder.id !== order.id)
       );
       setOrderToDelete(null);
-      setNotice(`Pedido #${order.shortId} eliminado.`);
+      setDeleteConfirmation("");
+      setNotice(`Pedido #${order.shortId} eliminado permanentemente.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -513,7 +518,10 @@ export function AdminOrdersBrowser({
                         className="dangerButton"
                         disabled={savingOrderId === order.id || deletingOrderId === order.id}
                         type="button"
-                        onClick={() => setOrderToDelete(order)}
+                        onClick={() => {
+                          setOrderToDelete(order);
+                          setDeleteConfirmation("");
+                        }}
                       >
                         <Trash2 size={18} />
                         Eliminar pedido
@@ -556,25 +564,27 @@ export function AdminOrdersBrowser({
           <div className="adminModal recordDeleteModal">
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Correccion de registros</p>
+                <p className="eyebrow">Acción permanente</p>
                 <h2>Eliminar pedido</h2>
               </div>
               <button
                 aria-label="Cerrar confirmacion"
                 className="modalClose"
                 type="button"
-                onClick={() => setOrderToDelete(null)}
+                onClick={() => {
+                  setOrderToDelete(null);
+                  setDeleteConfirmation("");
+                }}
               >
-                x
+                ×
               </button>
             </div>
 
             <div className="recordDeleteWarning">
               <Trash2 size={20} />
               <p>
-                El pedido se puede eliminar porque todavia no tiene una venta
-                asociada. Las ventas creadas se conservan y se anulan desde su
-                historial.
+                El pedido y sus productos asociados se eliminarán permanentemente.
+                Esta acción solo está disponible mientras no exista una venta relacionada.
               </p>
             </div>
 
@@ -584,22 +594,37 @@ export function AdminOrdersBrowser({
               <small>{orderToDelete.totalQuantity} unidad(es)</small>
             </div>
 
+            <label className="deleteConfirmationField">
+              Escribe ELIMINAR para confirmar
+              <input
+                value={deleteConfirmation}
+                onChange={(event) => setDeleteConfirmation(event.target.value)}
+              />
+            </label>
+
             <div className="modalActions">
               <button
                 className="secondaryButton"
                 type="button"
-                onClick={() => setOrderToDelete(null)}
+                onClick={() => {
+                  setOrderToDelete(null);
+                  setDeleteConfirmation("");
+                }}
               >
                 Cancelar
               </button>
               <button
                 className="dangerButton"
-                disabled={deletingOrderId === orderToDelete.id}
+                disabled={
+                  deletingOrderId === orderToDelete.id || deleteConfirmation !== "ELIMINAR"
+                }
                 type="button"
                 onClick={() => deleteOrder(orderToDelete)}
               >
                 <Trash2 size={18} />
-                {deletingOrderId === orderToDelete.id ? "Eliminando..." : "Eliminar pedido"}
+                {deletingOrderId === orderToDelete.id
+                  ? "Eliminando..."
+                  : "Eliminar permanentemente"}
               </button>
             </div>
           </div>

@@ -2537,10 +2537,10 @@ th {
 
 .futureSaleButton {
   align-items: center;
-  background: var(--surface-strong);
-  border: 1px dashed var(--line);
+  background: var(--primary);
+  border: 1px solid var(--primary);
   border-radius: 8px;
-  color: var(--muted);
+  color: #fff;
   display: inline-flex;
   font-weight: 900;
   gap: 8px;
@@ -2548,7 +2548,14 @@ th {
   padding: 0 14px;
 }
 
+.futureSaleButton:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
 .futureSaleButton:disabled {
+  background: var(--surface-strong);
+  border-color: var(--line);
+  color: var(--muted);
   cursor: not-allowed;
   opacity: 0.78;
 }
@@ -2557,6 +2564,7 @@ th {
   background: #dff1ff;
   border-color: #b6d7ec;
   color: #195577;
+  opacity: 1;
 }
 
 .salesSection {
