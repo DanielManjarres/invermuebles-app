@@ -10,6 +10,7 @@ import {
   ReceiptText,
   Search,
   Trash2,
+  WalletCards,
 } from "lucide-react";
 import type { AdminCustomer } from "@/lib/customers";
 import type { AdminOrder } from "@/lib/orders";
@@ -289,6 +290,12 @@ export function AdminSalesManager({
   const [financePaymentMethod, setFinancePaymentMethod] = useState<PaymentMethod | "">("");
   const [financeStatus, setFinanceStatus] = useState<"ACTIVE" | "OVERDUE">("ACTIVE");
   const [isFinancingSale, setIsFinancingSale] = useState(false);
+  const [saleToPay, setSaleToPay] = useState<AdminSale | null>(null);
+  const [reservedPaymentAmount, setReservedPaymentAmount] = useState(0);
+  const [reservedPaymentMethod, setReservedPaymentMethod] = useState<PaymentMethod | "">("");
+  const [reservedPaymentReference, setReservedPaymentReference] = useState("");
+  const [reservedPaymentNote, setReservedPaymentNote] = useState("");
+  const [isPayingReservedSale, setIsPayingReservedSale] = useState(false);
   const adminSaleCart = useAdminSaleCart(products);
 
   const preparedOrder = useMemo(
@@ -636,6 +643,72 @@ export function AdminSalesManager({
       setNotice("No se pudo conectar con el sistema.");
     } finally {
       setDeletingSaleId("");
+    }
+  }
+
+  function openReservedPayment(sale: AdminSale) {
+    setSaleToPay(sale);
+    setReservedPaymentAmount(0);
+    setReservedPaymentMethod("");
+    setReservedPaymentReference("");
+    setReservedPaymentNote("");
+    setNotice("");
+  }
+
+  async function registerReservedPayment(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!saleToPay || isPayingReservedSale) return;
+
+    if (reservedPaymentAmount <= 0 || reservedPaymentAmount > saleToPay.balance) {
+      setNotice("El abono debe ser mayor a cero y no puede superar el saldo pendiente.");
+      return;
+    }
+
+    if (!reservedPaymentMethod) {
+      setNotice("Selecciona el medio del abono.");
+      return;
+    }
+
+    setIsPayingReservedSale(true);
+    setNotice("");
+
+    try {
+      const response = await fetch(`/api/sales/${saleToPay.id}/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: reservedPaymentAmount,
+          method: reservedPaymentMethod,
+          note: reservedPaymentNote,
+          reference: reservedPaymentReference,
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.payment) {
+        throw new Error(result.message ?? "No se pudo registrar el abono.");
+      }
+
+      setSales((currentSales) =>
+        currentSales.map((sale) =>
+          sale.id === saleToPay.id
+            ? {
+                ...sale,
+                amountPaid: result.amountPaid,
+                balance: result.balance,
+                paymentMethod: reservedPaymentMethod,
+                payments: [...sale.payments, result.payment],
+                status: result.status,
+              }
+            : sale,
+        ),
+      );
+      setSaleToPay(null);
+      setNotice(result.message ?? "Abono registrado correctamente.");
+    } catch (paymentError) {
+      setNotice(paymentError instanceof Error ? paymentError.message : "No se pudo registrar el abono.");
+    } finally {
+      setIsPayingReservedSale(false);
     }
   }
 
@@ -1165,8 +1238,36 @@ export function AdminSalesManager({
                       <span>Saldo: {formatMoney(sale.balance)}</span>
                     ) : null}
                   </div>
+                  {sale.payments.length ? (
+                    <details className="salePaymentHistory">
+                      <summary>{sale.payments.length} pago(s) registrado(s)</summary>
+                      <div>
+                        {sale.payments.map((payment) => (
+                          <p key={payment.id}>
+                            <strong>{formatMoney(payment.amount)}</strong>
+                            <span>
+                              {payment.createdAt} · {paymentMethodLabels[payment.method]}
+                              {payment.isInitial ? " · Pago inicial" : ""}
+                            </span>
+                            {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
+                            {payment.note ? <small>{payment.note}</small> : null}
+                          </p>
+                        ))}
+                      </div>
+                    </details>
+                  ) : null}
                   {sale.status !== "CANCELLED" ? (
                     <div className="saleHistoryActions">
+                      {sale.type === "RESERVED" && sale.status === "PENDING_PAYMENT" ? (
+                        <button
+                          className="primaryButton"
+                          type="button"
+                          onClick={() => openReservedPayment(sale)}
+                        >
+                          <WalletCards size={16} />
+                          Registrar abono
+                        </button>
+                      ) : null}
                       {(sale.type === "CREDIT" || sale.type === "CREDIT_CASH") && !sale.creditId ? (
                         <button
                           className="secondaryButton"
@@ -1196,6 +1297,95 @@ export function AdminSalesManager({
           </div>
         </article>
       </div>
+
+      {saleToPay ? (
+        <div className="adminModalBackdrop" role="presentation">
+          <form
+            aria-labelledby="reserved-payment-title"
+            aria-modal="true"
+            className="adminModal"
+            role="dialog"
+            onSubmit={registerReservedPayment}
+          >
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Separado #{saleToPay.shortId}</p>
+                <h2 id="reserved-payment-title">Registrar abono</h2>
+              </div>
+              <button
+                className="iconButton"
+                disabled={isPayingReservedSale}
+                type="button"
+                onClick={() => {
+                  setSaleToPay(null);
+                  setNotice("");
+                }}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+
+            <div className="recordDeleteTarget">
+              <span>Saldo pendiente</span>
+              <strong>{formatMoney(saleToPay.balance)}</strong>
+              <small>{saleToPay.customerName}</small>
+            </div>
+
+            {notice ? <p className="creditFormMessage error">{notice}</p> : null}
+
+            <div className="adminFormGrid">
+              <label>
+                Valor recibido
+                <MoneyInput value={reservedPaymentAmount} onValueChange={setReservedPaymentAmount} />
+              </label>
+              <label>
+                Medio
+                <SelectMenu
+                  options={paymentMethodOptions}
+                  placeholder="Selecciona medio"
+                  value={reservedPaymentMethod}
+                  onChange={(value) => setReservedPaymentMethod(value as PaymentMethod)}
+                />
+              </label>
+              <label>
+                Comprobante
+                <input
+                  value={reservedPaymentReference}
+                  onChange={(event) => setReservedPaymentReference(event.target.value)}
+                  placeholder="Opcional"
+                />
+              </label>
+            </div>
+
+            <label>
+              Observación
+              <textarea
+                value={reservedPaymentNote}
+                onChange={(event) => setReservedPaymentNote(event.target.value)}
+                placeholder="Ej: segundo abono del separado."
+              />
+            </label>
+
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                disabled={isPayingReservedSale}
+                type="button"
+                onClick={() => {
+                  setSaleToPay(null);
+                  setNotice("");
+                }}
+              >
+                Cancelar
+              </button>
+              <button className="primaryButton" disabled={isPayingReservedSale} type="submit">
+                <WalletCards size={18} />
+                {isPayingReservedSale ? "Guardando..." : "Registrar abono"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
 
       {saleToDelete ? (
         <div className="adminModalBackdrop" role="presentation">
