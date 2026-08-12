@@ -97,7 +97,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
       if (sale.orderId) {
         await tx.order.update({
           where: { id: sale.orderId },
-          data: { status: "CONFIRMED" },
+          data: { status: "CONTACTED" },
         });
       }
 
