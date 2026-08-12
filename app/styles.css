@@ -4594,13 +4594,14 @@ th {
 }
 
 .creditDetailEmpty {
+  align-content: center;
   align-items: center;
   color: var(--muted);
   display: grid;
   gap: 5px;
   justify-items: center;
-  min-height: 180px;
-  padding: 28px 16px;
+  min-height: 140px;
+  padding: 22px 16px;
   text-align: center;
 }
 
