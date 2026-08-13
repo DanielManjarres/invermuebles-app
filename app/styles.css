@@ -2616,7 +2616,17 @@ th {
 
 .saleProductPicker {
   align-items: end;
-  grid-template-columns: minmax(260px, 1fr) minmax(260px, 0.9fr) 150px;
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 0.9fr) max-content;
+}
+
+.saleProductPicker > label,
+.saleProductPicker .selectMenu,
+.saleProductPicker .selectMenuButton span {
+  min-width: 0;
+}
+
+.saleProductPicker .selectMenu {
+  width: 100%;
 }
 
 .saleProductPicker .secondaryButton {
