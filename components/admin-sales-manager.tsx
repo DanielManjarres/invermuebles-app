@@ -221,6 +221,8 @@ export function AdminSalesManager({
   const [saleToDelete, setSaleToDelete] = useState<AdminSale | null>(null);
   const [deletingSaleId, setDeletingSaleId] = useState("");
   const [deliveringSaleId, setDeliveringSaleId] = useState("");
+  const [saleToUpdateDelivery, setSaleToUpdateDelivery] = useState<AdminSale | null>(null);
+  const [deliveryAction, setDeliveryAction] = useState<"DELIVER" | "UNDO_DELIVERY">("DELIVER");
   const [saleDeleteConfirmation, setSaleDeleteConfirmation] = useState("");
   const [saleToFinance, setSaleToFinance] = useState<AdminSale | null>(null);
   const [financeMonths, setFinanceMonths] = useState(6);
@@ -579,36 +581,41 @@ export function AdminSalesManager({
     }
   }
 
-  async function deliverSale(sale: AdminSale) {
+  async function updateSaleDelivery(sale: AdminSale) {
     if (deliveringSaleId) return;
 
     setDeliveringSaleId(sale.id);
     setNotice("");
 
     try {
-      const response = await fetch(`/api/sales/${sale.id}`, { method: "PATCH" });
+      const response = await fetch(`/api/sales/${sale.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: deliveryAction }),
+      });
       const result = (await response.json()) as {
         message?: string;
         status?: AdminSale["status"];
       };
 
-      if (!response.ok || result.status !== "DELIVERED") {
-        throw new Error(result.message ?? "No se pudo confirmar la entrega.");
+      if (!response.ok || !result.status) {
+        throw new Error(result.message ?? "No se pudo actualizar la entrega.");
       }
 
       setSales((currentSales) =>
         currentSales.map((currentSale) =>
           currentSale.id === sale.id
-            ? { ...currentSale, status: "DELIVERED" }
+            ? { ...currentSale, status: result.status! }
             : currentSale,
         ),
       );
-      setNotice(result.message ?? `Venta #${sale.shortId} marcada como entregada.`);
+      setSaleToUpdateDelivery(null);
+      setNotice(result.message ?? `Entrega de la venta #${sale.shortId} actualizada.`);
     } catch (deliveryError) {
       setNotice(
         deliveryError instanceof Error
           ? deliveryError.message
-          : "No se pudo confirmar la entrega.",
+          : "No se pudo actualizar la entrega.",
       );
     } finally {
       setDeliveringSaleId("");
@@ -1072,7 +1079,10 @@ export function AdminSalesManager({
             setSaleToDelete(sale);
             setSaleDeleteConfirmation("");
           }}
-          onDeliver={deliverSale}
+          onDeliveryAction={(sale, action) => {
+            setSaleToUpdateDelivery(sale);
+            setDeliveryAction(action);
+          }}
           onFinance={openCreditConfiguration}
           onQueryChange={setHistoryQuery}
           onSourceFilterChange={setSourceFilter}
@@ -1082,12 +1092,15 @@ export function AdminSalesManager({
       <AdminSalesModals
         deleteConfirmation={saleDeleteConfirmation}
         deletingSaleId={deletingSaleId}
+        deliveringSaleId={deliveringSaleId}
         financeInitialPayment={financeInitialPayment}
         financeInterestRate={financeInterestRate}
         financeMethod={financePaymentMethod}
         financeMonths={financeMonths}
         financeStatus={financeStatus}
         financing={isFinancingSale}
+        deliveryAction={deliveryAction}
+        deliverySale={saleToUpdateDelivery}
         saleToDelete={saleToDelete}
         saleToFinance={saleToFinance}
         onDeleteClose={() => {
@@ -1096,6 +1109,10 @@ export function AdminSalesManager({
         }}
         onDeleteConfirm={deleteSale}
         onDeleteConfirmationChange={setSaleDeleteConfirmation}
+        onDeliveryClose={() => setSaleToUpdateDelivery(null)}
+        onDeliveryConfirm={() => {
+          if (saleToUpdateDelivery) void updateSaleDelivery(saleToUpdateDelivery);
+        }}
         onFinanceClose={() => setSaleToFinance(null)}
         onFinanceInitialPaymentChange={setFinanceInitialPayment}
         onFinanceInterestRateChange={setFinanceInterestRate}

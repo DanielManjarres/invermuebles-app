@@ -20,18 +20,29 @@ async function getAdminUserId() {
   return admin.id;
 }
 
-export async function PATCH(_request: Request, context: RouteContext) {
+type DeliveryAction = "DELIVER" | "UNDO_DELIVERY";
+
+export async function PATCH(request: Request, context: RouteContext) {
   const unauthorized = await requireAdminSession();
   if (unauthorized) {
     return unauthorized;
   }
 
   const { id } = await context.params;
+  const body = (await request.json().catch(() => ({}))) as { action?: DeliveryAction };
+  const action = body.action ?? "DELIVER";
+
+  if (action !== "DELIVER" && action !== "UNDO_DELIVERY") {
+    return NextResponse.json({ message: "Acción de entrega no válida." }, { status: 400 });
+  }
+
+  const currentStatus = action === "DELIVER" ? "PENDING_DELIVERY" : "DELIVERED";
+  const nextStatus = action === "DELIVER" ? "DELIVERED" : "PENDING_DELIVERY";
 
   try {
     const result = await prisma.sale.updateMany({
-      where: { id, status: "PENDING_DELIVERY" },
-      data: { status: "DELIVERED" },
+      where: { id, status: currentStatus },
+      data: { status: nextStatus },
     });
 
     if (!result.count) {
@@ -43,7 +54,9 @@ export async function PATCH(_request: Request, context: RouteContext) {
       return NextResponse.json(
         {
           message: sale
-            ? "Solo una venta pendiente de entrega puede marcarse como entregada."
+            ? action === "DELIVER"
+              ? "Solo una venta pendiente de entrega puede marcarse como entregada."
+              : "Solo una venta entregada puede volver a pendiente de entrega."
             : "No se encontró la venta.",
         },
         { status: sale ? 409 : 404 },
@@ -52,12 +65,15 @@ export async function PATCH(_request: Request, context: RouteContext) {
 
     return NextResponse.json({
       id,
-      message: "Venta marcada como entregada.",
-      status: "DELIVERED",
+      message:
+        action === "DELIVER"
+          ? "Venta marcada como entregada."
+          : "La entrega se deshizo y la venta volvió a pendiente de entrega.",
+      status: nextStatus,
     });
   } catch {
     return NextResponse.json(
-      { message: "No se pudo confirmar la entrega de la venta." },
+      { message: "No se pudo actualizar la entrega de la venta." },
       { status: 500 },
     );
   }
@@ -95,6 +111,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
       if (!sale) throw new Error("SALE_NOT_FOUND");
       if (sale.status === "CANCELLED") throw new Error("SALE_CANCELLED");
+      if (sale.status === "DELIVERED") throw new Error("SALE_DELIVERED");
 
       const hasLaterCreditPayments = Boolean(
         sale.credit &&
@@ -168,6 +185,13 @@ export async function DELETE(_request: Request, context: RouteContext) {
     if (message === "CREDIT_HAS_PAYMENTS") {
       return NextResponse.json(
         { message: "No se puede eliminar una venta con abonos posteriores al pago inicial." },
+        { status: 409 },
+      );
+    }
+
+    if (message === "SALE_DELIVERED") {
+      return NextResponse.json(
+        { message: "Deshaz primero la entrega antes de eliminar esta venta." },
         { status: 409 },
       );
     }

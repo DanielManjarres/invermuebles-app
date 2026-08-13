@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { Trash2 } from "lucide-react";
+import { PackageCheck, RotateCcw, Trash2 } from "lucide-react";
 
 import { MoneyInput } from "@/components/admin-sales/form-controls";
 import { SelectMenu } from "@/components/select-menu";
@@ -8,6 +8,9 @@ import { paymentMethodLabels, type AdminSale, type PaymentMethod } from "@/lib/s
 type Props = {
   deleteConfirmation: string;
   deletingSaleId: string;
+  deliveringSaleId: string;
+  deliveryAction: "DELIVER" | "UNDO_DELIVERY";
+  deliverySale: AdminSale | null;
   financeInitialPayment: number;
   financeInterestRate: number;
   financeMethod: PaymentMethod | "";
@@ -19,6 +22,8 @@ type Props = {
   onDeleteClose: () => void;
   onDeleteConfirm: (sale: AdminSale) => void;
   onDeleteConfirmationChange: (value: string) => void;
+  onDeliveryClose: () => void;
+  onDeliveryConfirm: () => void;
   onFinanceClose: () => void;
   onFinanceInitialPaymentChange: (value: number) => void;
   onFinanceInterestRateChange: (value: number) => void;
@@ -49,6 +54,9 @@ function formatMoney(value: number) {
 export function AdminSalesModals({
   deleteConfirmation,
   deletingSaleId,
+  deliveringSaleId,
+  deliveryAction,
+  deliverySale,
   financeInitialPayment,
   financeInterestRate,
   financeMethod,
@@ -60,6 +68,8 @@ export function AdminSalesModals({
   onDeleteClose,
   onDeleteConfirm,
   onDeleteConfirmationChange,
+  onDeliveryClose,
+  onDeliveryConfirm,
   onFinanceClose,
   onFinanceInitialPaymentChange,
   onFinanceInterestRateChange,
@@ -105,6 +115,63 @@ export function AdminSalesModals({
               >
                 <Trash2 size={17} />
                 {deletingSaleId === saleToDelete.id ? "Eliminando..." : "Eliminar permanentemente"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deliverySale ? (
+        <div className="adminModalBackdrop" role="presentation">
+          <div aria-labelledby="delivery-sale-title" aria-modal="true" className="adminModal" role="dialog">
+            <div className="modalHeader">
+              <div>
+                <p className="eyebrow">Venta #{deliverySale.shortId}</p>
+                <h2 id="delivery-sale-title">
+                  {deliveryAction === "DELIVER" ? "Confirmar entrega" : "Deshacer entrega"}
+                </h2>
+              </div>
+              <button
+                className="iconButton"
+                disabled={Boolean(deliveringSaleId)}
+                type="button"
+                title="Cerrar"
+                onClick={onDeliveryClose}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div className="recordDeleteWarning">
+              {deliveryAction === "DELIVER"
+                ? "¿Confirmas que los productos fueron entregados al cliente? La venta quedará cerrada como entregada."
+                : "¿Confirmas que la entrega se marcó por error? La venta volverá a pendiente de entrega. Los pagos y el inventario no cambiarán."}
+            </div>
+            <div className="recordDeleteTarget">
+              <span>Venta seleccionada</span>
+              <strong>Venta #{deliverySale.shortId}</strong>
+              <small>{deliverySale.customerName}</small>
+            </div>
+            <div className="modalActions">
+              <button
+                className="secondaryButton"
+                disabled={Boolean(deliveringSaleId)}
+                type="button"
+                onClick={onDeliveryClose}
+              >
+                Cancelar
+              </button>
+              <button
+                className="primaryButton"
+                disabled={Boolean(deliveringSaleId)}
+                type="button"
+                onClick={onDeliveryConfirm}
+              >
+                {deliveryAction === "DELIVER" ? <PackageCheck size={17} /> : <RotateCcw size={17} />}
+                {deliveringSaleId
+                  ? "Actualizando..."
+                  : deliveryAction === "DELIVER"
+                    ? "Sí, marcar entregada"
+                    : "Sí, deshacer entrega"}
               </button>
             </div>
           </div>

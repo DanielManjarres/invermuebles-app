@@ -1,4 +1,4 @@
-import { CreditCard, PackageCheck, Search, Trash2 } from "lucide-react";
+import { CreditCard, PackageCheck, RotateCcw, Search, Trash2 } from "lucide-react";
 
 import {
   paymentMethodLabels,
@@ -14,7 +14,7 @@ type Props = {
   sales: AdminSale[];
   sourceFilter: string;
   onDelete: (sale: AdminSale) => void;
-  onDeliver: (sale: AdminSale) => void;
+  onDeliveryAction: (sale: AdminSale, action: "DELIVER" | "UNDO_DELIVERY") => void;
   onFinance: (sale: AdminSale) => void;
   onQueryChange: (query: string) => void;
   onSourceFilterChange: (source: string) => void;
@@ -40,7 +40,7 @@ export function AdminSalesHistory({
   sales,
   sourceFilter,
   onDelete,
-  onDeliver,
+  onDeliveryAction,
   onFinance,
   onQueryChange,
   onSourceFilterChange,
@@ -118,10 +118,21 @@ export function AdminSalesHistory({
                       className="primaryButton"
                       disabled={Boolean(deliveringSaleId)}
                       type="button"
-                      onClick={() => onDeliver(sale)}
+                      onClick={() => onDeliveryAction(sale, "DELIVER")}
                     >
                       <PackageCheck size={16} />
                       {deliveringSaleId === sale.id ? "Confirmando..." : "Marcar entregada"}
+                    </button>
+                  ) : null}
+                  {sale.status === "DELIVERED" ? (
+                    <button
+                      className="secondaryButton"
+                      disabled={Boolean(deliveringSaleId)}
+                      type="button"
+                      onClick={() => onDeliveryAction(sale, "UNDO_DELIVERY")}
+                    >
+                      <RotateCcw size={16} />
+                      Deshacer entrega
                     </button>
                   ) : null}
                   {sale.type === "RESERVED" || sale.type === "CREDIT" || sale.type === "CREDIT_CASH" ? (
@@ -141,10 +152,12 @@ export function AdminSalesHistory({
                       Configurar crédito
                     </button>
                   ) : null}
-                  <button className="dangerButton" type="button" onClick={() => onDelete(sale)}>
-                    <Trash2 size={16} />
-                    Eliminar venta
-                  </button>
+                  {sale.status !== "DELIVERED" ? (
+                    <button className="dangerButton" type="button" onClick={() => onDelete(sale)}>
+                      <Trash2 size={16} />
+                      Eliminar venta
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </article>
