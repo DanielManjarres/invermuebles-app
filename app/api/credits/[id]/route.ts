@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { getCreditById } from "@/lib/database-credits";
 import { prisma } from "@/lib/prisma";
+import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -198,10 +199,10 @@ export async function PATCH(request: Request, context: RouteContext) {
           amountPaid: values.initialPayment,
           balance: financing.balance,
           paymentMethod: values.initialPayment > 0 ? body.method! : PaymentMethod.CASH,
-          status:
-            credit.sale.status === SaleStatus.PENDING_PAYMENT
-              ? SaleStatus.PENDING_DELIVERY
-              : credit.sale.status,
+          status: getFinancedSaleDeliveryStatus(
+            values.initialPayment,
+            credit.sale.status,
+          ),
         },
         where: { id: credit.sale.id },
       });

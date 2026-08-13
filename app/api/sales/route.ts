@@ -10,6 +10,7 @@ import {
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
 
 type SaleItemRequest = {
   productId?: string;
@@ -256,7 +257,7 @@ export async function POST(request: Request) {
         outstandingPrincipal = principal - principalPaid;
         interestBalance = outstandingPrincipal * interestRate;
         balance = outstandingPrincipal + interestBalance;
-        status = SaleStatus.PENDING_DELIVERY;
+        status = getFinancedSaleDeliveryStatus(amountPaid);
       }
 
       if (saleType !== SaleType.CREDIT && saleType !== SaleType.CREDIT_CASH && saleType !== SaleType.RESERVED) {

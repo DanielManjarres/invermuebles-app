@@ -1,8 +1,9 @@
-import { PaymentMethod, SaleStatus, UserRole } from "@prisma/client";
+import { PaymentMethod, UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { getCreditById } from "@/lib/database-credits";
 import { prisma } from "@/lib/prisma";
+import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -165,9 +166,10 @@ export async function POST(request: Request, context: RouteContext) {
             increment: amount,
           },
           balance: nextBalance,
-          status: isPaid
-            ? SaleStatus.PENDING_DELIVERY
-            : SaleStatus.PENDING_PAYMENT,
+          status: getFinancedSaleDeliveryStatus(
+            Number(credit.sale.amountPaid) + amount,
+            credit.sale.status,
+          ),
         },
         where: { id: credit.sale.id },
       });

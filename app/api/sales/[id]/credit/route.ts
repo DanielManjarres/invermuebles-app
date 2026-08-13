@@ -1,8 +1,9 @@
-import { PaymentMethod, SaleStatus, SaleType, UserRole } from "@prisma/client";
+import { PaymentMethod, SaleType, UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -95,6 +96,7 @@ export async function POST(request: Request, context: RouteContext) {
       }
 
       const balance = roundMoney(outstandingPrincipal + interestBalance);
+      const saleStatus = getFinancedSaleDeliveryStatus(initialPayment, sale.status);
       const credit = await tx.credit.create({
         data: {
           customerId: sale.customerId,
@@ -142,12 +144,12 @@ export async function POST(request: Request, context: RouteContext) {
           amountPaid: initialPayment,
           balance,
           paymentMethod: initialPayment > 0 ? body.method! : PaymentMethod.CASH,
-          status: SaleStatus.PENDING_DELIVERY,
+          status: saleStatus,
         },
         where: { id: sale.id },
       });
 
-      return { balance, creditId: credit.id };
+      return { balance, creditId: credit.id, status: saleStatus };
     });
 
     return NextResponse.json({
@@ -156,7 +158,7 @@ export async function POST(request: Request, context: RouteContext) {
       creditMonths: months,
       interestRate,
       message: "Crédito configurado nuevamente.",
-      status: SaleStatus.PENDING_DELIVERY,
+      status: result.status,
     });
   } catch (error) {
     return NextResponse.json(
