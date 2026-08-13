@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { OrderStatus } from "@prisma/client";
 import { requireAdminSession } from "@/lib/admin-session";
+import { canChangeOrderStructure, canDeleteOrder } from "@/lib/order-policy";
 import { canTransitionOrderStatus } from "@/lib/order-status-policy";
 import { prisma } from "@/lib/prisma";
 
@@ -57,10 +58,13 @@ export async function PUT(
     ? currentOrder.customerId
     : body.customerId || null;
 
-  if (
-    currentOrder.sale &&
-    (nextStatus !== currentOrder.status || nextCustomerId !== currentOrder.customerId)
-  ) {
+  if (!canChangeOrderStructure(
+    Boolean(currentOrder.sale),
+    currentOrder.status,
+    nextStatus,
+    currentOrder.customerId,
+    nextCustomerId,
+  )) {
     return NextResponse.json(
       { message: "El estado y el cliente no pueden cambiar porque el pedido ya tiene una venta." },
       { status: 409 },
@@ -132,7 +136,7 @@ export async function DELETE(
     );
   }
 
-  if (order.sale) {
+  if (!canDeleteOrder(Boolean(order.sale))) {
     return NextResponse.json(
       {
         message:

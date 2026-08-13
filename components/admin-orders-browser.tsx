@@ -19,6 +19,7 @@ import {
   type AdminOrder,
 } from "@/lib/orders";
 import type { AdminCustomer } from "@/lib/customers";
+import { canPrepareOrderSale } from "@/lib/order-policy";
 import { canTransitionOrderStatus } from "@/lib/order-status-policy";
 import { SelectMenu } from "@/components/select-menu";
 
@@ -232,12 +233,8 @@ export function AdminOrdersBrowser({
   }
 
   function prepareSaleFromOrder(order: AdminOrder) {
-    if (order.saleId) {
-      return;
-    }
-
-    if (!order.customerId) {
-      setNotice("Asocia un cliente antes de preparar la venta.");
+    if (!canPrepareOrderSale(order.status, order.customerId || null, Boolean(order.saleId))) {
+      setNotice("Confirma el pedido y asocia un cliente antes de preparar la venta.");
       return;
     }
     router.push(`/admin/ventas?pedido=${order.id}`);
