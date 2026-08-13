@@ -19,7 +19,7 @@ import {
   type AdminOrder,
 } from "@/lib/orders";
 import type { AdminCustomer } from "@/lib/customers";
-import { canPrepareOrderSale } from "@/lib/order-policy";
+import { canEditOrderCustomer, canPrepareOrderSale } from "@/lib/order-policy";
 import { canTransitionOrderStatus } from "@/lib/order-status-policy";
 import { SelectMenu } from "@/components/select-menu";
 
@@ -41,9 +41,10 @@ const statusMenuOptions = statusOptions.map((status) => ({
   value: status,
 }));
 
-function getStatusMenuOptions(currentStatus: AdminOrder["status"]) {
+function getStatusMenuOptions(order: AdminOrder) {
   return statusMenuOptions.filter(({ value }) =>
-    canTransitionOrderStatus(currentStatus, value),
+    canTransitionOrderStatus(order.status, value) &&
+    (value !== "CONFIRMED" || Boolean(order.customerId)),
   );
 }
 
@@ -93,6 +94,7 @@ export function AdminOrdersBrowser({
   const [orderToDelete, setOrderToDelete] = useState<AdminOrder | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [notice, setNotice] = useState("");
+  const [customerQueries, setCustomerQueries] = useState<Record<string, string>>({});
   const [draftNotes, setDraftNotes] = useState<Record<string, string>>(
     () =>
       Object.fromEntries(initialOrders.map((order) => [order.id, order.notes]))
@@ -155,16 +157,25 @@ export function AdminOrdersBrowser({
     (currentPage - 1) * ordersPerPage,
     currentPage * ordersPerPage
   );
-  const customerOptions = useMemo(
-    () =>
-      customers.map((customer) => ({
+  function getCustomerOptions(order: AdminOrder) {
+    const search = (customerQueries[order.id] ?? "").trim().toLowerCase();
+
+    return customers
+      .filter((customer) => customer.status === "ACTIVE" || customer.id === order.customerId)
+      .filter((customer) =>
+        customer.id === order.customerId ||
+        [customer.fullName, customer.document, customer.phone, customer.city]
+          .join(" ")
+          .toLowerCase()
+          .includes(search),
+      )
+      .map((customer) => ({
         label: customer.document
           ? `${customer.fullName} - CC ${customer.document}`
           : customer.fullName,
         value: customer.id,
-      })),
-    [customers]
-  );
+      }));
+  }
 
   function findCustomer(customerId: string) {
     return (
@@ -225,6 +236,9 @@ export function AdminOrdersBrowser({
         );
       });
       setNotice(`Pedido #${order.shortId} actualizado.`);
+      if (changes.customerId !== undefined) {
+        setCustomerQueries((current) => ({ ...current, [order.id]: "" }));
+      }
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -388,7 +402,7 @@ export function AdminOrdersBrowser({
                       onChange={(value) =>
                         updateOrder(order, { status: value as AdminOrder["status"] })
                       }
-                      options={getStatusMenuOptions(order.status)}
+                      options={getStatusMenuOptions(order)}
                       placeholder="Selecciona estado"
                       value={order.status}
                     />
@@ -430,18 +444,50 @@ export function AdminOrdersBrowser({
                     )}
                   </div>
 
-                  <label className="orderCustomerControl">
-                    Asociar cliente
-                    <SelectMenu
-                      disabled={savingOrderId === order.id || Boolean(order.saleId)}
-                      onChange={(value) =>
-                        updateOrder(order, { customerId: value })
-                      }
-                      options={customerOptions}
-                      placeholder="Sin cliente asociado"
-                      value={order.customerId}
-                    />
-                  </label>
+                  {canEditOrderCustomer(order.status, Boolean(order.saleId)) ? (
+                    <div className="orderCustomerControls">
+                      <label className="orderCustomerSearch">
+                        Buscar cliente
+                        <div className="searchBox compactSearchBox">
+                          <Search size={17} />
+                          <input
+                            type="search"
+                            placeholder="Nombre, cédula, teléfono o ciudad"
+                            value={customerQueries[order.id] ?? ""}
+                            onChange={(event) =>
+                              setCustomerQueries((current) => ({
+                                ...current,
+                                [order.id]: event.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                      </label>
+                      <label className="orderCustomerControl">
+                        Asociar cliente
+                        <SelectMenu
+                          disabled={savingOrderId === order.id}
+                          onChange={(value) => updateOrder(order, { customerId: value })}
+                          options={getCustomerOptions(order)}
+                          placeholder="Sin cliente asociado"
+                          value={order.customerId}
+                        />
+                      </label>
+                      <button
+                        className="secondaryButton orderResetCustomer"
+                        disabled={!order.customerId || savingOrderId === order.id}
+                        type="button"
+                        onClick={() => updateOrder(order, { customerId: "" })}
+                      >
+                        <XCircle size={17} />
+                        Quitar cliente
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="orderCustomerLocked">
+                      Cliente fijado al confirmar el pedido.
+                    </p>
+                  )}
                 </div>
 
                 <div className="orderFollowUp">
@@ -466,7 +512,15 @@ export function AdminOrdersBrowser({
                     {order.status === "PENDING" || order.status === "CONTACTED" ? (
                       <button
                         className="futureSaleButton"
-                        disabled={savingOrderId === order.id}
+                        disabled={
+                          savingOrderId === order.id ||
+                          (order.status === "CONTACTED" && !order.customerId)
+                        }
+                        title={
+                          order.status === "CONTACTED" && !order.customerId
+                            ? "Asocia un cliente antes de confirmar el pedido."
+                            : undefined
+                        }
                         type="button"
                         onClick={() => updateOrder(order, {
                           status: order.status === "PENDING" ? "CONTACTED" : "CONFIRMED",

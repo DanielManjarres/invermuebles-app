@@ -58,6 +58,13 @@ export async function PUT(
     ? currentOrder.customerId
     : body.customerId || null;
 
+  if (nextStatus === "CONFIRMED" && !nextCustomerId) {
+    return NextResponse.json(
+      { message: "Asocia un cliente antes de confirmar el pedido." },
+      { status: 409 },
+    );
+  }
+
   if (!canChangeOrderStructure(
     Boolean(currentOrder.sale),
     currentOrder.status,
@@ -74,11 +81,12 @@ export async function PUT(
   if (body.customerId) {
     const customer = await prisma.customer.findUnique({
       where: { id: body.customerId },
+      select: { id: true, status: true },
     });
 
-    if (!customer) {
+    if (!customer || customer.status !== "ACTIVE") {
       return NextResponse.json(
-        { message: "Selecciona un cliente valido para el pedido." },
+        { message: "Selecciona un cliente activo para el pedido." },
         { status: 400 }
       );
     }

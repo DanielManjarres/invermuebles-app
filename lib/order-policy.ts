@@ -7,9 +7,17 @@ export function canChangeOrderStructure(
   currentCustomerId: string | null,
   nextCustomerId: string | null,
 ) {
-  return !hasSale || (
-    currentStatus === nextStatus && currentCustomerId === nextCustomerId
-  );
+  const customerChanged = currentCustomerId !== nextCustomerId;
+
+  if (hasSale) {
+    return currentStatus === nextStatus && !customerChanged;
+  }
+
+  return !customerChanged || currentStatus === "PENDING" || currentStatus === "CONTACTED";
+}
+
+export function canEditOrderCustomer(status: OrderWorkflowStatus, hasSale: boolean) {
+  return !hasSale && (status === "PENDING" || status === "CONTACTED");
 }
 
 export function canDeleteOrder(hasSale: boolean) {

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   canChangeOrderStructure,
   canDeleteOrder,
+  canEditOrderCustomer,
   canPrepareOrderSale,
 } from "../../lib/order-policy.ts";
 import { canTransitionOrderStatus } from "../../lib/order-status-policy.ts";
@@ -29,6 +30,17 @@ test("keeps sold order status and customer immutable", () => {
   );
   assert.equal(
     canChangeOrderStructure(true, "CONFIRMED", "CONFIRMED", "customer-1", "customer-2"),
+    false,
+  );
+});
+
+test("edits or clears the customer only before confirmation", () => {
+  assert.equal(canEditOrderCustomer("PENDING", false), true);
+  assert.equal(canEditOrderCustomer("CONTACTED", false), true);
+  assert.equal(canEditOrderCustomer("CONFIRMED", false), false);
+  assert.equal(canEditOrderCustomer("CONTACTED", true), false);
+  assert.equal(
+    canChangeOrderStructure(false, "CONFIRMED", "CONFIRMED", "customer-1", "customer-2"),
     false,
   );
 });

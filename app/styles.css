@@ -2461,6 +2461,40 @@ th {
   gap: 6px;
 }
 
+.orderCustomerControls {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(180px, 0.75fr) minmax(220px, 1.25fr) max-content;
+  min-width: 0;
+}
+
+.orderCustomerSearch {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 900;
+  gap: 6px;
+  min-width: 0;
+}
+
+.orderCustomerSearch .searchBox {
+  min-width: 0;
+}
+
+.orderResetCustomer {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.orderCustomerLocked {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: 0;
+}
+
 .orderBadge {
   align-items: center;
   border-radius: 999px;
@@ -3707,6 +3741,14 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .orderCustomerControls {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .orderResetCustomer {
+    grid-column: 1 / -1;
+  }
+
   .saleCreditSummary {
     grid-template-columns: 1fr;
   }
@@ -4012,6 +4054,15 @@ th {
 
   .orderItems {
     grid-template-columns: 1fr;
+  }
+
+  .orderCustomerControls {
+    grid-template-columns: 1fr;
+  }
+
+  .orderResetCustomer {
+    grid-column: auto;
+    width: 100%;
   }
 
   .orderStatusControl,
