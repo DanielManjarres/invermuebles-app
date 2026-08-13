@@ -21,6 +21,7 @@ import type { AdminSale } from "@/lib/sales";
 type Props = {
   initialCredits: AdminCredit[];
   initialCustomers: AdminCustomer[];
+  initialQuery?: string;
   initialSales: AdminSale[];
 };
 
@@ -51,14 +52,19 @@ function getCustomerCredits(customerId: string, credits: AdminCredit[]) {
   return credits.filter((credit) => credit.customerId === customerId);
 }
 
-export function AdminCreditsManager({ initialCredits, initialCustomers, initialSales }: Props) {
+export function AdminCreditsManager({
+  initialCredits,
+  initialCustomers,
+  initialQuery = "",
+  initialSales,
+}: Props) {
   const [credits, setCredits] = useState(initialCredits);
   const [sales, setSales] = useState(initialSales);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [accountGroup, setAccountGroup] = useState<PortfolioAccountGroup>("OPEN");
   const [filter, setFilter] = useState<CreditFilter>("ALL");
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [amount, setAmount] = useState(0);
   const [method, setMethod] = useState<PaymentMethod | "">("");
   const [reference, setReference] = useState("");

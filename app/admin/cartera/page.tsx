@@ -7,7 +7,12 @@ import { getSales } from "@/lib/database-sales";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCreditsPage() {
+type Props = {
+  searchParams: Promise<{ buscar?: string }>;
+};
+
+export default async function AdminCreditsPage({ searchParams }: Props) {
+  const { buscar = "" } = await searchParams;
   const [credits, customers, sales] = await Promise.all([
     getCredits(),
     getCustomers(),
@@ -38,6 +43,7 @@ export default async function AdminCreditsPage() {
         <AdminCreditsManager
           initialCredits={credits}
           initialCustomers={customers}
+          initialQuery={buscar}
           initialSales={sales}
         />
       </div>
