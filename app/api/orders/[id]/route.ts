@@ -28,7 +28,7 @@ export async function PUT(
   const { id } = await params;
   const body = (await request.json()) as OrderUpdateRequest;
 
-  if (!body.status || !allowedStatuses.has(body.status)) {
+  if (body.status !== undefined && !allowedStatuses.has(body.status)) {
     return NextResponse.json(
       { message: "Selecciona un estado valido para el pedido." },
       { status: 400 }
@@ -44,7 +44,9 @@ export async function PUT(
     return NextResponse.json({ message: "No se encontró el pedido." }, { status: 404 });
   }
 
-  if (!canTransitionOrderStatus(currentOrder.status, body.status)) {
+  const nextStatus = body.status ?? currentOrder.status;
+
+  if (!canTransitionOrderStatus(currentOrder.status, nextStatus)) {
     return NextResponse.json(
       { message: "Cambia el estado del pedido paso a paso." },
       { status: 409 },
@@ -57,7 +59,7 @@ export async function PUT(
 
   if (
     currentOrder.sale &&
-    (body.status !== currentOrder.status || nextCustomerId !== currentOrder.customerId)
+    (nextStatus !== currentOrder.status || nextCustomerId !== currentOrder.customerId)
   ) {
     return NextResponse.json(
       { message: "El estado y el cliente no pueden cambiar porque el pedido ya tiene una venta." },
@@ -84,7 +86,7 @@ export async function PUT(
       data: {
         customerId:
           body.customerId === undefined ? undefined : body.customerId || null,
-        notes: body.notes?.trim() || null,
+        notes: body.notes === undefined ? undefined : body.notes.trim() || null,
         status: body.status,
       },
     });

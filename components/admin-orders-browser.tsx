@@ -96,22 +96,11 @@ export function AdminOrdersBrowser({
     () =>
       Object.fromEntries(initialOrders.map((order) => [order.id, order.notes]))
   );
-  const [draftCustomerIds, setDraftCustomerIds] = useState<Record<string, string>>(
-    () =>
-      Object.fromEntries(
-        initialOrders.map((order) => [order.id, order.customerId])
-      )
-  );
 
   useEffect(() => {
     setOrders(initialOrders);
     setDraftNotes(
       Object.fromEntries(initialOrders.map((order) => [order.id, order.notes]))
-    );
-    setDraftCustomerIds(
-      Object.fromEntries(
-        initialOrders.map((order) => [order.id, order.customerId])
-      )
     );
   }, [initialOrders]);
 
@@ -182,20 +171,26 @@ export function AdminOrdersBrowser({
 
   async function updateOrder(
     order: AdminOrder,
-    nextStatus = order.status,
-    nextNotes = draftNotes[order.id] ?? "",
-    nextCustomerId = draftCustomerIds[order.id] ?? ""
+    changes: {
+      customerId?: string;
+      notes?: string;
+      status?: AdminOrder["status"];
+    },
   ) {
+    if (savingOrderId) return;
+
     setSavingOrderId(order.id);
     setNotice("");
-    const selectedCustomer = findCustomer(nextCustomerId);
+    const selectedCustomer = changes.customerId === undefined
+      ? null
+      : findCustomer(changes.customerId);
 
     try {
       const response = await fetch(`/api/orders/${order.id}`, {
         body: JSON.stringify({
-          customerId: nextCustomerId || null,
-          notes: nextNotes,
-          status: nextStatus,
+          customerId: changes.customerId,
+          notes: changes.notes,
+          status: changes.status,
         }),
         headers: { "Content-Type": "application/json" },
         method: "PUT",
@@ -208,30 +203,24 @@ export function AdminOrdersBrowser({
       }
 
       setOrders((currentOrders) => {
-        if (nextStatus === "CANCELLED") {
-          return currentOrders.filter(
-            (currentOrder) => currentOrder.id !== order.id
-          );
-        }
-
         return currentOrders.map((currentOrder) =>
           currentOrder.id === order.id
             ? {
                 ...currentOrder,
-                customerId: nextCustomerId,
-                customerName: selectedCustomer?.fullName ?? "",
-                customerDocument: selectedCustomer?.document ?? "",
-                notes: nextNotes,
-                status: nextStatus,
+                customerId: changes.customerId ?? currentOrder.customerId,
+                customerName: changes.customerId === undefined
+                  ? currentOrder.customerName
+                  : selectedCustomer?.fullName ?? "",
+                customerDocument: changes.customerId === undefined
+                  ? currentOrder.customerDocument
+                  : selectedCustomer?.document ?? "",
+                notes: changes.notes ?? currentOrder.notes,
+                status: changes.status ?? currentOrder.status,
               }
             : currentOrder
         );
       });
-      setNotice(
-        nextStatus === "CANCELLED"
-          ? `Pedido #${order.shortId} cancelado y retirado de la bandeja.`
-          : `Pedido #${order.shortId} actualizado.`
-      );
+      setNotice(`Pedido #${order.shortId} actualizado.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -397,7 +386,7 @@ export function AdminOrdersBrowser({
                     <SelectMenu
                       disabled={savingOrderId === order.id || Boolean(order.saleId)}
                       onChange={(value) =>
-                        updateOrder(order, value as AdminOrder["status"])
+                        updateOrder(order, { status: value as AdminOrder["status"] })
                       }
                       options={getStatusMenuOptions(order.status)}
                       placeholder="Selecciona estado"
@@ -446,14 +435,11 @@ export function AdminOrdersBrowser({
                     <SelectMenu
                       disabled={savingOrderId === order.id || Boolean(order.saleId)}
                       onChange={(value) =>
-                        setDraftCustomerIds((currentCustomerIds) => ({
-                          ...currentCustomerIds,
-                          [order.id]: value,
-                        }))
+                        updateOrder(order, { customerId: value })
                       }
                       options={customerOptions}
                       placeholder="Sin cliente asociado"
-                      value={draftCustomerIds[order.id] ?? ""}
+                      value={order.customerId}
                     />
                   </label>
                 </div>
@@ -481,7 +467,7 @@ export function AdminOrdersBrowser({
                       className="secondaryButton"
                       disabled={savingOrderId === order.id}
                       type="button"
-                      onClick={() => updateOrder(order)}
+                      onClick={() => updateOrder(order, { notes: draftNotes[order.id] ?? "" })}
                     >
                       Guardar observación
                     </button>
