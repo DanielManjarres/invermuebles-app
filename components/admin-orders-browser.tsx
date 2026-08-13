@@ -31,12 +31,9 @@ const statusOptions: AdminOrder["status"][] = [
   "PENDING",
   "CONTACTED",
   "CONFIRMED",
-  "CANCELLED",
 ];
 
-const statusFilterOptions = statusOptions.filter(
-  (status) => status !== "CANCELLED"
-);
+const statusFilterOptions = statusOptions;
 
 const statusMenuOptions = statusOptions.map((status) => ({
   label: orderStatusLabels[status],

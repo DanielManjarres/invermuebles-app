@@ -5,9 +5,9 @@ export type OrderWorkflowStatus =
   | "CANCELLED";
 
 const adjacentStatuses: Record<OrderWorkflowStatus, OrderWorkflowStatus[]> = {
-  PENDING: ["CONTACTED", "CANCELLED"],
-  CONTACTED: ["PENDING", "CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["CONTACTED", "CANCELLED"],
+  PENDING: ["CONTACTED"],
+  CONTACTED: ["PENDING", "CONFIRMED"],
+  CONFIRMED: ["CONTACTED"],
   CANCELLED: [],
 };
 

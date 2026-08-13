@@ -14,7 +14,6 @@ const allowedStatuses = new Set<OrderStatus>([
   OrderStatus.PENDING,
   OrderStatus.CONTACTED,
   OrderStatus.CONFIRMED,
-  OrderStatus.CANCELLED,
 ]);
 
 export async function PUT(
