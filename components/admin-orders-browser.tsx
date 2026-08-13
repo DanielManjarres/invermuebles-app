@@ -19,6 +19,7 @@ import {
   type AdminOrder,
 } from "@/lib/orders";
 import type { AdminCustomer } from "@/lib/customers";
+import { canTransitionOrderStatus } from "@/lib/order-status-policy";
 import { SelectMenu } from "@/components/select-menu";
 
 const allStatuses = "all";
@@ -41,6 +42,12 @@ const statusMenuOptions = statusOptions.map((status) => ({
   label: orderStatusLabels[status],
   value: status,
 }));
+
+function getStatusMenuOptions(currentStatus: AdminOrder["status"]) {
+  return statusMenuOptions.filter(({ value }) =>
+    canTransitionOrderStatus(currentStatus, value),
+  );
+}
 
 const statusIcons: Record<AdminOrder["status"], ReactNode> = {
   PENDING: <Clock3 size={16} />,
@@ -395,7 +402,7 @@ export function AdminOrdersBrowser({
                       onChange={(value) =>
                         updateOrder(order, value as AdminOrder["status"])
                       }
-                      options={statusMenuOptions}
+                      options={getStatusMenuOptions(order.status)}
                       placeholder="Selecciona estado"
                       value={order.status}
                     />

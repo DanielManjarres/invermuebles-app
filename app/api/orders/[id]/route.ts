@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { OrderStatus } from "@prisma/client";
 import { requireAdminSession } from "@/lib/admin-session";
+import { canTransitionOrderStatus } from "@/lib/order-status-policy";
 import { prisma } from "@/lib/prisma";
 
 type OrderUpdateRequest = {
@@ -35,6 +36,22 @@ export async function PUT(
     );
   }
 
+  const currentOrder = await prisma.order.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+
+  if (!currentOrder) {
+    return NextResponse.json({ message: "No se encontró el pedido." }, { status: 404 });
+  }
+
+  if (!canTransitionOrderStatus(currentOrder.status, body.status)) {
+    return NextResponse.json(
+      { message: "Cambia el estado del pedido paso a paso." },
+      { status: 409 },
+    );
+  }
+
   if (body.customerId) {
     const customer = await prisma.customer.findUnique({
       where: { id: body.customerId },
@@ -49,8 +66,8 @@ export async function PUT(
   }
 
   try {
-    const order = await prisma.order.update({
-      where: { id },
+    const result = await prisma.order.updateMany({
+      where: { id, status: currentOrder.status },
       data: {
         customerId:
           body.customerId === undefined ? undefined : body.customerId || null,
@@ -59,7 +76,14 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({ id: order.id });
+    if (!result.count) {
+      return NextResponse.json(
+        { message: "El pedido cambió mientras se actualizaba. Recarga e intenta de nuevo." },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json({ id });
   } catch {
     return NextResponse.json(
       { message: "No se pudo actualizar el pedido." },
