@@ -3,9 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  CreditCard,
   Minus,
-  PackageCheck,
   PackageSearch,
   Plus,
   ReceiptText,
@@ -15,10 +13,11 @@ import {
 import type { AdminCustomer } from "@/lib/customers";
 import type { AdminOrder } from "@/lib/orders";
 import type { Product } from "@/lib/products";
+import { MoneyInput } from "@/components/admin-sales/form-controls";
+import { AdminSalesHistory } from "@/components/admin-sales/sales-history";
+import { AdminSalesModals } from "@/components/admin-sales/sales-modals";
 import {
   paymentMethodLabels,
-  saleSourceLabels,
-  saleStatusLabels,
   saleTypeLabels,
   type AdminSale,
   type PaymentMethod,
@@ -54,17 +53,6 @@ const paymentMethodOptions = Object.entries(paymentMethodLabels).map(
   })
 );
 
-const sourceFilters = [
-  { label: "Todas", value: "ALL" },
-  { label: "Locales", value: "LOCAL" },
-  { label: "Desde pedidos", value: "ORDER" },
-];
-
-const creditStatusOptions = [
-  { label: "Activo", value: "ACTIVE" },
-  { label: "En mora", value: "OVERDUE" },
-];
-
 function formatMoney(value: number) {
   return new Intl.NumberFormat("es-CO", {
     maximumFractionDigits: 0,
@@ -75,56 +63,6 @@ function formatMoney(value: number) {
 
 function normalizeText(value: string) {
   return value.trim().toLowerCase();
-}
-
-function formatNumericInput(value: number) {
-  return new Intl.NumberFormat("es-CO", {
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-type MoneyInputProps = {
-  value: number;
-  onValueChange: (value: number) => void;
-};
-
-function MoneyInput({ value, onValueChange }: MoneyInputProps) {
-  const [textValue, setTextValue] = useState(
-    value > 0 ? formatNumericInput(value) : ""
-  );
-  const [isFocused, setIsFocused] = useState(false);
-
-  useEffect(() => {
-    if (!isFocused) {
-      setTextValue(value > 0 ? formatNumericInput(value) : "");
-    }
-  }, [isFocused, value]);
-
-  function handleChange(nextValue: string) {
-    const digits = nextValue.replace(/\D/g, "");
-    setTextValue(digits);
-    onValueChange(digits ? Number(digits) : 0);
-  }
-
-  return (
-    <input
-      aria-label="Valor en pesos"
-      autoComplete="off"
-      inputMode="numeric"
-      onBlur={() => {
-        setIsFocused(false);
-        setTextValue(value > 0 ? formatNumericInput(value) : "");
-      }}
-      onChange={(event) => handleChange(event.target.value)}
-      onFocus={() => {
-        setIsFocused(true);
-        setTextValue(value > 0 ? String(value) : "");
-      }}
-      placeholder="0"
-      type="text"
-      value={textValue}
-    />
-  );
 }
 
 type QuantityInputProps = {
@@ -1125,276 +1063,47 @@ export function AdminSalesManager({
           </div>
         </article>
 
-        <article className="salesHistoryPanel">
-          <div className="sectionHeader">
-            <div>
-              <p className="eyebrow">Historial comercial</p>
-              <h2>Ventas registradas</h2>
-            </div>
-          </div>
-
-          <label className="searchBox">
-            <Search size={18} />
-            <input
-              onChange={(event) => setHistoryQuery(event.target.value)}
-              placeholder="Buscar por venta, cliente o producto"
-              type="search"
-              value={historyQuery}
-            />
-          </label>
-
-          <div className="filterGroup saleHistoryFilters" aria-label="Filtrar ventas">
-            {sourceFilters.map((filter) => (
-              <button
-                className={
-                  sourceFilter === filter.value ? "filterButton active" : "filterButton"
-                }
-                key={filter.value}
-                type="button"
-                onClick={() => setSourceFilter(filter.value)}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="salesList">
-            {filteredSales.length === 0 ? (
-              <div className="emptyState compactEmptyState">
-                <h2>No hay ventas registradas</h2>
-                <p>Cuando finalices una venta, aparecerá en este historial.</p>
-              </div>
-            ) : (
-              filteredSales.map((sale) => (
-                <article className="saleHistoryCard" key={sale.id}>
-                  <div>
-                    <span className="saleBadge">{saleStatusLabels[sale.status]}</span>
-                    <h3>Venta #{sale.shortId}</h3>
-                    <p>
-                      {sale.createdAt} · {saleSourceLabels[sale.source]} ·{" "}
-                      {saleTypeLabels[sale.type]}
-                      {sale.paymentMethod
-                        ? ` · ${paymentMethodLabels[sale.paymentMethod]}`
-                        : ""}
-                      {sale.creditMonths && sale.interestRate !== null
-                        ? ` · ${sale.creditMonths} meses · ${sale.interestRate} % interés`
-                        : ""}
-                    </p>
-                  </div>
-                  <div>
-                    <strong>{sale.customerName}</strong>
-                    <span>
-                      {sale.customerDocument
-                        ? `CC ${sale.customerDocument}`
-                        : "Sin cédula"}
-                    </span>
-                  </div>
-                  <div className="saleHistoryItems">
-                    {sale.items.map((item) => (
-                      <span key={item.id}>
-                        {item.productName} x {item.quantity}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="salePaymentSummary">
-                    <strong>{formatMoney(sale.total)}</strong>
-                    <span>Recibido: {formatMoney(sale.amountPaid)}</span>
-                    {sale.balance > 0 ? (
-                      <span>Saldo: {formatMoney(sale.balance)}</span>
-                    ) : null}
-                  </div>
-                  {sale.status !== "CANCELLED" ? (
-                    <div className="saleHistoryActions">
-                      {sale.status === "PENDING_DELIVERY" ? (
-                        <button
-                          className="primaryButton"
-                          disabled={Boolean(deliveringSaleId)}
-                          type="button"
-                          onClick={() => deliverSale(sale)}
-                        >
-                          <PackageCheck size={16} />
-                          {deliveringSaleId === sale.id ? "Confirmando..." : "Marcar entregada"}
-                        </button>
-                      ) : null}
-                      {sale.type === "RESERVED" || sale.type === "CREDIT" || sale.type === "CREDIT_CASH" ? (
-                        <a
-                          className="secondaryButton"
-                          href={`/admin/cartera?buscar=${encodeURIComponent(
-                            sale.customerDocument || sale.customerName,
-                          )}`}
-                        >
-                          <CreditCard size={16} />
-                          Ver en Cartera
-                        </a>
-                      ) : null}
-                      {(sale.type === "CREDIT" || sale.type === "CREDIT_CASH") && !sale.creditId ? (
-                        <button
-                          className="secondaryButton"
-                          type="button"
-                          onClick={() => openCreditConfiguration(sale)}
-                        >
-                          <CreditCard size={16} />
-                          Configurar crédito
-                        </button>
-                      ) : null}
-                      <button
-                        className="dangerButton"
-                        type="button"
-                        onClick={() => {
-                          setSaleToDelete(sale);
-                          setSaleDeleteConfirmation("");
-                        }}
-                      >
-                        <Trash2 size={16} />
-                        Eliminar venta
-                      </button>
-                    </div>
-                  ) : null}
-                </article>
-              ))
-            )}
-          </div>
-        </article>
+        <AdminSalesHistory
+          deliveringSaleId={deliveringSaleId}
+          query={historyQuery}
+          sales={filteredSales}
+          sourceFilter={sourceFilter}
+          onDelete={(sale) => {
+            setSaleToDelete(sale);
+            setSaleDeleteConfirmation("");
+          }}
+          onDeliver={deliverSale}
+          onFinance={openCreditConfiguration}
+          onQueryChange={setHistoryQuery}
+          onSourceFilterChange={setSourceFilter}
+        />
       </div>
 
-      {saleToDelete ? (
-        <div className="adminModalBackdrop" role="presentation">
-          <div
-            aria-labelledby="delete-sale-title"
-            aria-modal="true"
-            className="adminModal recordDeleteModal"
-            role="dialog"
-          >
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Acción permanente</p>
-                <h2 id="delete-sale-title">Eliminar venta</h2>
-              </div>
-              <button
-                className="iconButton"
-                type="button"
-                title="Cerrar"
-                onClick={() => {
-                  setSaleToDelete(null);
-                  setSaleDeleteConfirmation("");
-                }}
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            </div>
-            <div className="recordDeleteWarning">
-              La venta se eliminará permanentemente. Si tiene un crédito sin abonos posteriores,
-              también se eliminarán el crédito y su pago inicial. Las existencias volverán al inventario.
-            </div>
-            <div className="recordDeleteTarget">
-              <span>Venta seleccionada</span>
-              <strong>Venta #{saleToDelete.shortId}</strong>
-              <small>{saleToDelete.customerName}</small>
-            </div>
-            <label className="deleteConfirmationField">
-              Escribe ELIMINAR para confirmar
-              <input
-                value={saleDeleteConfirmation}
-                onChange={(event) => setSaleDeleteConfirmation(event.target.value)}
-              />
-            </label>
-            <div className="modalActions">
-              <button
-                className="secondaryButton"
-                type="button"
-                onClick={() => {
-                  setSaleToDelete(null);
-                  setSaleDeleteConfirmation("");
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                className="dangerButton"
-                disabled={deletingSaleId === saleToDelete.id || saleDeleteConfirmation !== "ELIMINAR"}
-                type="button"
-                onClick={() => deleteSale(saleToDelete)}
-              >
-                <Trash2 size={17} />
-                {deletingSaleId === saleToDelete.id
-                  ? "Eliminando..."
-                  : "Eliminar permanentemente"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {saleToFinance ? (
-        <div className="adminModalBackdrop" role="presentation">
-          <form
-            aria-labelledby="configure-credit-title"
-            aria-modal="true"
-            className="adminModal"
-            role="dialog"
-            onSubmit={configureCredit}
-          >
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Venta #{saleToFinance.shortId}</p>
-                <h2 id="configure-credit-title">Configurar crédito</h2>
-              </div>
-              <button className="iconButton" disabled={isFinancingSale} type="button" onClick={() => setSaleToFinance(null)}>
-                <span aria-hidden="true">×</span>
-              </button>
-            </div>
-
-            <div className="recordDeleteTarget">
-              <span>Venta conservada</span>
-              <strong>{saleToFinance.customerName}</strong>
-              <small>Total de la venta: {formatMoney(saleToFinance.total)}</small>
-            </div>
-
-            <div className="adminFormGrid">
-              <label>
-                Plazo en meses
-                <input min="1" max="120" type="number" value={financeMonths} onChange={(event) => setFinanceMonths(Number(event.target.value))} />
-              </label>
-              <label>
-                Interés (%)
-                <input min="0" max="100" step="0.01" type="number" value={financeInterestRate} onChange={(event) => setFinanceInterestRate(Number(event.target.value))} />
-              </label>
-              <label>
-                Pago inicial
-                <MoneyInput value={financeInitialPayment} onValueChange={setFinanceInitialPayment} />
-              </label>
-              <label>
-                Medio del pago inicial
-                <SelectMenu
-                  disabled={!financeInitialPayment}
-                  options={paymentMethodOptions}
-                  placeholder="Sin pago inicial"
-                  value={financePaymentMethod}
-                  onChange={(value) => setFinancePaymentMethod(value as PaymentMethod)}
-                />
-              </label>
-              <label>
-                Estado
-                <SelectMenu
-                  options={creditStatusOptions}
-                  placeholder="Selecciona estado"
-                  value={financeStatus}
-                  onChange={(value) => setFinanceStatus(value as "ACTIVE" | "OVERDUE")}
-                />
-              </label>
-            </div>
-
-            <div className="modalActions">
-              <button className="secondaryButton" disabled={isFinancingSale} type="button" onClick={() => setSaleToFinance(null)}>
-                Cancelar
-              </button>
-              <button className="primaryButton" disabled={isFinancingSale} type="submit">
-                {isFinancingSale ? "Configurando..." : "Crear crédito"}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
+      <AdminSalesModals
+        deleteConfirmation={saleDeleteConfirmation}
+        deletingSaleId={deletingSaleId}
+        financeInitialPayment={financeInitialPayment}
+        financeInterestRate={financeInterestRate}
+        financeMethod={financePaymentMethod}
+        financeMonths={financeMonths}
+        financeStatus={financeStatus}
+        financing={isFinancingSale}
+        saleToDelete={saleToDelete}
+        saleToFinance={saleToFinance}
+        onDeleteClose={() => {
+          setSaleToDelete(null);
+          setSaleDeleteConfirmation("");
+        }}
+        onDeleteConfirm={deleteSale}
+        onDeleteConfirmationChange={setSaleDeleteConfirmation}
+        onFinanceClose={() => setSaleToFinance(null)}
+        onFinanceInitialPaymentChange={setFinanceInitialPayment}
+        onFinanceInterestRateChange={setFinanceInterestRate}
+        onFinanceMethodChange={setFinancePaymentMethod}
+        onFinanceMonthsChange={setFinanceMonths}
+        onFinanceStatusChange={setFinanceStatus}
+        onFinanceSubmit={configureCredit}
+      />
     </section>
   );
 }
