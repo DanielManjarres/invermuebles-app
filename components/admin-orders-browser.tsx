@@ -398,7 +398,7 @@ export function AdminOrdersBrowser({
                   <label className="orderStatusControl">
                     Estado
                     <SelectMenu
-                      disabled={savingOrderId === order.id}
+                      disabled={savingOrderId === order.id || Boolean(order.saleId)}
                       onChange={(value) =>
                         updateOrder(order, value as AdminOrder["status"])
                       }
@@ -447,7 +447,7 @@ export function AdminOrdersBrowser({
                   <label className="orderCustomerControl">
                     Asociar cliente
                     <SelectMenu
-                      disabled={savingOrderId === order.id}
+                      disabled={savingOrderId === order.id || Boolean(order.saleId)}
                       onChange={(value) =>
                         setDraftCustomerIds((currentCustomerIds) => ({
                           ...currentCustomerIds,

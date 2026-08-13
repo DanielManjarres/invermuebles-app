@@ -38,7 +38,7 @@ export async function PUT(
 
   const currentOrder = await prisma.order.findUnique({
     where: { id },
-    select: { status: true },
+    select: { customerId: true, sale: { select: { id: true } }, status: true },
   });
 
   if (!currentOrder) {
@@ -48,6 +48,20 @@ export async function PUT(
   if (!canTransitionOrderStatus(currentOrder.status, body.status)) {
     return NextResponse.json(
       { message: "Cambia el estado del pedido paso a paso." },
+      { status: 409 },
+    );
+  }
+
+  const nextCustomerId = body.customerId === undefined
+    ? currentOrder.customerId
+    : body.customerId || null;
+
+  if (
+    currentOrder.sale &&
+    (body.status !== currentOrder.status || nextCustomerId !== currentOrder.customerId)
+  ) {
+    return NextResponse.json(
+      { message: "El estado y el cliente no pueden cambiar porque el pedido ya tiene una venta." },
       { status: 409 },
     );
   }
