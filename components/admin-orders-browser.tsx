@@ -466,13 +466,33 @@ export function AdminOrdersBrowser({
                     />
                   </label>
                   <div className="orderActionGroup">
+                    {order.status === "PENDING" || order.status === "CONTACTED" ? (
+                      <button
+                        className="futureSaleButton"
+                        disabled={savingOrderId === order.id}
+                        type="button"
+                        onClick={() => updateOrder(order, {
+                          status: order.status === "PENDING" ? "CONTACTED" : "CONFIRMED",
+                        })}
+                      >
+                        {order.status === "PENDING"
+                          ? <MessageCircle size={18} />
+                          : <CheckCircle2 size={18} />}
+                        {order.status === "PENDING" ? "Marcar contactado" : "Confirmar pedido"}
+                      </button>
+                    ) : null}
                     <button
                       className="secondaryButton"
-                      disabled={savingOrderId === order.id}
+                      disabled={
+                        savingOrderId === order.id ||
+                        (draftNotes[order.id] ?? "") === order.notes
+                      }
                       type="button"
                       onClick={() => updateOrder(order, { notes: draftNotes[order.id] ?? "" })}
                     >
-                      Guardar observación
+                      {(draftNotes[order.id] ?? "") === order.notes
+                        ? "Observación guardada"
+                        : "Guardar observación"}
                     </button>
 
                     {order.status === "CONFIRMED" ? (

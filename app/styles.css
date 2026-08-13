@@ -2295,11 +2295,16 @@ th {
 }
 
 .ordersSection .movementToolbar {
-  grid-template-columns: minmax(320px, 0.8fr) minmax(650px, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ordersSection .searchBox {
+  min-width: 0;
 }
 
 .ordersSection .inventoryFilters {
   flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 .ordersSection .filterButton {
@@ -2420,7 +2425,7 @@ th {
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(320px, 1fr);
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
 }
 
 .orderCustomerInfo {
@@ -2521,7 +2526,7 @@ th {
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(190px, 0.5fr) minmax(320px, 1fr) auto;
+  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1.2fr) minmax(205px, auto);
 }
 
 .orderActionGroup {
