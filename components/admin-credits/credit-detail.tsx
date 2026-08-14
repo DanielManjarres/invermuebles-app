@@ -82,12 +82,6 @@ export function AdminCreditDetail({
         </p>
       ) : null}
 
-      {credit.status === "CANCELLED" ? (
-        <p className="creditFormMessage error">
-          Esta cuenta fue cancelada. No se pueden registrar abonos nuevos.
-        </p>
-      ) : null}
-
       <div className="creditFigures">
         <article>
           <span>Capital inicial</span>

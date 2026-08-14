@@ -134,8 +134,8 @@ export async function PATCH(request: Request, context: RouteContext) {
         throw new Error("Crédito no encontrado.");
       }
 
-      if (credit.status === "PAID" || credit.status === "CANCELLED") {
-        throw new Error("Los créditos pagados o cancelados no se pueden editar.");
+      if (credit.status === "PAID") {
+        throw new Error("Los créditos pagados no se pueden editar.");
       }
 
       if (credit.payments.length || credit.sale.payments.some((payment) => !payment.isInitial)) {
@@ -244,8 +244,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
         throw new Error("Crédito no encontrado.");
       }
 
-      if (credit.status === "PAID" || credit.status === "CANCELLED") {
-        throw new Error("Los créditos pagados o cancelados deben conservar su historial.");
+      if (credit.status === "PAID") {
+        throw new Error("Los créditos pagados deben conservar su historial.");
       }
 
       if (credit.payments.length || credit.sale.payments.some((payment) => !payment.isInitial)) {

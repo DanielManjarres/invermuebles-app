@@ -50,7 +50,6 @@ const statusIcons: Record<AdminOrder["status"], ReactNode> = {
   PENDING: <Clock3 size={16} />,
   CONTACTED: <MessageCircle size={16} />,
   CONFIRMED: <CheckCircle2 size={16} />,
-  CANCELLED: <XCircle size={16} />,
 };
 
 function getStatusMenuOptions(order: AdminOrder) {

@@ -142,7 +142,7 @@ export async function getCreditStats(): Promise<CreditStats> {
         stats.paid += 1;
       }
 
-      if (credit.status !== "PAID" && credit.status !== "CANCELLED") {
+      if (credit.status !== "PAID") {
         stats.totalBalance += balance;
       }
 

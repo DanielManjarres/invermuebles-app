@@ -74,5 +74,4 @@ export const saleStatusLabels: Record<SaleStatus, string> = {
   PENDING_PAYMENT: "Pendiente de pago",
   PENDING_DELIVERY: "Pendiente de entrega",
   DELIVERED: "Entregada",
-  CANCELLED: "Cancelada",
 };

@@ -110,7 +110,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
       });
 
       if (!sale) throw new Error("SALE_NOT_FOUND");
-      if (sale.status === "CANCELLED") throw new Error("SALE_CANCELLED");
       if (sale.status === "DELIVERED") throw new Error("SALE_DELIVERED");
 
       const hasLaterCreditPayments = Boolean(
@@ -173,13 +172,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
     if (message === "SALE_NOT_FOUND") {
       return NextResponse.json({ message: "No se encontró la venta." }, { status: 404 });
-    }
-
-    if (message === "SALE_CANCELLED") {
-      return NextResponse.json(
-        { message: "Esta venta ya estaba anulada y no puede eliminarse desde este flujo." },
-        { status: 409 },
-      );
     }
 
     if (message === "CREDIT_HAS_PAYMENTS") {

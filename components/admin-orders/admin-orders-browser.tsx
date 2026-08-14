@@ -93,15 +93,10 @@ export function AdminOrdersBrowser({
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const visibleOrders = useMemo(
-    () => orders.filter((order) => order.status !== "CANCELLED"),
-    [orders],
-  );
-
   const filteredOrders = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return visibleOrders.filter((order) => {
+    return orders.filter((order) => {
         const matchesStatus =
           activeStatus === allStatuses || order.status === activeStatus;
         const matchesQuery =
@@ -110,19 +105,19 @@ export function AdminOrdersBrowser({
 
         return matchesStatus && matchesQuery;
       });
-  }, [activeStatus, query, visibleOrders]);
+  }, [activeStatus, orders, query]);
 
   const orderStats = useMemo(
     () => ({
-      total: visibleOrders.length,
-      pending: visibleOrders.filter((order) => order.status === "PENDING")
+      total: orders.length,
+      pending: orders.filter((order) => order.status === "PENDING")
         .length,
-      contacted: visibleOrders.filter((order) => order.status === "CONTACTED")
+      contacted: orders.filter((order) => order.status === "CONTACTED")
         .length,
-      confirmed: visibleOrders.filter((order) => order.status === "CONFIRMED")
+      confirmed: orders.filter((order) => order.status === "CONFIRMED")
         .length,
     }),
-    [visibleOrders]
+    [orders]
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ordersPerPage));
