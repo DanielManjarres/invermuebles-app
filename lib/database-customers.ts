@@ -1,5 +1,8 @@
 import type { Prisma } from "@prisma/client";
-import type { AdminCustomer } from "@/lib/customers";
+import {
+  getCustomerPortfolioStatus,
+  type AdminCustomer,
+} from "@/lib/customers";
 import { prisma } from "@/lib/prisma";
 
 const customerInclude = {
@@ -35,6 +38,14 @@ function formatDate(date?: Date | null) {
 }
 
 function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
+  const overdueCreditsCount = customer.credits.filter(
+    (credit) => credit.status === "OVERDUE"
+  ).length;
+  const status = getCustomerPortfolioStatus(
+    customer.status,
+    overdueCreditsCount
+  );
+
   return {
     id: customer.id,
     fullName: customer.fullName,
@@ -47,7 +58,7 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
     referenceName: customer.referenceName ?? "",
     referenceRelation: customer.referenceRelation ?? "",
     referencePhone: customer.referencePhone ?? "",
-    status: customer.status,
+    status,
     notes: customer.notes ?? "",
     createdAt: formatDate(customer.createdAt),
     updatedAt: formatDate(customer.updatedAt),
@@ -56,6 +67,7 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
     activeCreditsCount: customer.credits.filter(
       (credit) => credit.status === "ACTIVE" || credit.status === "OVERDUE"
     ).length,
+    overdueCreditsCount,
     lastOrderAt: formatDate(customer.orders[0]?.createdAt),
   };
 }

@@ -21,7 +21,6 @@ type CustomerRequest = {
 
 const validStatuses = new Set<CustomerStatus>([
   "ACTIVE",
-  "OVERDUE",
   "INACTIVE",
   "BLOCKED",
 ]);

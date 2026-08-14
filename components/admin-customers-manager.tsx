@@ -55,7 +55,13 @@ const customerStatuses: AdminCustomer["status"][] = [
   "BLOCKED",
 ];
 
-const customerStatusOptions = customerStatuses.map((status) => ({
+const editableCustomerStatuses: AdminCustomer["status"][] = [
+  "ACTIVE",
+  "INACTIVE",
+  "BLOCKED",
+];
+
+const customerStatusOptions = editableCustomerStatuses.map((status) => ({
   label: customerStatusLabels[status],
   value: status,
 }));
@@ -93,13 +99,19 @@ function buildCustomerFromForm(
     referencePhone: cleanText(form.referencePhone),
     referenceRelation: cleanText(form.referenceRelation),
     email: cleanText(form.email).toLowerCase(),
-    status: form.status,
+    status:
+      form.status === "INACTIVE" || form.status === "BLOCKED"
+        ? form.status
+        : (base?.overdueCreditsCount ?? 0) > 0
+          ? "OVERDUE"
+          : "ACTIVE",
     notes: cleanText(form.notes),
     createdAt: base?.createdAt ?? now,
     updatedAt: now,
     ordersCount: base?.ordersCount ?? 0,
     creditsCount: base?.creditsCount ?? 0,
     activeCreditsCount: base?.activeCreditsCount ?? 0,
+    overdueCreditsCount: base?.overdueCreditsCount ?? 0,
     lastOrderAt: base?.lastOrderAt ?? "Sin registros",
   };
 }
@@ -137,7 +149,10 @@ export function AdminCustomersManager({
 
     return customers.filter((customer) => {
       const matchesStatus =
-        activeStatus === "ALL" || customer.status === activeStatus;
+        activeStatus === "ALL" ||
+        (activeStatus === "OVERDUE"
+          ? customer.overdueCreditsCount > 0
+          : customer.status === activeStatus);
       const matchesQuery =
         normalizedQuery.length === 0 ||
         [
@@ -166,7 +181,8 @@ export function AdminCustomersManager({
     () => ({
       total: customers.length,
       active: customers.filter((customer) => customer.status === "ACTIVE").length,
-      overdue: customers.filter((customer) => customer.status === "OVERDUE").length,
+      overdue: customers.filter((customer) => customer.overdueCreditsCount > 0)
+        .length,
       withCredits: customers.filter((customer) => customer.activeCreditsCount > 0)
         .length,
     }),

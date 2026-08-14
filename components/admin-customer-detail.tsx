@@ -43,14 +43,13 @@ type AdminCustomerDetailProps = {
   customer: AdminCustomer;
 };
 
-const customerStatuses: AdminCustomer["status"][] = [
+const editableCustomerStatuses: AdminCustomer["status"][] = [
   "ACTIVE",
-  "OVERDUE",
   "INACTIVE",
   "BLOCKED",
 ];
 
-const customerStatusOptions = customerStatuses.map((status) => ({
+const customerStatusOptions = editableCustomerStatuses.map((status) => ({
   label: customerStatusLabels[status],
   value: status,
 }));
@@ -72,7 +71,7 @@ function createFormFromCustomer(customer: AdminCustomer): CustomerFormState {
     referenceName: customer.referenceName,
     referencePhone: customer.referencePhone,
     referenceRelation: customer.referenceRelation,
-    status: customer.status,
+    status: customer.status === "OVERDUE" ? "ACTIVE" : customer.status,
   };
 }
 
@@ -93,7 +92,12 @@ function buildCustomerFromForm(
     referenceName: cleanText(form.referenceName),
     referencePhone: cleanText(form.referencePhone),
     referenceRelation: cleanText(form.referenceRelation),
-    status: form.status,
+    status:
+      form.status === "INACTIVE" || form.status === "BLOCKED"
+        ? form.status
+        : base.overdueCreditsCount > 0
+          ? "OVERDUE"
+          : "ACTIVE",
     updatedAt: new Date().toLocaleString("es-CO", {
       dateStyle: "short",
       timeStyle: "short",

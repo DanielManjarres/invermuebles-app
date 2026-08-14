@@ -19,6 +19,7 @@ export type AdminCustomer = {
   ordersCount: number;
   creditsCount: number;
   activeCreditsCount: number;
+  overdueCreditsCount: number;
   lastOrderAt: string;
 };
 
@@ -31,7 +32,18 @@ export const customerStatusLabels: Record<CustomerStatus, string> = {
 
 export const customerStatusDescriptions: Record<CustomerStatus, string> = {
   ACTIVE: "Cliente habilitado para compras y seguimiento normal.",
-  OVERDUE: "Cliente con pagos o cuotas pendientes por revisar.",
+  OVERDUE: "Estado calculado a partir de créditos actualmente en mora.",
   INACTIVE: "Cliente sin movimiento reciente o pausado temporalmente.",
   BLOCKED: "Cliente restringido por decision administrativa.",
 };
+
+export function getCustomerPortfolioStatus(
+  status: CustomerStatus,
+  overdueCreditsCount: number
+): CustomerStatus {
+  if (status === "INACTIVE" || status === "BLOCKED") {
+    return status;
+  }
+
+  return overdueCreditsCount > 0 ? "OVERDUE" : "ACTIVE";
+}
