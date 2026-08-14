@@ -21,6 +21,8 @@ type AdminCustomersManagerProps = {
   customers: AdminCustomer[];
 };
 
+const customersPerPage = 10;
+
 const emptyCustomerForm: CustomerFormState = {
   address: "",
   city: "",
@@ -115,6 +117,7 @@ export function AdminCustomersManager({
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setCustomers(initialCustomers);
@@ -161,6 +164,23 @@ export function AdminCustomersManager({
       return matchesStatus && matchesQuery;
     });
   }, [activeStatus, customers, query]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCustomers.length / customersPerPage)
+  );
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * customersPerPage;
+    return filteredCustomers.slice(start, start + customersPerPage);
+  }, [currentPage, filteredCustomers]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeStatus, query]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
 
   const customerStats = useMemo(
     () => ({
@@ -339,7 +359,7 @@ export function AdminCustomersManager({
               <p>Cuando registres clientes, apareceran en esta pantalla.</p>
             </div>
           ) : (
-            filteredCustomers.map((customer) => (
+            paginatedCustomers.map((customer) => (
               <Link
                 className="customerDirectoryItem"
                 href={`/admin/clientes/${customer.id}`}
@@ -368,6 +388,30 @@ export function AdminCustomersManager({
             ))
           )}
       </div>
+
+      {totalPages > 1 ? (
+        <div className="paginationControls">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+          >
+            Anterior
+          </button>
+          <span>
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={currentPage === totalPages}
+            onClick={() =>
+              setCurrentPage((page) => Math.min(totalPages, page + 1))
+            }
+          >
+            Siguiente
+          </button>
+        </div>
+      ) : null}
 
       {isFormOpen ? (
         <CustomerFormModal
