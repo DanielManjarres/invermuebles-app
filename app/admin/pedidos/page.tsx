@@ -1,4 +1,4 @@
-import { AdminOrdersBrowser } from "@/components/admin-orders-browser";
+import { AdminOrdersBrowser } from "@/components/admin-orders/admin-orders-browser";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
 import { getCustomers } from "@/lib/database-customers";

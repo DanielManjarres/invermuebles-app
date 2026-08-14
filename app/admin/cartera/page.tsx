@@ -1,4 +1,4 @@
-import { AdminCreditsManager } from "@/components/admin-credits-manager";
+import { AdminCreditsManager } from "@/components/admin-credits/admin-credits-manager";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
 import { getCredits } from "@/lib/database-credits";

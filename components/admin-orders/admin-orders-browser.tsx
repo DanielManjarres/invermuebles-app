@@ -6,8 +6,8 @@ import { Search } from "lucide-react";
 import {
   AdminOrderCard,
   type AdminOrderChanges,
-} from "@/components/admin-order-card";
-import { AdminOrderDeleteModal } from "@/components/admin-order-delete-modal";
+} from "@/components/admin-orders/admin-order-card";
+import { AdminOrderDeleteModal } from "@/components/admin-orders/admin-order-delete-modal";
 import {
   orderStatusLabels,
   type AdminOrder,
