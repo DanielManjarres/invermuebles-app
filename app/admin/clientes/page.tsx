@@ -1,4 +1,4 @@
-import { AdminCustomersManager } from "@/components/admin-customers-manager";
+import { AdminCustomersManager } from "@/components/admin-customers/admin-customers-manager";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
 import { getCustomers } from "@/lib/database-customers";

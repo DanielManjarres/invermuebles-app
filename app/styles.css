@@ -3205,7 +3205,12 @@ th {
 }
 
 .customerDetailProfile {
-  margin-top: 18px;
+  margin-top: 0;
+}
+
+.customerDetailSection {
+  gap: 14px;
+  padding-top: 24px;
 }
 
 .backLink {
@@ -3225,7 +3230,7 @@ th {
 .customerHistoryGrid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .customerHistoryGrid {
@@ -3268,6 +3273,154 @@ th {
   color: var(--muted);
   font-weight: 700;
   line-height: 1.45;
+  margin: 0;
+}
+
+.customerHistoryGrid small a {
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.customerHistoryTotals,
+.customerHistoryActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.customerHistoryTotals {
+  gap: 6px 16px;
+}
+
+.customerHistoryActions {
+  border-top: 1px solid var(--line);
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.customerHistoryActions a {
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.customerActivityPanel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.customerActivityHeader {
+  align-items: flex-start;
+  background: var(--surface-strong);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.customerActivityHeader div,
+.customerActivityValues {
+  display: grid;
+  gap: 3px;
+}
+
+.customerActivityHeader small,
+.customerActivityList span,
+.customerActivityList small,
+.customerPaymentList span,
+.customerPaymentList small {
+  color: var(--muted);
+}
+
+.customerActivityHeader a {
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.customerActivityList,
+.customerPaymentList {
+  display: grid;
+}
+
+.customerActivityList article {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+.customerActivityList article:last-child,
+.customerPaymentList article:last-child {
+  border-bottom: 0;
+}
+
+.customerActivityList article > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.customerActivityList span,
+.customerActivityList small,
+.customerPaymentList span,
+.customerPaymentList small {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.customerActivityValues {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.customerPaymentList article {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr auto;
+  padding: 8px 14px;
+}
+
+.customerPaymentList article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.customerActivityEmpty {
+  color: var(--muted);
+  margin: 0;
+  padding: 18px 14px;
+}
+
+.customerCommercialEmpty {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+}
+
+.customerCommercialEmpty svg {
+  color: var(--primary);
+  flex: 0 0 auto;
+}
+
+.customerCommercialEmpty div {
+  display: grid;
+  gap: 3px;
+}
+
+.customerCommercialEmpty p {
   margin: 0;
 }
 
@@ -3801,6 +3954,10 @@ th {
   .customerToolbar,
   .customerDirectoryItem,
   .customerHistoryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .customerPaymentList article {
     grid-template-columns: 1fr;
   }
 

@@ -64,6 +64,7 @@ export function AdminSalesManager({
 }: AdminSalesManagerProps) {
   const searchParams = useSearchParams();
   const orderIdFromUrl = searchParams.get("pedido") ?? "";
+  const customerFromUrl = searchParams.get("cliente") ?? "";
   const [products] = useState(initialProducts);
   const [sales, setSales] = useState(initialSales);
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
@@ -77,7 +78,7 @@ export function AdminSalesManager({
   const [sistecreditoApproval, setSistecreditoApproval] = useState("");
   const [customerQuery, setCustomerQuery] = useState("");
   const [productQuery, setProductQuery] = useState("");
-  const [historyQuery, setHistoryQuery] = useState("");
+  const [historyQuery, setHistoryQuery] = useState(customerFromUrl);
   const [sourceFilter, setSourceFilter] = useState("ALL");
   const [notes, setNotes] = useState("");
   const [cartItems, setCartItems] = useState<SaleCartItem[]>([]);

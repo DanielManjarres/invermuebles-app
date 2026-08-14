@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import {
   AdminOrderCard,
@@ -57,8 +57,10 @@ export function AdminOrdersBrowser({
   orders: initialOrders,
 }: AdminOrdersBrowserProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const customerFromUrl = searchParams.get("cliente") ?? "";
   const [orders, setOrders] = useState(initialOrders);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(customerFromUrl);
   const [activeStatus, setActiveStatus] =
     useState<OrderStatusFilter>(allStatuses);
   const [currentPage, setCurrentPage] = useState(1);

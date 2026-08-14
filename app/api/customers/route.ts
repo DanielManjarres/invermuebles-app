@@ -1,6 +1,12 @@
-import { CustomerStatus } from "@prisma/client";
+import { CustomerStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
+import {
+  canDeleteCustomer,
+  isEditableCustomerStatus,
+  normalizeCustomerDocument,
+  validateCustomerInput,
+} from "@/lib/customer-policy";
 import { prisma } from "@/lib/prisma";
 
 type CustomerRequest = {
@@ -19,55 +25,15 @@ type CustomerRequest = {
   status?: CustomerStatus;
 };
 
-const validStatuses = new Set<CustomerStatus>([
-  "ACTIVE",
-  "OVERDUE",
-  "INACTIVE",
-  "BLOCKED",
-]);
-
 function cleanText(value?: string) {
   return value?.trim().replace(/\s+/g, " ") ?? "";
-}
-
-function cleanDocument(value?: string) {
-  return cleanText(value).replace(/\D/g, "");
-}
-
-function isValidEmail(value?: string) {
-  const email = cleanText(value);
-  return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function validateCustomer(body: CustomerRequest) {
-  if (!cleanText(body.fullName)) {
-    return "Escribe el nombre completo del cliente.";
-  }
-
-  if (!cleanDocument(body.document)) {
-    return "Escribe la cédula del cliente.";
-  }
-
-  if (!cleanText(body.phone)) {
-    return "Escribe el teléfono del cliente.";
-  }
-
-  if (!isValidEmail(body.email)) {
-    return "Escribe un correo valido para el cliente.";
-  }
-
-  if (body.status && !validStatuses.has(body.status)) {
-    return "Selecciona un estado valido para el cliente.";
-  }
-
-  return "";
 }
 
 function buildCustomerData(body: CustomerRequest) {
   return {
     address: cleanText(body.address) || null,
     city: cleanText(body.city) || null,
-    document: cleanDocument(body.document),
+    document: normalizeCustomerDocument(body.document),
     email: cleanText(body.email).toLowerCase() || null,
     fullName: cleanText(body.fullName),
     neighborhood: cleanText(body.neighborhood) || null,
@@ -76,7 +42,7 @@ function buildCustomerData(body: CustomerRequest) {
     referenceName: cleanText(body.referenceName) || null,
     referencePhone: cleanText(body.referencePhone) || null,
     referenceRelation: cleanText(body.referenceRelation) || null,
-    status: body.status && validStatuses.has(body.status) ? body.status : "ACTIVE",
+    status: isEditableCustomerStatus(body.status) ? body.status : "ACTIVE",
   };
 }
 
@@ -87,13 +53,13 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json()) as CustomerRequest;
-  const validationError = validateCustomer(body);
+  const validationError = validateCustomerInput(body);
 
   if (validationError) {
     return NextResponse.json({ message: validationError }, { status: 400 });
   }
 
-  const document = cleanDocument(body.document);
+  const document = normalizeCustomerDocument(body.document);
   const existingCustomer = await prisma.customer.findUnique({
     where: { document },
   });
@@ -105,11 +71,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const customer = await prisma.customer.create({
-    data: buildCustomerData(body),
-  });
+  try {
+    const customer = await prisma.customer.create({
+      data: buildCustomerData(body),
+    });
 
-  return NextResponse.json({ id: customer.id }, { status: 201 });
+    return NextResponse.json({ id: customer.id }, { status: 201 });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { message: "Ya existe un cliente con esa cédula." },
+        { status: 409 }
+      );
+    }
+
+    throw error;
+  }
 }
 
 export async function PUT(request: Request) {
@@ -119,7 +99,7 @@ export async function PUT(request: Request) {
   }
 
   const body = (await request.json()) as CustomerRequest;
-  const validationError = validateCustomer(body);
+  const validationError = validateCustomerInput(body);
 
   if (validationError || !body.id) {
     return NextResponse.json(
@@ -128,7 +108,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const document = cleanDocument(body.document);
+  const document = normalizeCustomerDocument(body.document);
   const customerWithSameDocument = await prisma.customer.findUnique({
     where: { document },
   });
@@ -140,12 +120,32 @@ export async function PUT(request: Request) {
     );
   }
 
-  await prisma.customer.update({
-    where: { id: body.id },
-    data: buildCustomerData(body),
-  });
+  try {
+    await prisma.customer.update({
+      where: { id: body.id },
+      data: buildCustomerData(body),
+    });
 
-  return NextResponse.json({ id: body.id });
+    return NextResponse.json({ id: body.id });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "No se encontró el cliente." },
+          { status: 404 }
+        );
+      }
+
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { message: "Ya existe otro cliente con esa cédula." },
+          { status: 409 }
+        );
+      }
+    }
+
+    throw error;
+  }
 }
 
 export async function DELETE(request: Request) {
@@ -185,17 +185,11 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const hasHistory =
-    customer._count.credits > 0 ||
-    customer._count.orders > 0 ||
-    customer._count.sales > 0;
+  const deletionPolicy = canDeleteCustomer(customer._count);
 
-  if (hasHistory) {
+  if (!deletionPolicy.allowed) {
     return NextResponse.json(
-      {
-        message:
-          "Este cliente ya tiene historial de pedidos, ventas o creditos. No se puede eliminar; puedes marcarlo como inactivo para conservar sus registros.",
-      },
+      { message: deletionPolicy.reason },
       { status: 409 }
     );
   }

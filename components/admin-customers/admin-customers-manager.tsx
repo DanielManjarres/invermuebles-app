@@ -1,0 +1,380 @@
+"use client";
+
+import type { FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  Eye,
+  Plus,
+  Search,
+} from "lucide-react";
+import {
+  customerStatusLabels,
+  type AdminCustomer,
+} from "@/lib/customers";
+import { validateCustomerInput } from "@/lib/customer-policy";
+import {
+  CustomerFormModal,
+  type CustomerFormState,
+} from "@/components/admin-customers/customer-form-modal";
+
+type AdminCustomersManagerProps = {
+  customers: AdminCustomer[];
+};
+
+const customersPerPage = 10;
+
+const emptyCustomerForm: CustomerFormState = {
+  address: "",
+  city: "",
+  document: "",
+  email: "",
+  fullName: "",
+  neighborhood: "",
+  notes: "",
+  phone: "",
+  referenceName: "",
+  referencePhone: "",
+  referenceRelation: "",
+  status: "ACTIVE",
+};
+
+const customerStatuses: AdminCustomer["status"][] = [
+  "ACTIVE",
+  "OVERDUE",
+  "INACTIVE",
+  "BLOCKED",
+];
+
+function cleanText(value: string) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function normalize(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function buildCustomerFromForm(
+  form: CustomerFormState,
+  id: string
+): AdminCustomer {
+  const now = new Date().toLocaleString("es-CO", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+
+  return {
+    id,
+    fullName: cleanText(form.fullName),
+    document: cleanText(form.document).replace(/\D/g, ""),
+    phone: cleanText(form.phone),
+    address: cleanText(form.address),
+    neighborhood: cleanText(form.neighborhood),
+    city: cleanText(form.city),
+    referenceName: cleanText(form.referenceName),
+    referencePhone: cleanText(form.referencePhone),
+    referenceRelation: cleanText(form.referenceRelation),
+    email: cleanText(form.email).toLowerCase(),
+    status:
+      form.status === "INACTIVE" || form.status === "BLOCKED"
+        ? form.status
+        : "ACTIVE",
+    notes: cleanText(form.notes),
+    createdAt: now,
+    updatedAt: now,
+    ordersCount: 0,
+    salesCount: 0,
+    creditsCount: 0,
+    activeCreditsCount: 0,
+    overdueCreditsCount: 0,
+    paymentsCount: 0,
+    totalPaid: 0,
+    lastPaymentAt: "Sin pagos registrados",
+    recentAccounts: [],
+    recentPayments: [],
+  };
+}
+
+export function AdminCustomersManager({
+  customers: initialCustomers,
+}: AdminCustomersManagerProps) {
+  const [customers, setCustomers] = useState(initialCustomers);
+  const [query, setQuery] = useState("");
+  const [activeStatus, setActiveStatus] = useState<AdminCustomer["status"] | "ALL">(
+    "ALL"
+  );
+  const [form, setForm] = useState<CustomerFormState>(emptyCustomerForm);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [formError, setFormError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCustomers(initialCustomers);
+  }, [initialCustomers]);
+
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setNotice(""), 3600);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
+  const filteredCustomers = useMemo(() => {
+    const normalizedQuery = normalize(query.trim());
+
+    return customers.filter((customer) => {
+      const matchesStatus =
+        activeStatus === "ALL" ||
+        (activeStatus === "OVERDUE"
+          ? customer.overdueCreditsCount > 0
+          : customer.status === activeStatus);
+      const matchesQuery =
+        normalizedQuery.length === 0 ||
+        [
+          customer.fullName,
+          customer.document,
+          customer.phone,
+          customer.email,
+          customer.address,
+          customer.neighborhood,
+          customer.city,
+          customer.referenceName,
+          customer.referenceRelation,
+          customer.referencePhone,
+        ]
+          .join(" ")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .includes(normalizedQuery);
+
+      return matchesStatus && matchesQuery;
+    });
+  }, [activeStatus, customers, query]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCustomers.length / customersPerPage)
+  );
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * customersPerPage;
+    return filteredCustomers.slice(start, start + customersPerPage);
+  }, [currentPage, filteredCustomers]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeStatus, query]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  const customerStats = useMemo(
+    () => ({
+      total: customers.length,
+      active: customers.filter((customer) => customer.status === "ACTIVE").length,
+      overdue: customers.filter((customer) => customer.overdueCreditsCount > 0)
+        .length,
+      withCredits: customers.filter((customer) => customer.activeCreditsCount > 0)
+        .length,
+    }),
+    [customers]
+  );
+
+  function openCreateForm() {
+    setForm(emptyCustomerForm);
+    setFormError("");
+    setIsFormOpen(true);
+  }
+
+  async function handleCustomerSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError("");
+
+    const validationError = validateCustomerInput(form);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const response = await fetch("/api/customers", {
+        body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const result = (await response.json()) as { id?: string; message?: string };
+
+      if (!response.ok || !result.id) {
+        setFormError(result.message ?? "No se pudo guardar el cliente.");
+        return;
+      }
+
+      const savedCustomer = buildCustomerFromForm(form, result.id);
+
+      setCustomers((currentCustomers) => [savedCustomer, ...currentCustomers]);
+      setIsFormOpen(false);
+      setNotice(`${savedCustomer.fullName} fue registrado.`);
+    } catch {
+      setFormError("No se pudo conectar con el sistema.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="tableSection customersSection">
+      <div className="movementSummaryGrid" aria-label="Resumen de clientes">
+        <article>
+          <span>Total clientes</span>
+          <strong>{customerStats.total}</strong>
+        </article>
+        <article>
+          <span>Activos</span>
+          <strong>{customerStats.active}</strong>
+        </article>
+        <article>
+          <span>En mora</span>
+          <strong>{customerStats.overdue}</strong>
+        </article>
+        <article>
+          <span>Créditos activos</span>
+          <strong>{customerStats.withCredits}</strong>
+        </article>
+      </div>
+
+      <div className="sectionHeader customersHeader">
+        <div>
+          <p className="eyebrow">Gestión comercial</p>
+          <h2>Clientes registrados</h2>
+        </div>
+        <button className="primaryButton" type="button" onClick={openCreateForm}>
+          <Plus size={20} />
+          Nuevo cliente
+        </button>
+      </div>
+
+      {notice ? (
+        <div className="orderToast" role="status">
+          <span>{notice}</span>
+        </div>
+      ) : null}
+
+      <div className="inventoryToolbar customerToolbar">
+        <label className="searchBox">
+          <Search size={18} />
+          <input
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por cédula, nombre o teléfono"
+            type="search"
+            value={query}
+          />
+        </label>
+
+        <div className="inventoryFilters" aria-label="Filtros de clientes">
+          <button
+            className={activeStatus === "ALL" ? "filterButton active" : "filterButton"}
+            type="button"
+            onClick={() => setActiveStatus("ALL")}
+          >
+            Todos
+          </button>
+          {customerStatuses.map((status) => (
+            <button
+              className={
+                activeStatus === status ? "filterButton active" : "filterButton"
+              }
+              key={status}
+              type="button"
+              onClick={() => setActiveStatus(status)}
+            >
+              {customerStatusLabels[status]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="customerDirectory" aria-label="Lista de clientes">
+          {filteredCustomers.length === 0 ? (
+            <div className="emptyState">
+              <h2>No hay clientes registrados</h2>
+              <p>Cuando registres clientes, apareceran en esta pantalla.</p>
+            </div>
+          ) : (
+            paginatedCustomers.map((customer) => (
+              <Link
+                className="customerDirectoryItem"
+                href={`/admin/clientes/${customer.id}`}
+                key={customer.id}
+              >
+                <span className="customerDirectoryName">
+                  <strong>{customer.fullName}</strong>
+                  <small>CC {customer.document}</small>
+                </span>
+                <span className="customerDirectoryMeta">
+                  <small>Telefono</small>
+                  <strong>{customer.phone}</strong>
+                </span>
+                <span className="customerDirectoryMeta">
+                  <small>Ciudad</small>
+                  <strong>{customer.city || "Sin registrar"}</strong>
+                </span>
+                <span className={`customerStatus ${customer.status.toLowerCase()}`}>
+                  {customerStatusLabels[customer.status]}
+                </span>
+                <span className="secondaryButton customerProfileButton">
+                  <Eye size={17} />
+                  Ver perfil
+                </span>
+              </Link>
+            ))
+          )}
+      </div>
+
+      {totalPages > 1 ? (
+        <div className="paginationControls">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+          >
+            Anterior
+          </button>
+          <span>
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={currentPage === totalPages}
+            onClick={() =>
+              setCurrentPage((page) => Math.min(totalPages, page + 1))
+            }
+          >
+            Siguiente
+          </button>
+        </div>
+      ) : null}
+
+      {isFormOpen ? (
+        <CustomerFormModal
+          error={formError}
+          form={form}
+          isEditing={false}
+          isSaving={isSaving}
+          setForm={setForm}
+          onClose={() => setIsFormOpen(false)}
+          onSubmit={handleCustomerSubmit}
+        />
+      ) : null}
+    </section>
+  );
+}
