@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import {
+  getCustomerPaymentAccount,
   getCustomerPortfolioStatus,
   type AdminCustomer,
 } from "@/lib/customers";
@@ -94,14 +95,15 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
   );
   const payments = customer.sales
     .flatMap((sale) => {
-      const accountShortId = (sale.credit?.id ?? sale.id)
-        .slice(-6)
-        .toUpperCase();
+      const paymentAccount = getCustomerPaymentAccount(
+        sale.type,
+        sale.id,
+        sale.credit?.id,
+      );
       const salePayments = sale.payments.map((payment) => ({
         id: payment.id,
         amount: Number(payment.amount),
-        accountShortId,
-        accountTitle: saleTypeLabels[sale.type],
+        ...paymentAccount,
         methodLabel: paymentMethodLabels[payment.method],
         createdAt: formatDate(payment.createdAt),
         createdAtValue: payment.createdAt,
@@ -112,8 +114,7 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
         salePayments.push({
           id: `sistecredito:${sale.id}`,
           amount: Number(sale.total),
-          accountShortId,
-          accountTitle: saleTypeLabels[sale.type],
+          ...paymentAccount,
           methodLabel: "Sistecrédito",
           createdAt: formatDate(sale.createdAt),
           createdAtValue: sale.createdAt,
