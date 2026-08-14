@@ -33,6 +33,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
       _count: {
         select: {
           orderItems: true,
+          saleItems: true,
         },
       },
     },
@@ -55,8 +56,19 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   }
 
+  if (product._count.saleItems > 0) {
+    return NextResponse.json(
+      {
+        message:
+          "Este producto ya tiene ventas registradas. Para conservar el historial, ocultalo del catalogo en vez de eliminarlo.",
+      },
+      { status: 409 }
+    );
+  }
+
   const deletePolicy = canDeleteProduct({
     orderItemsCount: product._count.orderItems,
+    saleItemsCount: product._count.saleItems,
     stockMovements: product.stockMovements,
   });
 

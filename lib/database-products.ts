@@ -59,6 +59,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
 
 export async function getStockMovements(): Promise<StockMovement[]> {
   const movements = await prisma.stockMovement.findMany({
+    where: { archivedAt: null },
     include: {
       product: {
         include: {
@@ -124,6 +125,11 @@ export async function getOrders(): Promise<AdminOrder[]> {
         },
         orderBy: { createdAt: "asc" },
       },
+      sale: {
+        select: {
+          id: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -157,6 +163,8 @@ export async function getOrders(): Promise<AdminOrder[]> {
         dateStyle: "short",
         timeStyle: "short",
       }),
+      saleId: order.sale?.id ?? "",
+      saleShortId: order.sale?.id.slice(-6).toUpperCase() ?? "",
       items,
       totalQuantity: items.reduce((total, item) => total + item.quantity, 0),
     };

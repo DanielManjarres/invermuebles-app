@@ -1,23 +1,19 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import {
-  CheckCircle2,
-  Clock3,
-  MessageCircle,
-  ReceiptText,
-  Search,
-  XCircle,
-} from "lucide-react";
+  AdminOrderCard,
+  type AdminOrderChanges,
+} from "@/components/admin-orders/admin-order-card";
+import { AdminOrderDeleteModal } from "@/components/admin-orders/admin-order-delete-modal";
 import {
-  orderChannelLabels,
-  orderStatusDescriptions,
   orderStatusLabels,
   type AdminOrder,
 } from "@/lib/orders";
 import type { AdminCustomer } from "@/lib/customers";
-import { SelectMenu } from "@/components/select-menu";
+import { canPrepareOrderSale } from "@/lib/order-policy";
 
 const allStatuses = "all";
 const ordersPerPage = 8;
@@ -28,20 +24,9 @@ const statusOptions: AdminOrder["status"][] = [
   "PENDING",
   "CONTACTED",
   "CONFIRMED",
-  "CANCELLED",
 ];
 
-const statusMenuOptions = statusOptions.map((status) => ({
-  label: orderStatusLabels[status],
-  value: status,
-}));
-
-const statusIcons: Record<AdminOrder["status"], ReactNode> = {
-  PENDING: <Clock3 size={16} />,
-  CONTACTED: <MessageCircle size={16} />,
-  CONFIRMED: <CheckCircle2 size={16} />,
-  CANCELLED: <XCircle size={16} />,
-};
+const statusFilterOptions = statusOptions;
 
 function getOrderSearchText(order: AdminOrder) {
   return [
@@ -71,33 +56,27 @@ export function AdminOrdersBrowser({
   customers,
   orders: initialOrders,
 }: AdminOrdersBrowserProps) {
+  const router = useRouter();
   const [orders, setOrders] = useState(initialOrders);
   const [query, setQuery] = useState("");
   const [activeStatus, setActiveStatus] =
     useState<OrderStatusFilter>(allStatuses);
   const [currentPage, setCurrentPage] = useState(1);
   const [savingOrderId, setSavingOrderId] = useState("");
+  const [deletingOrderId, setDeletingOrderId] = useState("");
+  const [orderToDelete, setOrderToDelete] = useState<AdminOrder | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [notice, setNotice] = useState("");
+  const [customerQueries, setCustomerQueries] = useState<Record<string, string>>({});
   const [draftNotes, setDraftNotes] = useState<Record<string, string>>(
     () =>
       Object.fromEntries(initialOrders.map((order) => [order.id, order.notes]))
-  );
-  const [draftCustomerIds, setDraftCustomerIds] = useState<Record<string, string>>(
-    () =>
-      Object.fromEntries(
-        initialOrders.map((order) => [order.id, order.customerId])
-      )
   );
 
   useEffect(() => {
     setOrders(initialOrders);
     setDraftNotes(
       Object.fromEntries(initialOrders.map((order) => [order.id, order.notes]))
-    );
-    setDraftCustomerIds(
-      Object.fromEntries(
-        initialOrders.map((order) => [order.id, order.customerId])
-      )
     );
   }, [initialOrders]);
 
@@ -118,27 +97,27 @@ export function AdminOrdersBrowser({
     const normalizedQuery = query.trim().toLowerCase();
 
     return orders.filter((order) => {
-      const matchesStatus =
-        activeStatus === allStatuses || order.status === activeStatus;
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        getOrderSearchText(order).includes(normalizedQuery);
+        const matchesStatus =
+          activeStatus === allStatuses || order.status === activeStatus;
+        const matchesQuery =
+          normalizedQuery.length === 0 ||
+          getOrderSearchText(order).includes(normalizedQuery);
 
-      return matchesStatus && matchesQuery;
-    });
+        return matchesStatus && matchesQuery;
+      });
   }, [activeStatus, orders, query]);
 
   const orderStats = useMemo(
     () => ({
-      total: filteredOrders.length,
-      pending: filteredOrders.filter((order) => order.status === "PENDING")
+      total: orders.length,
+      pending: orders.filter((order) => order.status === "PENDING")
         .length,
-      contacted: filteredOrders.filter((order) => order.status === "CONTACTED")
+      contacted: orders.filter((order) => order.status === "CONTACTED")
         .length,
-      confirmed: filteredOrders.filter((order) => order.status === "CONFIRMED")
+      confirmed: orders.filter((order) => order.status === "CONFIRMED")
         .length,
     }),
-    [filteredOrders]
+    [orders]
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ordersPerPage));
@@ -146,16 +125,25 @@ export function AdminOrdersBrowser({
     (currentPage - 1) * ordersPerPage,
     currentPage * ordersPerPage
   );
-  const customerOptions = useMemo(
-    () =>
-      customers.map((customer) => ({
+  function getCustomerOptions(order: AdminOrder) {
+    const search = (customerQueries[order.id] ?? "").trim().toLowerCase();
+
+    return customers
+      .filter((customer) => customer.status === "ACTIVE" || customer.id === order.customerId)
+      .filter((customer) =>
+        customer.id === order.customerId ||
+        [customer.fullName, customer.document, customer.phone, customer.city]
+          .join(" ")
+          .toLowerCase()
+          .includes(search),
+      )
+      .map((customer) => ({
         label: customer.document
           ? `${customer.fullName} - CC ${customer.document}`
           : customer.fullName,
         value: customer.id,
-      })),
-    [customers]
-  );
+      }));
+  }
 
   function findCustomer(customerId: string) {
     return (
@@ -166,20 +154,22 @@ export function AdminOrdersBrowser({
 
   async function updateOrder(
     order: AdminOrder,
-    nextStatus = order.status,
-    nextNotes = draftNotes[order.id] ?? "",
-    nextCustomerId = draftCustomerIds[order.id] ?? ""
+    changes: AdminOrderChanges,
   ) {
+    if (savingOrderId) return;
+
     setSavingOrderId(order.id);
     setNotice("");
-    const selectedCustomer = findCustomer(nextCustomerId);
+    const selectedCustomer = changes.customerId === undefined
+      ? null
+      : findCustomer(changes.customerId);
 
     try {
       const response = await fetch(`/api/orders/${order.id}`, {
         body: JSON.stringify({
-          customerId: nextCustomerId || null,
-          notes: nextNotes,
-          status: nextStatus,
+          customerId: changes.customerId,
+          notes: changes.notes,
+          status: changes.status,
         }),
         headers: { "Content-Type": "application/json" },
         method: "PUT",
@@ -191,25 +181,85 @@ export function AdminOrdersBrowser({
         return;
       }
 
-      setOrders((currentOrders) =>
-        currentOrders.map((currentOrder) =>
+      const clearsCustomer = changes.status === "PENDING" || (
+        order.status === "PENDING" && changes.status === "CONTACTED"
+      );
+
+      setOrders((currentOrders) => {
+        return currentOrders.map((currentOrder) =>
           currentOrder.id === order.id
             ? {
                 ...currentOrder,
-                customerId: nextCustomerId,
-                customerName: selectedCustomer?.fullName ?? "",
-                customerDocument: selectedCustomer?.document ?? "",
-                notes: nextNotes,
-                status: nextStatus,
+                customerId: clearsCustomer
+                  ? ""
+                  : changes.customerId ?? currentOrder.customerId,
+                customerName: clearsCustomer
+                  ? ""
+                  : changes.customerId === undefined
+                  ? currentOrder.customerName
+                  : selectedCustomer?.fullName ?? "",
+                customerDocument: clearsCustomer
+                  ? ""
+                  : changes.customerId === undefined
+                  ? currentOrder.customerDocument
+                  : selectedCustomer?.document ?? "",
+                notes: changes.notes ?? currentOrder.notes,
+                status: changes.status ?? currentOrder.status,
               }
             : currentOrder
-        )
-      );
+        );
+      });
       setNotice(`Pedido #${order.shortId} actualizado.`);
+      if (
+        changes.customerId !== undefined ||
+        changes.status === "PENDING" ||
+        (order.status === "PENDING" && changes.status === "CONTACTED")
+      ) {
+        setCustomerQueries((current) => ({ ...current, [order.id]: "" }));
+      }
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
       setSavingOrderId("");
+    }
+  }
+
+  function prepareSaleFromOrder(order: AdminOrder) {
+    if (!canPrepareOrderSale(order.status, order.customerId || null, Boolean(order.saleId))) {
+      setNotice("Confirma el pedido y asocia un cliente antes de preparar la venta.");
+      return;
+    }
+    router.push(`/admin/ventas?pedido=${order.id}`);
+  }
+
+  async function deleteOrder(order: AdminOrder) {
+    if (deletingOrderId || deleteConfirmation !== "ELIMINAR") return;
+
+    setDeletingOrderId(order.id);
+
+    try {
+      const response = await fetch(`/api/orders/${order.id}`, {
+        method: "DELETE",
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        setNotice(result.message ?? "No se pudo eliminar el pedido.");
+        setOrderToDelete(null);
+        setDeleteConfirmation("");
+        return;
+      }
+
+      setOrders((currentOrders) =>
+        currentOrders.filter((currentOrder) => currentOrder.id !== order.id)
+      );
+      setOrderToDelete(null);
+      setDeleteConfirmation("");
+      setNotice(`Pedido #${order.shortId} eliminado permanentemente.`);
+    } catch {
+      setNotice("No se pudo conectar con el sistema.");
+    } finally {
+      setDeletingOrderId("");
     }
   }
 
@@ -266,7 +316,7 @@ export function AdminOrdersBrowser({
           >
             Todos
           </button>
-          {statusOptions.map((status) => (
+          {statusFilterOptions.map((status) => (
             <button
               className={
                 activeStatus === status ? "filterButton active" : "filterButton"
@@ -308,129 +358,33 @@ export function AdminOrdersBrowser({
 
           <div className="ordersList">
             {paginatedOrders.map((order) => (
-              <article className="orderCard" key={order.id}>
-                <div className="orderCardHeader">
-                  <span className={`orderBadge ${order.status.toLowerCase()}`}>
-                    {statusIcons[order.status]}
-                    {orderStatusLabels[order.status]}
-                  </span>
-
-                  <div className="orderTitleBlock">
-                    <h3>Pedido #{order.shortId}</h3>
-                    <p>
-                      {order.createdAt} · {orderChannelLabels[order.channel]} ·{" "}
-                      {order.totalQuantity} unidad(es)
-                    </p>
-                  </div>
-
-                  <label className="orderStatusControl">
-                    Estado
-                    <SelectMenu
-                      disabled={savingOrderId === order.id}
-                      onChange={(value) =>
-                        updateOrder(order, value as AdminOrder["status"])
-                      }
-                      options={statusMenuOptions}
-                      placeholder="Selecciona estado"
-                      value={order.status}
-                    />
-                  </label>
-                </div>
-
-                <div className="orderItems">
-                  {order.items.map((item) => (
-                    <div key={item.id}>
-                      <strong>{item.productName}</strong>
-                      <span>
-                        {item.productReference} · {item.productCategory} /{" "}
-                        {item.productClass}
-                      </span>
-                      <small>Cantidad: {item.quantity}</small>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="orderCustomerPanel">
-                  <div className="orderCustomerInfo">
-                    <span>Cliente asociado</span>
-                    {order.customerName ? (
-                      <>
-                        <strong>{order.customerName}</strong>
-                        <small>
-                          {order.customerDocument
-                            ? `CC ${order.customerDocument}`
-                            : "Sin cedula registrada"}
-                        </small>
-                      </>
-                    ) : (
-                      <>
-                        <strong>Sin cliente asociado</strong>
-                        <small>
-                          Selecciona un cliente antes de crear la venta.
-                        </small>
-                      </>
-                    )}
-                  </div>
-
-                  <label className="orderCustomerControl">
-                    Asociar cliente
-                    <SelectMenu
-                      disabled={savingOrderId === order.id}
-                      onChange={(value) =>
-                        setDraftCustomerIds((currentCustomerIds) => ({
-                          ...currentCustomerIds,
-                          [order.id]: value,
-                        }))
-                      }
-                      options={customerOptions}
-                      placeholder="Sin cliente asociado"
-                      value={draftCustomerIds[order.id] ?? ""}
-                    />
-                  </label>
-                </div>
-
-                <div className="orderFollowUp">
-                  <p className="orderDescription">
-                    {orderStatusDescriptions[order.status]}
-                  </p>
-                  <label className="orderNotes">
-                    Observaciones
-                    <textarea
-                      rows={1}
-                      value={draftNotes[order.id] ?? ""}
-                      placeholder="Ej: Cliente contactado, pendiente confirmar forma de pago."
-                      onChange={(event) =>
-                        setDraftNotes((currentNotes) => ({
-                          ...currentNotes,
-                          [order.id]: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                  <div className="orderActionGroup">
-                    <button
-                      className="secondaryButton"
-                      disabled={savingOrderId === order.id}
-                      type="button"
-                      onClick={() => updateOrder(order)}
-                    >
-                      Guardar observación
-                    </button>
-
-                    {order.status === "CONFIRMED" ? (
-                      <button
-                        className="futureSaleButton"
-                        disabled={!order.customerId}
-                        title="Esta acción se activará cuando exista el módulo de ventas."
-                        type="button"
-                      >
-                        <ReceiptText size={18} />
-                        Crear venta
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              </article>
+              <AdminOrderCard
+                customerOptions={getCustomerOptions(order)}
+                customerQuery={customerQueries[order.id] ?? ""}
+                deleting={deletingOrderId === order.id}
+                draftNotes={draftNotes[order.id] ?? ""}
+                key={order.id}
+                order={order}
+                saving={savingOrderId === order.id}
+                onCustomerQueryChange={(value) =>
+                  setCustomerQueries((current) => ({
+                    ...current,
+                    [order.id]: value,
+                  }))
+                }
+                onDraftNotesChange={(value) =>
+                  setDraftNotes((current) => ({
+                    ...current,
+                    [order.id]: value,
+                  }))
+                }
+                onPrepareSale={() => prepareSaleFromOrder(order)}
+                onRequestDelete={() => {
+                  setOrderToDelete(order);
+                  setDeleteConfirmation("");
+                }}
+                onUpdate={(changes) => updateOrder(order, changes)}
+              />
             ))}
           </div>
 
@@ -459,6 +413,20 @@ export function AdminOrdersBrowser({
           ) : null}
         </>
       )}
+
+      {orderToDelete ? (
+        <AdminOrderDeleteModal
+          confirmation={deleteConfirmation}
+          deleting={deletingOrderId === orderToDelete.id}
+          order={orderToDelete}
+          onCancel={() => {
+            setOrderToDelete(null);
+            setDeleteConfirmation("");
+          }}
+          onConfirmationChange={setDeleteConfirmation}
+          onConfirm={() => deleteOrder(orderToDelete)}
+        />
+      ) : null}
     </section>
   );
 }

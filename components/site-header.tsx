@@ -9,6 +9,8 @@ type SiteHeaderProps = {
     | "carrito"
     | "admin"
     | "clientes"
+    | "ventas"
+    | "cartera"
     | "productos"
     | "pedidos"
     | "movimientos"
@@ -53,6 +55,18 @@ export function SiteHeader({ active, variant = "public" }: SiteHeaderProps) {
               href="/admin/clientes"
             >
               Clientes
+            </Link>
+            <Link
+              className={active === "ventas" ? "active" : ""}
+              href="/admin/ventas"
+            >
+              Ventas
+            </Link>
+            <Link
+              className={active === "cartera" ? "active" : ""}
+              href="/admin/cartera"
+            >
+              Cartera
             </Link>
             <Link
               className={active === "productos" ? "active" : ""}

@@ -18,6 +18,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   stockMovements StockMovement[]
+  salePayments   SalePayment[]
 }
 
 model ProductType {
@@ -62,6 +63,7 @@ model Product {
 
   stockMovements StockMovement[]
   orderItems     OrderItem[]
+  saleItems      SaleItem[]
 }
 
 model StockMovement {
@@ -77,6 +79,7 @@ model StockMovement {
   user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   userId        String?
   createdAt     DateTime          @default(now())
+  archivedAt    DateTime?
 }
 
 model Customer {
@@ -98,6 +101,7 @@ model Customer {
 
   orders  Order[]
   credits Credit[]
+  sales   Sale[]
 }
 
 model Order {
@@ -111,6 +115,7 @@ model Order {
   updatedAt  DateTime     @updatedAt
 
   items OrderItem[]
+  sale  Sale?
 }
 
 model OrderItem {
@@ -123,17 +128,86 @@ model OrderItem {
   createdAt DateTime @default(now())
 }
 
+model Sale {
+  id         String     @id @default(cuid())
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerId String?
+  order      Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId    String?    @unique
+  source     SaleSource @default(LOCAL)
+  type       SaleType   @default(CASH)
+  status     SaleStatus @default(COMPLETED)
+  paymentMethod String  @default("CASH")
+  amountPaid Decimal    @default(0) @db.Decimal(12, 2)
+  balance    Decimal    @default(0) @db.Decimal(12, 2)
+  sistecreditoApproval String?
+  reservedUntil DateTime?
+  stockApplied Boolean @default(true)
+  notes      String?
+  total      Decimal    @default(0) @db.Decimal(12, 2)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  items SaleItem[]
+  payments SalePayment[]
+  credit Credit?
+}
+
+model SaleItem {
+  id               String   @id @default(cuid())
+  sale             Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId           String
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productId        String
+  productName      String
+  productReference String
+  productCategory  String
+  productClass     String
+  quantity         Int
+  unitPrice        Decimal  @db.Decimal(12, 2)
+  cost             Decimal  @db.Decimal(12, 2)
+  lineTotal        Decimal  @db.Decimal(12, 2)
+  createdAt        DateTime @default(now())
+}
+
 model Credit {
   id         String       @id @default(cuid())
   customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
   customerId String
+  sale       Sale?        @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  saleId     String?      @unique
   total      Decimal      @db.Decimal(12, 2)
+  principal  Decimal      @db.Decimal(12, 2)
+  interestRate Decimal    @db.Decimal(5, 2)
+  outstandingPrincipal Decimal @db.Decimal(12, 2)
+  interestBalance Decimal @db.Decimal(12, 2)
   months     Int
   status     CreditStatus @default(ACTIVE)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 
   payments CreditPayment[]
+  salePayments SalePayment[]
+}
+
+model SalePayment {
+  id              String        @id @default(cuid())
+  sale            Sale          @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId          String
+  credit          Credit?       @relation(fields: [creditId], references: [id], onDelete: SetNull)
+  creditId        String?
+  amount          Decimal       @db.Decimal(12, 2)
+  method          PaymentMethod
+  reference       String?
+  note            String?
+  principalAmount Decimal?      @db.Decimal(12, 2)
+  interestAmount  Decimal?      @db.Decimal(12, 2)
+  isInitial       Boolean       @default(false)
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId          String?
+  createdAt       DateTime      @default(now())
+
+  @@index([saleId, isInitial])
 }
 
 model CreditPayment {
@@ -160,12 +234,36 @@ enum OrderStatus {
   PENDING
   CONTACTED
   CONFIRMED
-  CANCELLED
 }
 
 enum OrderChannel {
   WHATSAPP
   STORE
+}
+
+enum SaleSource {
+  LOCAL
+  ORDER
+}
+
+enum SaleType {
+  CASH
+  CREDIT
+  RESERVED
+  CREDIT_CASH
+  SISTECREDITO
+}
+
+enum SaleStatus {
+  COMPLETED
+  PENDING_PAYMENT
+  PENDING_DELIVERY
+  DELIVERED
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
 }
 
 enum CustomerStatus {
@@ -179,5 +277,4 @@ enum CreditStatus {
   ACTIVE
   PAID
   OVERDUE
-  CANCELLED
 }

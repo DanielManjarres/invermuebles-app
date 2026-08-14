@@ -972,6 +972,33 @@ p {
   white-space: nowrap;
 }
 
+.adminSaleCartHint {
+  align-items: center;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  color: #fff;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.adminSaleCartHint span {
+  align-items: center;
+  background: #fff;
+  border-radius: 999px;
+  color: var(--primary);
+  display: inline-flex;
+  font-size: 0.78rem;
+  height: 22px;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 7px;
+}
+
 .catalogPagination {
   align-items: center;
   color: var(--muted);
@@ -1441,6 +1468,17 @@ th {
   z-index: 20;
 }
 
+.adminModalBackdrop {
+  align-items: center;
+  background: rgba(12, 18, 14, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 20;
+}
+
 .adminModal {
   background: #fff;
   border-radius: 8px;
@@ -1490,6 +1528,85 @@ th {
 .modalClose:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.recordDeleteModal {
+  max-width: 560px;
+  width: min(100%, 560px);
+}
+
+.recordDeleteWarning {
+  align-items: flex-start;
+  background: #fae4df;
+  border: 1px solid #efc2ba;
+  border-radius: 8px;
+  color: #8b2722;
+  display: flex;
+  gap: 10px;
+  font-weight: 800;
+  line-height: 1.45;
+  padding: 14px 16px;
+}
+
+.recordDeleteWarning p {
+  margin: 0;
+}
+
+.recordDeleteTarget {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.recordDeleteTarget span,
+.recordDeleteTarget small {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.recordDeleteTarget strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.customerHeaderActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.saleHistoryActions {
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+
+.saleHistoryActions .dangerButton,
+.saleHistoryActions .secondaryButton {
+  min-height: 36px;
+  padding-inline: 12px;
+}
+
+.deleteConfirmationField {
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.deleteConfirmationField input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  padding: 12px 14px;
 }
 
 .adminFormGrid {
@@ -2068,6 +2185,37 @@ th {
   color: var(--text);
 }
 
+.movementUserCell {
+  min-width: 0;
+}
+
+.movementCorrectionLink,
+.movementArchiveLink {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 0;
+}
+
+.movementCorrectionLink {
+  color: var(--green-dark);
+}
+
+.movementArchiveLink:hover {
+  color: #9b2924;
+  text-decoration: underline;
+}
+
+.movementCorrectionLink:hover {
+  color: var(--green-dark);
+  text-decoration: underline;
+}
+
 .movementResultsBar {
   align-items: center;
   color: var(--muted);
@@ -2147,11 +2295,16 @@ th {
 }
 
 .ordersSection .movementToolbar {
-  grid-template-columns: minmax(320px, 0.8fr) minmax(650px, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ordersSection .searchBox {
+  min-width: 0;
 }
 
 .ordersSection .inventoryFilters {
   flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 .ordersSection .filterButton {
@@ -2186,8 +2339,8 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 12px 14px;
 }
 
 .orderCardHeader {
@@ -2269,10 +2422,10 @@ th {
 }
 
 .orderCustomerPanel {
-  align-items: end;
+  align-items: start;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(320px, 1fr);
+  gap: 10px;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
 }
 
 .orderCustomerInfo {
@@ -2281,7 +2434,7 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 4px;
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .orderCustomerInfo span,
@@ -2306,6 +2459,48 @@ th {
 .orderCustomerControl {
   display: grid;
   gap: 6px;
+}
+
+.orderCustomerControls {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+}
+
+.orderCustomerControl,
+.orderCustomerControls .selectMenu,
+.orderCustomerControls .selectMenuButton,
+.orderCustomerControls .selectMenuButton span {
+  min-width: 0;
+}
+
+.orderCustomerSearch {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 900;
+  gap: 6px;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.orderCustomerSearch .searchBox {
+  min-width: 0;
+}
+
+.orderResetCustomer {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.orderCustomerLocked {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: 0;
 }
 
 .orderBadge {
@@ -2340,6 +2535,23 @@ th {
   color: #9b2924;
 }
 
+.orderCardBody {
+  align-items: start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.45fr);
+  min-width: 0;
+}
+
+.orderCardBody > .orderItems {
+  grid-template-columns: 1fr;
+}
+
+.orderCardBody > .orderItems:only-child {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .orderItems {
   display: grid;
   gap: 8px;
@@ -2370,15 +2582,18 @@ th {
 }
 
 .orderFollowUp {
-  align-items: end;
+  align-items: center;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(190px, 0.5fr) minmax(320px, 1fr) auto;
+  gap: 10px 12px;
+  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1.55fr);
 }
 
 .orderActionGroup {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
 }
 
 .orderFollowUp .secondaryButton,
@@ -2389,10 +2604,10 @@ th {
 
 .futureSaleButton {
   align-items: center;
-  background: var(--surface-strong);
-  border: 1px dashed var(--line);
+  background: var(--primary);
+  border: 1px solid var(--primary);
   border-radius: 8px;
-  color: var(--muted);
+  color: #fff;
   display: inline-flex;
   font-weight: 900;
   gap: 8px;
@@ -2400,9 +2615,415 @@ th {
   padding: 0 14px;
 }
 
+.futureSaleButton:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
 .futureSaleButton:disabled {
+  background: var(--surface-strong);
+  border-color: var(--line);
+  color: var(--muted);
   cursor: not-allowed;
   opacity: 0.78;
+}
+
+.saleCreatedButton {
+  background: #dff1ff;
+  border-color: #b6d7ec;
+  color: #195577;
+  opacity: 1;
+}
+
+.salesSection {
+  display: grid;
+  gap: 18px;
+  max-width: 1180px;
+  padding-top: 28px;
+}
+
+.salesLayout {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr;
+}
+
+.localSalePanel,
+.salesHistoryPanel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 18px;
+}
+
+.localSalePanel .sectionHeader,
+.salesHistoryPanel .sectionHeader {
+  margin-bottom: 0;
+}
+
+.localSalePanel h2,
+.salesHistoryPanel h2 {
+  font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+  margin: 0;
+}
+
+.saleFormGrid,
+.saleProductPicker {
+  display: grid;
+  gap: 12px;
+}
+
+.saleFormGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(220px, 0.7fr);
+}
+
+.saleProductPicker {
+  align-items: end;
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 0.9fr) max-content;
+}
+
+.saleProductPicker > label,
+.saleProductPicker .selectMenu,
+.saleProductPicker .selectMenuButton span {
+  min-width: 0;
+}
+
+.saleProductPicker .selectMenu {
+  width: 100%;
+}
+
+.saleProductPicker .secondaryButton {
+  min-height: 44px;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
+.saleFormGrid label,
+.saleProductPicker label,
+.salePaymentGrid label,
+.saleNotes {
+  color: var(--text);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 900;
+  gap: 7px;
+}
+
+.saleNotes textarea {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 76px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.saleNotes textarea:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.saleStepHeader {
+  align-items: center;
+  background: #edf5ed;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.saleStepHeader > span {
+  align-items: center;
+  background: var(--primary);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 900;
+  height: 26px;
+  justify-content: center;
+  width: 26px;
+}
+
+.saleStepHeader strong {
+  color: var(--text);
+  display: block;
+  font-size: 0.92rem;
+}
+
+.saleStepHeader p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 2px 0 0;
+}
+
+.compactSearchBox {
+  margin: 0;
+}
+
+.compactSearchBox input {
+  min-height: 44px;
+}
+
+.saleCartList,
+.salesList {
+  display: grid;
+  gap: 9px;
+}
+
+.saleCartItem {
+  align-items: center;
+  background: #f4faf4;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(230px, 1fr) 116px minmax(150px, 170px) 130px 42px;
+  padding: 12px 14px;
+}
+
+.saleCartProductInfo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.saleCartItem strong {
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.saleCartItem span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.saleQuantityBlock {
+  display: grid;
+  gap: 5px;
+  justify-content: start;
+}
+
+.saleQuantityBlock > span,
+.saleLineTotal > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.saleQuantityBlock .quantityControl {
+  background: #fff;
+}
+
+.salePriceField {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.76rem;
+  font-weight: 900;
+  gap: 5px;
+}
+
+.salePriceField input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.salePriceField input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.salePaymentGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(170px, 0.7fr);
+}
+
+.salePaymentGrid input {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  min-height: 44px;
+  padding: 9px 12px;
+  width: 100%;
+}
+
+.salePaymentGrid input:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(7, 85, 42, 0.12);
+}
+
+.saleBalanceBox {
+  align-self: end;
+  background: #edf5ed;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  min-height: 66px;
+  padding: 10px 12px;
+}
+
+.saleBalanceBox span,
+.salePaymentSummary span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.saleBalanceBox strong,
+.salePaymentSummary strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.saleCreditSummary {
+  display: grid;
+  gap: 12px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.salePaymentHint {
+  color: var(--primary-dark);
+  font-size: 0.82rem;
+  font-weight: 900;
+  margin: -4px 0 0;
+}
+
+.salePaymentGrid .salePaymentHint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.saleLineTotal {
+  display: grid;
+  gap: 5px;
+}
+
+.saleLineTotal strong {
+  white-space: nowrap;
+}
+
+.saleSummaryBar {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding-top: 14px;
+}
+
+.saleSummaryBar > div {
+  display: grid;
+  gap: 3px;
+}
+
+.saleSummaryBar span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.saleSummaryBar strong {
+  font-size: 1.35rem;
+}
+
+.inlineNotice {
+  background: #e4f3df;
+  border: 1px solid #b9deb0;
+  border-radius: 8px;
+  color: var(--primary-dark);
+  font-size: 0.88rem;
+  font-weight: 900;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.compactEmptyState {
+  box-shadow: none;
+  padding: 16px;
+}
+
+.saleHistoryCard {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.saleHistoryCard h3 {
+  font-size: 1rem;
+  margin: 6px 0 4px;
+}
+
+.saleHistoryCard p,
+.saleHistoryCard span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.saleBadge {
+  background: #dff1ff;
+  border-radius: 999px;
+  color: #195577 !important;
+  display: inline-flex;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  padding: 5px 9px;
+}
+
+.saleHistoryItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.saleHistoryItems span {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 8px;
+}
+
+.salePaymentSummary {
+  display: grid;
+  gap: 4px;
+}
+
+.saleHistoryFilters {
+  gap: 8px;
+  justify-content: start;
+}
+
+.salesHistoryPanel .searchBox {
+  max-width: 520px;
 }
 
 .customersSection {
@@ -2746,12 +3367,29 @@ th {
   overflow: hidden;
 }
 
-.quantityControl span {
+.quantityControl input {
+  appearance: textfield;
+  background: transparent;
+  border: 0;
   color: var(--text);
   font-size: 0.95rem;
   font-weight: 900;
+  min-height: 38px;
   min-width: 36px;
+  padding: 0 4px;
   text-align: center;
+  width: 48px;
+}
+
+.quantityControl input:focus {
+  box-shadow: inset 0 0 0 2px rgba(7, 85, 42, 0.22);
+  outline: 0;
+}
+
+.quantityControl input::-webkit-inner-spin-button,
+.quantityControl input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
 }
 
 .quantityButton {
@@ -3122,9 +3760,41 @@ th {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .orderCardBody {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCardBody > .orderItems,
+  .orderCardBody > .orderItems:only-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .orderCardBody > .orderCustomerPanel {
+    grid-column: auto;
+  }
+
   .orderCardHeader,
   .orderCustomerPanel,
-  .orderFollowUp {
+  .orderFollowUp,
+  .salesLayout,
+  .saleFormGrid,
+  .salePaymentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCustomerControls {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .orderResetCustomer {
+    grid-column: auto;
+  }
+
+  .saleCreditSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .saleProductPicker {
     grid-template-columns: 1fr;
   }
 
@@ -3191,6 +3861,16 @@ th {
 
   .footerAccess {
     text-align: left;
+  }
+}
+
+@media (max-width: 1180px) {
+  .salesLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .salesHistoryPanel {
+    order: 2;
   }
 }
 
@@ -3314,6 +3994,11 @@ th {
     padding: 14px;
   }
 
+  .adminModalBackdrop {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
   .adminModal,
   .smallModal {
     gap: 14px;
@@ -3323,6 +4008,24 @@ th {
 
   .modalHeader h2 {
     font-size: 1.45rem;
+  }
+
+  .customerHeaderActions {
+    width: 100%;
+  }
+
+  .customerHeaderActions .secondaryButton,
+  .customerHeaderActions .dangerButton {
+    flex: 1;
+  }
+
+  .saleHistoryActions {
+    justify-content: stretch;
+  }
+
+  .saleHistoryActions .dangerButton,
+  .saleHistoryActions .secondaryButton {
+    width: 100%;
   }
 
   .productDetailInfo {
@@ -3394,12 +4097,43 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .orderCardBody,
+  .orderCardBody > .orderItems,
+  .orderCardBody > .orderItems:only-child {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCustomerControls {
+    grid-template-columns: 1fr;
+  }
+
+  .orderResetCustomer {
+    grid-column: auto;
+    width: 100%;
+  }
+
   .orderStatusControl,
   .orderStatusControl select,
   .orderCustomerControl,
   .orderFollowUp .secondaryButton,
-  .futureSaleButton {
+  .futureSaleButton,
+  .saleSummaryBar .primaryButton,
+  .saleProductPicker .secondaryButton {
     width: 100%;
+  }
+
+  .saleCartItem {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .salePriceField input {
+    width: 100%;
+  }
+
+  .saleSummaryBar {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .customerDataGrid {
@@ -3431,4 +4165,784 @@ th {
     justify-content: center;
     width: 100%;
   }
+}
+.creditsPageContent {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 28px 20px 52px;
+  width: 100%;
+}
+
+.creditsPageHeading {
+  margin-bottom: 18px;
+}
+
+.creditsPage .topbar {
+  position: static;
+}
+
+.creditsPage .pageHeader {
+  padding-bottom: 20px;
+  padding-top: 20px;
+}
+
+.creditsPage .pageHeaderRow {
+  align-items: center;
+}
+
+.creditsPage .pageHeader h1 {
+  font-size: clamp(1.9rem, 3vw, 2.15rem);
+}
+
+.creditsPage .pageHeader p:not(.eyebrow) {
+  font-size: 16px;
+}
+
+.creditsPageHeading h2 {
+  font-size: 30px;
+  line-height: 1.1;
+  margin: 4px 0 8px;
+}
+
+.creditsPageHeading > p:last-child {
+  color: var(--muted);
+  font-size: 16px;
+  margin: 0;
+}
+
+.creditsManager {
+  display: grid;
+  gap: 16px;
+}
+
+.creditStats {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.creditStats article {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  min-height: 76px;
+  padding: 13px 16px;
+}
+
+.creditStats span,
+.creditFigures span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.creditStats strong {
+  font-size: 23px;
+}
+
+.creditStats .creditBalanceStat {
+  background: var(--surface-strong);
+}
+
+.creditToolbar {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.creditSearch {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  max-width: 560px;
+  min-width: 320px;
+  padding: 0 14px;
+}
+
+.creditSearch svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.creditSearch input {
+  border: 0;
+  font: inherit;
+  height: 42px;
+  outline: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.creditFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.creditFilters button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  min-height: 40px;
+  padding: 0 15px;
+}
+
+.creditFilters button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.creditsWorkspace {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(270px, 300px) minmax(0, 1fr);
+}
+
+.creditAccountNotice {
+  background: #f7f4ed;
+  border: 1px solid #e5ddcf;
+  border-radius: 8px;
+  color: var(--muted);
+  font-weight: 700;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+}
+
+.creditList,
+.creditDetail {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.creditList {
+  max-height: 760px;
+  overflow-y: auto;
+  position: sticky;
+  top: 16px;
+}
+
+.creditListHeading {
+  background: var(--surface-strong);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 2px;
+  padding: 13px;
+}
+
+.creditListHeading div {
+  display: grid;
+  gap: 3px;
+}
+
+.creditListHeading span {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.creditListItem {
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  text-align: left;
+  width: 100%;
+}
+
+.creditListItem:last-child {
+  border-bottom: 0;
+}
+
+.creditListItem:hover,
+.creditListItem.selected {
+  background: #f5faf4;
+}
+
+.creditListItem.selected {
+  box-shadow: inset 4px 0 0 var(--primary);
+}
+
+.creditListItem > strong {
+  font-size: 16px;
+  margin-top: 4px;
+}
+
+.creditListItem > span:not(.creditStatus) {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.creditListItem b {
+  color: var(--primary);
+  font-size: 17px;
+  margin-top: 4px;
+}
+
+.creditCustomerTop,
+.creditAccountTop {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.creditCustomerTop > span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.creditCustomerProfile {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 14px;
+  padding-bottom: 18px;
+}
+
+.creditCustomerProfileHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.creditCustomerProfileHeader > div {
+  min-width: 0;
+}
+
+.creditCustomerProfileHeader > div > span {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.creditCustomerProfileHeader h2 {
+  font-size: clamp(1.5rem, 2.6vw, 1.8rem);
+  line-height: 1.1;
+  margin: 5px 0 8px;
+}
+
+.creditCustomerProfileHeader p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.creditCustomerInfoGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 0.9fr 1.35fr 0.9fr 1fr;
+}
+
+.creditCustomerInfoCard {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 11px;
+}
+
+.creditCustomerInfoCard svg {
+  color: var(--primary);
+}
+
+.creditCustomerInfoCard span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.creditCustomerInfoCard strong {
+  font-size: 13px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.creditAccounts {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.creditAccountsHeader {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.creditAccountsHeader > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.creditAccountsHeader strong {
+  font-size: 17px;
+}
+
+.creditAccountsHeader span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.creditAccountControls {
+  display: flex;
+  gap: 6px;
+}
+
+.creditAccountControls button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--primary);
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  padding: 0;
+  width: 34px;
+}
+
+.creditAccountControls button:hover {
+  background: var(--surface-strong);
+  border-color: var(--primary);
+}
+
+.creditAccountTabs {
+  display: flex;
+  gap: 8px;
+}
+
+.creditAccountTabs button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 7px 12px;
+}
+
+.creditAccountTabs button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.creditAccountList {
+  display: grid;
+  gap: 8px;
+  grid-auto-columns: minmax(225px, 250px);
+  grid-auto-flow: column;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--line) transparent;
+  scrollbar-width: thin;
+}
+
+.creditAccountButton {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  scroll-snap-align: start;
+  text-align: left;
+}
+
+.creditAccountButton:hover {
+  background: var(--surface-strong);
+  border-color: var(--primary);
+}
+
+.creditAccountButton.selected {
+  background: var(--surface-strong);
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.creditAccountButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.creditAccountTop strong {
+  font-size: 15px;
+}
+
+.creditAccountProduct {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.creditAccountMeta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.creditAccountAmount {
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.creditAccountButton small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.creditAccountEmpty {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+  padding: 12px 2px;
+}
+
+.creditSaleFigures {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.creditSelectedAccount {
+  padding-top: 18px;
+}
+
+.creditStatus {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  justify-self: start;
+  padding: 5px 10px;
+}
+
+.creditStatus-active { background: #e2f2dd; color: #075e2a; }
+.creditStatus-overdue { background: #fde3df; color: #a62925; }
+.creditStatus-paid { background: #dceef9; color: #075c86; }
+.creditStatus-cancelled { background: #ececec; color: #666; }
+
+.creditEmpty {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  justify-content: center;
+  min-height: 220px;
+  padding: 28px;
+  text-align: center;
+}
+
+.creditDetail {
+  padding: 20px;
+}
+
+.creditDetailEmpty {
+  align-content: center;
+  align-items: center;
+  color: var(--muted);
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  min-height: 140px;
+  padding: 22px 16px;
+  text-align: center;
+}
+
+.creditDetailEmpty strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.creditDetailEmpty span {
+  font-size: 14px;
+}
+
+.creditDetailHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.creditHeaderActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  justify-content: flex-end;
+  max-width: none;
+}
+
+.creditHeaderActions .primaryButton,
+.creditHeaderActions .secondaryButton,
+.creditHeaderActions .dangerButton {
+  min-height: 36px;
+  padding-inline: 12px;
+}
+
+.creditHeaderActions button.isDisabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.creditDetailHeader > div > span {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.creditDetailHeader h2,
+.creditDetailHeader h3 {
+  font-size: 28px;
+  margin: 4px 0;
+}
+
+.creditDetailHeader p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.creditFigures {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.creditFigures article {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+}
+
+.creditFigures strong {
+  font-size: 16px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.creditFigures .creditFigureBalance {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.creditFigures .creditFigureBalance span {
+  color: #fff;
+}
+
+.creditSaleSummary {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-top: 15px;
+  padding: 14px;
+}
+
+.creditSaleSummary > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.creditSaleSummary > div svg { color: var(--primary); }
+.creditSaleSummary > div span { color: var(--muted); }
+
+.creditSaleSummary ul {
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.creditSaleSummary li {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.creditPaymentList {
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.creditPaymentList > div:first-child {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.creditPaymentList > div:first-child h3,
+.creditPaymentList > div:first-child p {
+  margin: 0;
+}
+
+.creditPaymentList > div:first-child h3 {
+  font-size: 18px;
+}
+
+.creditPaymentModal {
+  max-width: 820px;
+  width: min(100%, 820px);
+}
+
+.creditPaymentFields {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.creditPaymentModal label {
+  display: grid;
+  font-size: 14px;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.creditPaymentModal input,
+.creditPaymentModal textarea {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  padding: 13px 14px;
+  width: 100%;
+}
+
+.creditPaymentModal textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.creditPaymentHint {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.creditFormMessage {
+  border-radius: 7px;
+  font-weight: 700;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+}
+
+.creditFormMessage.error { background: #fde3df; color: #9c2824; }
+.creditFormMessage.success { background: #e2f2dd; color: #075e2a; }
+
+.creditNoPayments {
+  background: var(--surface-strong);
+  border-radius: 8px;
+  color: var(--muted);
+  margin: 0;
+  padding: 18px;
+  text-align: center;
+}
+
+.creditPaymentList {
+  display: grid;
+  gap: 9px;
+}
+
+.creditPaymentList article {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px 16px;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) auto;
+  padding: 13px 15px;
+}
+
+.creditPaymentList article > div { display: grid; gap: 2px; }
+.creditPaymentList article span { color: var(--muted); font-size: 13px; }
+.creditPaymentList article p { grid-column: 1 / -1; margin: 0; }
+
+@media (max-width: 1100px) {
+  .creditStats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .creditCustomerInfoGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .creditDetailHeader { flex-direction: column; }
+  .creditHeaderActions { justify-content: flex-start; width: 100%; }
+  .creditFigures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 820px) {
+  .creditsPageContent { padding: 28px 16px 48px; }
+  .creditsPageHeading h2 { font-size: 30px; }
+  .creditStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .creditToolbar { align-items: stretch; flex-direction: column; }
+  .creditSearch { max-width: none; min-width: 0; }
+  .creditFilters { justify-content: flex-start; }
+  .creditsWorkspace { grid-template-columns: 1fr; }
+  .creditList { max-height: 360px; }
+  .creditPaymentFields { grid-template-columns: 1fr; }
+  .creditPaymentList article { grid-template-columns: 1fr; }
+  .creditAccountList { grid-auto-columns: minmax(215px, 78%); }
+}
+
+@media (max-width: 560px) {
+  .creditStats { grid-template-columns: 1fr 1fr; }
+  .creditStats article { min-height: 82px; padding: 14px; }
+  .creditStats strong { font-size: 23px; }
+  .creditDetail { padding: 17px; }
+  .creditCustomerProfileHeader,
+  .creditAccountsHeader { align-items: flex-start; flex-direction: column; }
+  .creditAccountControls { align-self: flex-end; }
+  .creditCustomerInfoGrid { grid-template-columns: 1fr; }
+  .creditDetailHeader { flex-direction: column; }
+  .creditDetailHeader h2,
+  .creditDetailHeader h3 { font-size: 26px; }
+  .creditHeaderActions { align-items: stretch; flex-direction: column; max-width: none; width: 100%; }
+  .creditHeaderActions .primaryButton,
+  .creditHeaderActions .secondaryButton,
+  .creditHeaderActions .dangerButton { justify-content: center; width: 100%; }
+  .creditList { position: static; }
+  .creditFigures { grid-template-columns: 1fr 1fr; }
+  .creditFigureBalance { grid-column: 1 / -1; }
 }
