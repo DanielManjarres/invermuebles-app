@@ -86,9 +86,7 @@ export function buildPortfolioAccounts(
   credits: AdminCredit[],
   sales: AdminSale[],
 ): PortfolioAccount[] {
-  const creditAccounts = credits
-    .filter((credit) => credit.status !== "CANCELLED")
-    .map<PortfolioAccount>((credit) => ({
+  const creditAccounts = credits.map<PortfolioAccount>((credit) => ({
       id: `credit:${credit.id}`,
       entityId: credit.id,
       source: "CREDIT",
@@ -122,7 +120,6 @@ export function buildPortfolioAccounts(
     .filter(
       (sale) =>
         Boolean(sale.customerId) &&
-        sale.status !== "CANCELLED" &&
         (sale.type === "CASH" || sale.type === "RESERVED" || sale.type === "SISTECREDITO"),
     )
     .map<PortfolioAccount>((sale) => {

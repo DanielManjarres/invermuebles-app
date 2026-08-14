@@ -170,13 +170,12 @@ export function AdminSalesManager({
     : 0;
   const reservedMinimum = cartTotal * 0.1;
   const balance = Math.max(cartTotal - amountPaid, 0);
-  const activeSales = sales.filter((sale) => sale.status !== "CANCELLED");
-  const totalSold = activeSales.reduce((total, sale) => total + sale.total, 0);
+  const totalSold = sales.reduce((total, sale) => total + sale.total, 0);
 
   const filteredSales = useMemo(() => {
     const search = normalizeText(historyQuery);
 
-    return sales.filter((sale) => sale.status !== "CANCELLED").filter((sale) => {
+    return sales.filter((sale) => {
       const matchesSearch = search ? getSaleSearchText(sale).includes(search) : true;
       const matchesSource =
         sourceFilter === "ALL" ? true : sale.source === sourceFilter;
@@ -566,15 +565,15 @@ export function AdminSalesManager({
       <div className="movementSummaryGrid" aria-label="Resumen de ventas">
         <article>
           <span>Total ventas</span>
-          <strong>{activeSales.length}</strong>
+          <strong>{sales.length}</strong>
         </article>
         <article>
           <span>Ventas locales</span>
-          <strong>{activeSales.filter((sale) => sale.source === "LOCAL").length}</strong>
+          <strong>{sales.filter((sale) => sale.source === "LOCAL").length}</strong>
         </article>
         <article>
           <span>Desde pedidos</span>
-          <strong>{activeSales.filter((sale) => sale.source === "ORDER").length}</strong>
+          <strong>{sales.filter((sale) => sale.source === "ORDER").length}</strong>
         </article>
         <article>
           <span>Total vendido</span>

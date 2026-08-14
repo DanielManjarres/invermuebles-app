@@ -64,5 +64,4 @@ export const creditStatusLabels: Record<CreditStatus, string> = {
   ACTIVE: "Activo",
   PAID: "Pagado",
   OVERDUE: "En mora",
-  CANCELLED: "Cancelado",
 };

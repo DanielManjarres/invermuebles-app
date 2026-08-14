@@ -234,7 +234,6 @@ enum OrderStatus {
   PENDING
   CONTACTED
   CONFIRMED
-  CANCELLED
 }
 
 enum OrderChannel {
@@ -260,7 +259,6 @@ enum SaleStatus {
   PENDING_PAYMENT
   PENDING_DELIVERY
   DELIVERED
-  CANCELLED
 }
 
 enum PaymentMethod {
@@ -279,5 +277,4 @@ enum CreditStatus {
   ACTIVE
   PAID
   OVERDUE
-  CANCELLED
 }

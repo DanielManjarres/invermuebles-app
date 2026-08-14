@@ -100,7 +100,7 @@ export async function POST(request: Request, context: RouteContext) {
         throw new Error("Crédito no encontrado.");
       }
 
-      if (credit.status === "PAID" || credit.status === "CANCELLED") {
+      if (credit.status === "PAID") {
         throw new Error("Este crédito no permite nuevos abonos.");
       }
 

@@ -111,8 +111,7 @@ export function AdminSalesHistory({
                 <span>Recibido: {formatMoney(sale.amountPaid)}</span>
                 {sale.balance > 0 ? <span>Saldo: {formatMoney(sale.balance)}</span> : null}
               </div>
-              {sale.status !== "CANCELLED" ? (
-                <div className="saleHistoryActions">
+              <div className="saleHistoryActions">
                   {sale.status === "PENDING_DELIVERY" ? (
                     <button
                       className="primaryButton"
@@ -158,8 +157,7 @@ export function AdminSalesHistory({
                       Eliminar venta
                     </button>
                   ) : null}
-                </div>
-              ) : null}
+              </div>
             </article>
           ))
         )}

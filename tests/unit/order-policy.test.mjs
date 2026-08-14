@@ -16,7 +16,6 @@ test("allows only adjacent active order status transitions", () => {
   assert.equal(canTransitionOrderStatus("CONTACTED", "PENDING"), true);
   assert.equal(canTransitionOrderStatus("PENDING", "CONFIRMED"), false);
   assert.equal(canTransitionOrderStatus("CONFIRMED", "PENDING"), false);
-  assert.equal(canTransitionOrderStatus("CONTACTED", "CANCELLED"), false);
 });
 
 test("keeps sold order status and customer immutable", () => {

@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 
 import type { CreditStats } from "@/lib/credits";
 
-export type CreditFilter = "ALL" | "ACTIVE" | "OVERDUE" | "PAID" | "CANCELLED";
+export type CreditFilter = "ALL" | "ACTIVE" | "OVERDUE" | "PAID";
 
 type Props = {
   disabled: boolean;
