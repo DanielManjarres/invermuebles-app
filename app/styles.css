@@ -2465,7 +2465,7 @@ th {
   align-items: end;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr) max-content;
+  grid-template-columns: minmax(0, 1fr) max-content;
   min-width: 0;
 }
 
@@ -2482,6 +2482,7 @@ th {
   font-size: 0.78rem;
   font-weight: 900;
   gap: 6px;
+  grid-column: 1 / -1;
   min-width: 0;
 }
 
@@ -3782,11 +3783,11 @@ th {
   }
 
   .orderCustomerControls {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) max-content;
   }
 
   .orderResetCustomer {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .saleCreditSummary {
