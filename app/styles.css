@@ -2422,7 +2422,7 @@ th {
 }
 
 .orderCustomerPanel {
-  align-items: end;
+  align-items: start;
   display: grid;
   gap: 10px;
   grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
