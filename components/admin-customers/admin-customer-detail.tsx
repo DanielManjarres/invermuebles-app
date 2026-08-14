@@ -174,7 +174,7 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
   }
 
   return (
-    <section className="tableSection customersSection">
+    <section className="tableSection customersSection customerDetailSection">
       {notice ? (
         <div className="orderToast floatingToast" role="status">
           <span>{notice}</span>

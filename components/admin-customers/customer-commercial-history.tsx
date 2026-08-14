@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeCheck, Ban, CreditCard } from "lucide-react";
+import { BadgeCheck, CreditCard, ReceiptText } from "lucide-react";
 import type { AdminCustomer } from "@/lib/customers";
 
 type CustomerCommercialHistoryProps = {
@@ -17,16 +17,24 @@ function formatMoney(value: number) {
 export function CustomerCommercialHistory({
   customer,
 }: CustomerCommercialHistoryProps) {
+  const hasCommercialActivity =
+    customer.recentAccounts.length > 0 || customer.recentPayments.length > 0;
+
   return (
     <>
       <div className="customerHistoryGrid">
         <article>
           <BadgeCheck size={20} />
           <span>Ventas / pedidos</span>
-          <strong>
-            {customer.salesCount} / {customer.ordersCount}
-          </strong>
-          <small>Última venta: {customer.lastSaleAt}</small>
+          <strong>{customer.salesCount} ventas</strong>
+          <small>
+            {customer.ordersCount} pedidos ·{" "}
+            <Link
+              href={`/admin/ventas?cliente=${encodeURIComponent(customer.document)}`}
+            >
+              Ver ventas
+            </Link>
+          </small>
         </article>
         <article>
           <CreditCard size={20} />
@@ -35,67 +43,44 @@ export function CustomerCommercialHistory({
           <small>Activos o en mora: {customer.activeCreditsCount}</small>
         </article>
         <article>
-          <Ban size={20} />
+          <ReceiptText size={20} />
           <span>Pagos registrados</span>
           <strong>{customer.paymentsCount}</strong>
           <small>Total recibido: {formatMoney(customer.totalPaid)}</small>
         </article>
       </div>
 
-      <div className="customerActivityGrid">
-        <section className="customerActivityPanel">
-          <div className="customerActivityHeader">
-            <div>
-              <strong>Ventas recientes</strong>
-              <small>Últimas compras registradas del cliente.</small>
-            </div>
-            <Link href="/admin/ventas">Ver ventas</Link>
-          </div>
-          <div className="customerActivityList">
-            {customer.recentSales.length > 0 ? (
-              customer.recentSales.map((sale) => (
-                <article key={sale.id}>
-                  <div>
-                    <strong>Venta #{sale.shortId}</strong>
-                    <span>{sale.products}</span>
-                    <small>{sale.createdAt}</small>
-                  </div>
-                  <div className="customerActivityValues">
-                    <strong>{formatMoney(sale.total)}</strong>
-                    <span>
-                      {sale.typeLabel} · {sale.statusLabel}
-                    </span>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <p className="customerActivityEmpty">Sin ventas registradas.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="customerActivityPanel">
+      {hasCommercialActivity ? (
+        <>
+          <section className="customerActivityPanel customerPortfolioPanel">
           <div className="customerActivityHeader">
             <div>
               <strong>Cartera reciente</strong>
-              <small>Saldo y pagos de los últimos créditos.</small>
+              <small>Productos, saldos y pagos de los últimos créditos.</small>
             </div>
-            <Link href="/admin/cartera">Ver cartera</Link>
+            <Link
+              href={`/admin/cartera?buscar=${encodeURIComponent(customer.document)}`}
+            >
+              Ver cartera
+            </Link>
           </div>
           <div className="customerActivityList">
-            {customer.recentCredits.length > 0 ? (
-              customer.recentCredits.map((credit) => (
-                <article key={credit.id}>
+            {customer.recentAccounts.length > 0 ? (
+              customer.recentAccounts.map((account) => (
+                <article key={account.id}>
                   <div>
-                    <strong>Crédito #{credit.shortId}</strong>
+                    <strong>{account.title} #{account.shortId}</strong>
+                    <span>{account.products}</span>
                     <span>
-                      {credit.statusLabel} · {credit.paymentsCount} pago(s)
+                      {account.statusLabel} · {account.paymentsCount} pago(s)
                     </span>
-                    <small>Último pago: {credit.lastPaymentAt}</small>
+                    <small>
+                      Venta #{account.saleShortId} · {account.createdAt} · Último pago: {account.lastPaymentAt}
+                    </small>
                   </div>
                   <div className="customerActivityValues">
-                    <strong>{formatMoney(credit.balance)}</strong>
-                    <span>de {formatMoney(credit.total)}</span>
+                    <strong>{formatMoney(account.balance)}</strong>
+                    <span>de {formatMoney(account.total)}</span>
                   </div>
                 </article>
               ))
@@ -103,10 +88,9 @@ export function CustomerCommercialHistory({
               <p className="customerActivityEmpty">Sin créditos registrados.</p>
             )}
           </div>
-        </section>
-      </div>
+          </section>
 
-      <section className="customerActivityPanel customerPaymentsPanel">
+          <section className="customerActivityPanel customerPaymentsPanel">
         <div className="customerActivityHeader">
           <div>
             <strong>Pagos recientes</strong>
@@ -132,7 +116,17 @@ export function CustomerCommercialHistory({
             <p className="customerActivityEmpty">Sin pagos registrados.</p>
           )}
         </div>
-      </section>
+          </section>
+        </>
+      ) : (
+        <div className="customerCommercialEmpty">
+          <ReceiptText size={24} />
+          <div>
+            <strong>Sin actividad de cartera</strong>
+            <p>Este cliente todavía no tiene créditos ni pagos registrados.</p>
+          </div>
+        </div>
+      )}
     </>
   );
 }

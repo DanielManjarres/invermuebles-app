@@ -5,11 +5,7 @@ import {
 } from "@/lib/customers";
 import { creditStatusLabels } from "@/lib/credits";
 import { prisma } from "@/lib/prisma";
-import {
-  paymentMethodLabels,
-  saleStatusLabels,
-  saleTypeLabels,
-} from "@/lib/sales";
+import { paymentMethodLabels, saleTypeLabels } from "@/lib/sales";
 
 const customerInclude = {
   _count: {
@@ -22,6 +18,7 @@ const customerInclude = {
   credits: {
     orderBy: { createdAt: "desc" },
     select: {
+      createdAt: true,
       id: true,
       interestBalance: true,
       outstandingPrincipal: true,
@@ -29,6 +26,12 @@ const customerInclude = {
       total: true,
       sale: {
         select: {
+          id: true,
+          type: true,
+          items: {
+            orderBy: { createdAt: "asc" },
+            select: { productName: true, quantity: true },
+          },
           payments: {
             orderBy: { createdAt: "desc" },
             select: { createdAt: true },
@@ -37,17 +40,12 @@ const customerInclude = {
       },
     },
   },
-  orders: {
-    orderBy: { createdAt: "desc" },
-    select: { createdAt: true },
-    take: 1,
-  },
   sales: {
     orderBy: { createdAt: "desc" },
     select: {
+      balance: true,
       createdAt: true,
       id: true,
-      status: true,
       total: true,
       type: true,
       items: {
@@ -92,8 +90,8 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
     overdueCreditsCount
   );
   const payments = customer.sales
-    .flatMap((sale) =>
-      sale.payments.map((payment) => ({
+    .flatMap((sale) => {
+      const salePayments = sale.payments.map((payment) => ({
         id: payment.id,
         amount: Number(payment.amount),
         methodLabel: paymentMethodLabels[payment.method],
@@ -101,9 +99,80 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
         createdAtValue: payment.createdAt,
         isInitial: payment.isInitial,
         saleShortId: sale.id.slice(-6).toUpperCase(),
-      }))
-    )
+      }));
+
+      if (sale.type === "SISTECREDITO" && salePayments.length === 0) {
+        salePayments.push({
+          id: `sistecredito:${sale.id}`,
+          amount: Number(sale.total),
+          methodLabel: "Sistecrédito",
+          createdAt: formatDate(sale.createdAt),
+          createdAtValue: sale.createdAt,
+          isInitial: true,
+          saleShortId: sale.id.slice(-6).toUpperCase(),
+        });
+      }
+
+      return salePayments;
+    })
     .sort((first, second) => second.createdAtValue.getTime() - first.createdAtValue.getTime());
+  const creditAccounts = customer.credits.map((credit) => ({
+    id: `credit:${credit.id}`,
+    shortId: credit.id.slice(-6).toUpperCase(),
+    saleShortId: credit.sale?.id.slice(-6).toUpperCase() ?? "",
+    title: saleTypeLabels[credit.sale?.type ?? "CREDIT"],
+    statusLabel: creditStatusLabels[credit.status],
+    total: Number(credit.total),
+    balance:
+      Number(credit.outstandingPrincipal) + Number(credit.interestBalance),
+    paymentsCount: credit.sale?.payments.length ?? 0,
+    lastPaymentAt: formatDate(credit.sale?.payments[0]?.createdAt),
+    createdAt: formatDate(credit.createdAt),
+    createdAtValue: credit.createdAt,
+    products:
+      credit.sale?.items
+        .map((item) => `${item.productName} x ${item.quantity}`)
+        .join(", ") || "Sin productos registrados",
+  }));
+  const saleAccounts = customer.sales
+    .filter(
+      (sale) =>
+        sale.type === "CASH" ||
+        sale.type === "RESERVED" ||
+        sale.type === "SISTECREDITO"
+    )
+    .map((sale) => {
+      const isOpen = sale.type === "RESERVED" && Number(sale.balance) > 0;
+      const hasSyntheticPayment =
+        sale.type === "SISTECREDITO" && sale.payments.length === 0;
+
+      return {
+        id: `sale:${sale.id}`,
+        shortId: sale.id.slice(-6).toUpperCase(),
+        saleShortId: sale.id.slice(-6).toUpperCase(),
+        title: saleTypeLabels[sale.type],
+        statusLabel: isOpen ? "Activo" : "Pagado",
+        total: Number(sale.total),
+        balance: Number(sale.balance),
+        paymentsCount: sale.payments.length + (hasSyntheticPayment ? 1 : 0),
+        lastPaymentAt: formatDate(
+          sale.payments[0]?.createdAt ??
+            (hasSyntheticPayment ? sale.createdAt : null)
+        ),
+        createdAt: formatDate(sale.createdAt),
+        createdAtValue: sale.createdAt,
+        products:
+          sale.items
+            .map((item) => `${item.productName} x ${item.quantity}`)
+            .join(", ") || "Sin productos registrados",
+      };
+    });
+  const recentAccounts = [...creditAccounts, ...saleAccounts]
+    .sort(
+      (first, second) =>
+        second.createdAtValue.getTime() - first.createdAtValue.getTime()
+    )
+    .slice(0, 5);
 
   return {
     id: customer.id,
@@ -130,31 +199,10 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
     overdueCreditsCount,
     paymentsCount: payments.length,
     totalPaid: payments.reduce((total, payment) => total + payment.amount, 0),
-    lastOrderAt: formatDate(customer.orders[0]?.createdAt),
-    lastSaleAt: formatDate(customer.sales[0]?.createdAt),
     lastPaymentAt: payments[0]?.createdAt ?? "Sin pagos registrados",
-    recentSales: customer.sales.slice(0, 5).map((sale) => ({
-      id: sale.id,
-      shortId: sale.id.slice(-6).toUpperCase(),
-      typeLabel: saleTypeLabels[sale.type],
-      statusLabel: saleStatusLabels[sale.status],
-      total: Number(sale.total),
-      createdAt: formatDate(sale.createdAt),
-      products:
-        sale.items
-          .map((item) => `${item.productName} x ${item.quantity}`)
-          .join(", ") || "Sin productos registrados",
-    })),
-    recentCredits: customer.credits.slice(0, 5).map((credit) => ({
-      id: credit.id,
-      shortId: credit.id.slice(-6).toUpperCase(),
-      statusLabel: creditStatusLabels[credit.status],
-      total: Number(credit.total),
-      balance:
-        Number(credit.outstandingPrincipal) + Number(credit.interestBalance),
-      paymentsCount: credit.sale?.payments.length ?? 0,
-      lastPaymentAt: formatDate(credit.sale?.payments[0]?.createdAt),
-    })),
+    recentAccounts: recentAccounts.map(({ createdAtValue, ...account }) =>
+      account
+    ),
     recentPayments: payments.slice(0, 5).map(({ createdAtValue, ...payment }) =>
       payment
     ),

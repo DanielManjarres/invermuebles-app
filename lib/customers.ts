@@ -1,23 +1,17 @@
 import type { CustomerStatus } from "@prisma/client";
 
-export type AdminCustomerSale = {
+export type AdminCustomerAccount = {
   id: string;
   shortId: string;
-  typeLabel: string;
-  statusLabel: string;
-  total: number;
-  createdAt: string;
-  products: string;
-};
-
-export type AdminCustomerCredit = {
-  id: string;
-  shortId: string;
+  saleShortId: string;
+  title: string;
   statusLabel: string;
   total: number;
   balance: number;
   paymentsCount: number;
   lastPaymentAt: string;
+  createdAt: string;
+  products: string;
 };
 
 export type AdminCustomerPayment = {
@@ -52,11 +46,8 @@ export type AdminCustomer = {
   overdueCreditsCount: number;
   paymentsCount: number;
   totalPaid: number;
-  lastOrderAt: string;
-  lastSaleAt: string;
   lastPaymentAt: string;
-  recentSales: AdminCustomerSale[];
-  recentCredits: AdminCustomerCredit[];
+  recentAccounts: AdminCustomerAccount[];
   recentPayments: AdminCustomerPayment[];
 };
 

@@ -92,11 +92,8 @@ function buildCustomerFromForm(
     overdueCreditsCount: 0,
     paymentsCount: 0,
     totalPaid: 0,
-    lastOrderAt: "Sin registros",
-    lastSaleAt: "Sin registros",
     lastPaymentAt: "Sin pagos registrados",
-    recentSales: [],
-    recentCredits: [],
+    recentAccounts: [],
     recentPayments: [],
   };
 }
