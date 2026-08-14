@@ -34,6 +34,12 @@ export function CustomerCommercialHistory({
             >
               Ver ventas
             </Link>
+            {" · "}
+            <Link
+              href={`/admin/pedidos?cliente=${encodeURIComponent(customer.document)}`}
+            >
+              Ver pedidos
+            </Link>
           </small>
         </article>
         <article>
