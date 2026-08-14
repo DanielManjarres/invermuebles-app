@@ -138,39 +138,54 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
       return;
     }
 
-    if (!cleanText(form.document).replace(/\D/g, "")) {
-      setFormError("Escribe la cédula del cliente.");
+    const document = cleanText(form.document).replace(/\D/g, "");
+    if (document.length < 6 || document.length > 15) {
+      setFormError("La cédula debe tener entre 6 y 15 números.");
       return;
     }
 
-    if (!cleanText(form.phone)) {
-      setFormError("Escribe el teléfono del cliente.");
+    const phone = cleanText(form.phone).replace(/\D/g, "");
+    if (phone.length < 7 || phone.length > 15) {
+      setFormError("El teléfono debe tener entre 7 y 15 números.");
+      return;
+    }
+
+    const referencePhone = cleanText(form.referencePhone).replace(/\D/g, "");
+    if (
+      referencePhone &&
+      (referencePhone.length < 7 || referencePhone.length > 15)
+    ) {
+      setFormError("El teléfono del contacto debe tener entre 7 y 15 números.");
       return;
     }
 
     setIsSaving(true);
 
-    const response = await fetch("/api/customers", {
-      body: JSON.stringify({
-        ...form,
-        id: currentCustomer.id,
-      }),
-      headers: { "Content-Type": "application/json" },
-      method: "PUT",
-    });
-    const result = (await response.json()) as { id?: string; message?: string };
+    try {
+      const response = await fetch("/api/customers", {
+        body: JSON.stringify({
+          ...form,
+          id: currentCustomer.id,
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "PUT",
+      });
+      const result = (await response.json()) as { id?: string; message?: string };
 
-    setIsSaving(false);
+      if (!response.ok || !result.id) {
+        setFormError(result.message ?? "No se pudo guardar el cliente.");
+        return;
+      }
 
-    if (!response.ok || !result.id) {
-      setFormError(result.message ?? "No se pudo guardar el cliente.");
-      return;
+      const savedCustomer = buildCustomerFromForm(form, currentCustomer);
+      setCurrentCustomer(savedCustomer);
+      setIsFormOpen(false);
+      setNotice(`${savedCustomer.fullName} fue actualizado.`);
+    } catch {
+      setFormError("No se pudo conectar con el sistema.");
+    } finally {
+      setIsSaving(false);
     }
-
-    const savedCustomer = buildCustomerFromForm(form, currentCustomer);
-    setCurrentCustomer(savedCustomer);
-    setIsFormOpen(false);
-    setNotice(`${savedCustomer.fullName} fue actualizado.`);
   }
 
   async function handleCustomerDelete() {

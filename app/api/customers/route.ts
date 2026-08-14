@@ -1,4 +1,4 @@
-import { CustomerStatus } from "@prisma/client";
+import { CustomerStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
@@ -34,6 +34,10 @@ function cleanDocument(value?: string) {
   return cleanText(value).replace(/\D/g, "");
 }
 
+function cleanPhone(value?: string) {
+  return cleanText(value).replace(/\D/g, "");
+}
+
 function isValidEmail(value?: string) {
   const email = cleanText(value);
   return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -44,12 +48,19 @@ function validateCustomer(body: CustomerRequest) {
     return "Escribe el nombre completo del cliente.";
   }
 
-  if (!cleanDocument(body.document)) {
-    return "Escribe la cédula del cliente.";
+  const document = cleanDocument(body.document);
+  if (document.length < 6 || document.length > 15) {
+    return "La cédula debe tener entre 6 y 15 números.";
   }
 
-  if (!cleanText(body.phone)) {
-    return "Escribe el teléfono del cliente.";
+  const phone = cleanPhone(body.phone);
+  if (phone.length < 7 || phone.length > 15) {
+    return "El teléfono debe tener entre 7 y 15 números.";
+  }
+
+  const referencePhone = cleanPhone(body.referencePhone);
+  if (referencePhone && (referencePhone.length < 7 || referencePhone.length > 15)) {
+    return "El teléfono del contacto debe tener entre 7 y 15 números.";
   }
 
   if (!isValidEmail(body.email)) {
@@ -105,11 +116,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const customer = await prisma.customer.create({
-    data: buildCustomerData(body),
-  });
+  try {
+    const customer = await prisma.customer.create({
+      data: buildCustomerData(body),
+    });
 
-  return NextResponse.json({ id: customer.id }, { status: 201 });
+    return NextResponse.json({ id: customer.id }, { status: 201 });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { message: "Ya existe un cliente con esa cédula." },
+        { status: 409 }
+      );
+    }
+
+    throw error;
+  }
 }
 
 export async function PUT(request: Request) {
@@ -140,12 +165,32 @@ export async function PUT(request: Request) {
     );
   }
 
-  await prisma.customer.update({
-    where: { id: body.id },
-    data: buildCustomerData(body),
-  });
+  try {
+    await prisma.customer.update({
+      where: { id: body.id },
+      data: buildCustomerData(body),
+    });
 
-  return NextResponse.json({ id: body.id });
+    return NextResponse.json({ id: body.id });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "No se encontró el cliente." },
+          { status: 404 }
+        );
+      }
+
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { message: "Ya existe otro cliente con esa cédula." },
+          { status: 409 }
+        );
+      }
+    }
+
+    throw error;
+  }
 }
 
 export async function DELETE(request: Request) {
