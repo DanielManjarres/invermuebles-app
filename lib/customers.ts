@@ -17,10 +17,11 @@ export type AdminCustomerAccount = {
 export type AdminCustomerPayment = {
   id: string;
   amount: number;
+  accountShortId: string;
+  accountTitle: string;
   methodLabel: string;
   createdAt: string;
   isInitial: boolean;
-  saleShortId: string;
 };
 
 export type AdminCustomer = {

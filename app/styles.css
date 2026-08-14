@@ -3281,6 +3281,29 @@ th {
   font-weight: 900;
 }
 
+.customerHistoryTotals,
+.customerHistoryActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.customerHistoryTotals {
+  gap: 6px 16px;
+}
+
+.customerHistoryActions {
+  border-top: 1px solid var(--line);
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.customerHistoryActions a {
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
 .customerActivityPanel {
   border: 1px solid var(--line);
   border-radius: 8px;

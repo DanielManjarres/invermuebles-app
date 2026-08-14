@@ -48,6 +48,9 @@ const customerInclude = {
       id: true,
       total: true,
       type: true,
+      credit: {
+        select: { id: true },
+      },
       items: {
         orderBy: { createdAt: "asc" },
         select: { productName: true, quantity: true },
@@ -91,25 +94,30 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
   );
   const payments = customer.sales
     .flatMap((sale) => {
+      const accountShortId = (sale.credit?.id ?? sale.id)
+        .slice(-6)
+        .toUpperCase();
       const salePayments = sale.payments.map((payment) => ({
         id: payment.id,
         amount: Number(payment.amount),
+        accountShortId,
+        accountTitle: saleTypeLabels[sale.type],
         methodLabel: paymentMethodLabels[payment.method],
         createdAt: formatDate(payment.createdAt),
         createdAtValue: payment.createdAt,
         isInitial: payment.isInitial,
-        saleShortId: sale.id.slice(-6).toUpperCase(),
       }));
 
       if (sale.type === "SISTECREDITO" && salePayments.length === 0) {
         salePayments.push({
           id: `sistecredito:${sale.id}`,
           amount: Number(sale.total),
+          accountShortId,
+          accountTitle: saleTypeLabels[sale.type],
           methodLabel: "Sistecrédito",
           createdAt: formatDate(sale.createdAt),
           createdAtValue: sale.createdAt,
           isInitial: true,
-          saleShortId: sale.id.slice(-6).toUpperCase(),
         });
       }
 

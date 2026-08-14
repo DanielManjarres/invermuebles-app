@@ -26,21 +26,31 @@ export function CustomerCommercialHistory({
         <article>
           <BadgeCheck size={20} />
           <span>Ventas / pedidos</span>
-          <strong>{customer.salesCount} ventas</strong>
-          <small>
-            {customer.ordersCount} pedidos ·{" "}
+          <div className="customerHistoryTotals">
+            <strong>
+              {customer.salesCount}{" "}
+              {customer.salesCount === 1 ? "venta" : "ventas"}
+            </strong>
+            <strong>
+              {customer.ordersCount}{" "}
+              {customer.ordersCount === 1 ? "pedido" : "pedidos"}
+            </strong>
+          </div>
+          <nav
+            className="customerHistoryActions"
+            aria-label="Historial comercial"
+          >
             <Link
               href={`/admin/ventas?cliente=${encodeURIComponent(customer.document)}`}
             >
               Ver ventas
             </Link>
-            {" · "}
             <Link
               href={`/admin/pedidos?cliente=${encodeURIComponent(customer.document)}`}
             >
               Ver pedidos
             </Link>
-          </small>
+          </nav>
         </article>
         <article>
           <CreditCard size={20} />
@@ -109,7 +119,9 @@ export function CustomerCommercialHistory({
               <article key={payment.id}>
                 <div>
                   <strong>{formatMoney(payment.amount)}</strong>
-                  <span>Venta #{payment.saleShortId}</span>
+                  <span>
+                    {payment.accountTitle} #{payment.accountShortId}
+                  </span>
                 </div>
                 <div>
                   <strong>{payment.methodLabel}</strong>
