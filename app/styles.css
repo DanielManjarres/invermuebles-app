@@ -3271,6 +3271,111 @@ th {
   margin: 0;
 }
 
+.customerActivityGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.customerActivityPanel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.customerActivityHeader {
+  align-items: flex-start;
+  background: var(--surface-strong);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.customerActivityHeader div,
+.customerActivityValues {
+  display: grid;
+  gap: 3px;
+}
+
+.customerActivityHeader small,
+.customerActivityList span,
+.customerActivityList small,
+.customerPaymentList span,
+.customerPaymentList small {
+  color: var(--muted);
+}
+
+.customerActivityHeader a {
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.customerActivityList,
+.customerPaymentList {
+  display: grid;
+}
+
+.customerActivityList article {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.customerActivityList article:last-child,
+.customerPaymentList article:last-child {
+  border-bottom: 0;
+}
+
+.customerActivityList article > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.customerActivityList span,
+.customerActivityList small,
+.customerPaymentList span,
+.customerPaymentList small {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.customerActivityValues {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.customerPaymentsPanel {
+  grid-column: 1 / -1;
+}
+
+.customerPaymentList article {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr auto;
+  padding: 10px 14px;
+}
+
+.customerPaymentList article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.customerActivityEmpty {
+  color: var(--muted);
+  margin: 0;
+  padding: 18px 14px;
+}
+
 .customerModal {
   max-width: 860px;
   width: min(100%, 860px);
@@ -3800,7 +3905,12 @@ th {
 
   .customerToolbar,
   .customerDirectoryItem,
-  .customerHistoryGrid {
+  .customerHistoryGrid,
+  .customerActivityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .customerPaymentList article {
     grid-template-columns: 1fr;
   }
 

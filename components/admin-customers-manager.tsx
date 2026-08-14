@@ -109,10 +109,18 @@ function buildCustomerFromForm(
     createdAt: base?.createdAt ?? now,
     updatedAt: now,
     ordersCount: base?.ordersCount ?? 0,
+    salesCount: base?.salesCount ?? 0,
     creditsCount: base?.creditsCount ?? 0,
     activeCreditsCount: base?.activeCreditsCount ?? 0,
     overdueCreditsCount: base?.overdueCreditsCount ?? 0,
+    paymentsCount: base?.paymentsCount ?? 0,
+    totalPaid: base?.totalPaid ?? 0,
     lastOrderAt: base?.lastOrderAt ?? "Sin registros",
+    lastSaleAt: base?.lastSaleAt ?? "Sin registros",
+    lastPaymentAt: base?.lastPaymentAt ?? "Sin pagos registrados",
+    recentSales: base?.recentSales ?? [],
+    recentCredits: base?.recentCredits ?? [],
+    recentPayments: base?.recentPayments ?? [],
   };
 }
 

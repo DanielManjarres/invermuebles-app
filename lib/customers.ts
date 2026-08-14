@@ -1,5 +1,34 @@
 import type { CustomerStatus } from "@prisma/client";
 
+export type AdminCustomerSale = {
+  id: string;
+  shortId: string;
+  typeLabel: string;
+  statusLabel: string;
+  total: number;
+  createdAt: string;
+  products: string;
+};
+
+export type AdminCustomerCredit = {
+  id: string;
+  shortId: string;
+  statusLabel: string;
+  total: number;
+  balance: number;
+  paymentsCount: number;
+  lastPaymentAt: string;
+};
+
+export type AdminCustomerPayment = {
+  id: string;
+  amount: number;
+  methodLabel: string;
+  createdAt: string;
+  isInitial: boolean;
+  saleShortId: string;
+};
+
 export type AdminCustomer = {
   id: string;
   fullName: string;
@@ -17,10 +46,18 @@ export type AdminCustomer = {
   createdAt: string;
   updatedAt: string;
   ordersCount: number;
+  salesCount: number;
   creditsCount: number;
   activeCreditsCount: number;
   overdueCreditsCount: number;
+  paymentsCount: number;
+  totalPaid: number;
   lastOrderAt: string;
+  lastSaleAt: string;
+  lastPaymentAt: string;
+  recentSales: AdminCustomerSale[];
+  recentCredits: AdminCustomerCredit[];
+  recentPayments: AdminCustomerPayment[];
 };
 
 export const customerStatusLabels: Record<CustomerStatus, string> = {
