@@ -423,6 +423,7 @@ export function AdminOrdersBrowser({
                   </label>
                 </div>
 
+                <div className="orderCardBody">
                 <div className="orderItems">
                   {order.items.map((item) => (
                     <div key={item.id}>
@@ -505,6 +506,7 @@ export function AdminOrdersBrowser({
                   )}
                 </div>
                 ) : null}
+                </div>
 
                 <div className="orderFollowUp">
                   <p className="orderDescription">

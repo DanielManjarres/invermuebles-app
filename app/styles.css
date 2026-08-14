@@ -2534,6 +2534,23 @@ th {
   color: #9b2924;
 }
 
+.orderCardBody {
+  align-items: start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.45fr);
+  min-width: 0;
+}
+
+.orderCardBody > .orderItems {
+  grid-template-columns: 1fr;
+}
+
+.orderCardBody > .orderItems:only-child {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .orderItems {
   display: grid;
   gap: 8px;
@@ -3742,6 +3759,19 @@ th {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .orderCardBody {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCardBody > .orderItems,
+  .orderCardBody > .orderItems:only-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .orderCardBody > .orderCustomerPanel {
+    grid-column: auto;
+  }
+
   .orderCardHeader,
   .orderCustomerPanel,
   .orderFollowUp,
@@ -4063,6 +4093,12 @@ th {
   }
 
   .orderItems {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCardBody,
+  .orderCardBody > .orderItems,
+  .orderCardBody > .orderItems:only-child {
     grid-template-columns: 1fr;
   }
 
