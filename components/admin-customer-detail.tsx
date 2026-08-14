@@ -22,37 +22,14 @@ import {
   customerStatusLabels,
   type AdminCustomer,
 } from "@/lib/customers";
-import { SelectMenu } from "@/components/select-menu";
-
-type CustomerFormState = {
-  address: string;
-  city: string;
-  document: string;
-  email: string;
-  fullName: string;
-  neighborhood: string;
-  notes: string;
-  phone: string;
-  referenceName: string;
-  referencePhone: string;
-  referenceRelation: string;
-  status: AdminCustomer["status"];
-};
+import {
+  CustomerFormModal,
+  type CustomerFormState,
+} from "@/components/admin-customers/customer-form-modal";
 
 type AdminCustomerDetailProps = {
   customer: AdminCustomer;
 };
-
-const editableCustomerStatuses: AdminCustomer["status"][] = [
-  "ACTIVE",
-  "INACTIVE",
-  "BLOCKED",
-];
-
-const customerStatusOptions = editableCustomerStatuses.map((status) => ({
-  label: customerStatusLabels[status],
-  value: status,
-}));
 
 function cleanText(value: string) {
   return value.trim().replace(/\s+/g, " ");
@@ -488,202 +465,15 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
       ) : null}
 
       {isFormOpen ? (
-        <div className="modalOverlay" role="presentation">
-          <form className="adminModal customerModal" onSubmit={handleCustomerSubmit}>
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Editar cliente</p>
-                <h2>Actualizar cliente</h2>
-              </div>
-              <button
-                aria-label="Cerrar formulario"
-                className="modalClose"
-                type="button"
-                onClick={() => setIsFormOpen(false)}
-              >
-                x
-              </button>
-            </div>
-
-            {formError ? <div className="formError">{formError}</div> : null}
-
-            <div className="adminFormGrid">
-              <label>
-                Nombre completo
-                <input
-                  placeholder="Ej: Daniel Manjarres"
-                  value={form.fullName}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      fullName: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Cedula
-                <input
-                  inputMode="numeric"
-                  placeholder="Ej: 1094..."
-                  value={form.document}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      document: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Telefono
-                <input
-                  placeholder="Ej: 321 6417360"
-                  value={form.phone}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      phone: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Correo
-                <input
-                  placeholder="Ej: cliente@correo.com"
-                  type="email"
-                  value={form.email}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      email: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Estado
-                <SelectMenu
-                  options={customerStatusOptions}
-                  placeholder="Selecciona un estado"
-                  value={form.status}
-                  onChange={(value) =>
-                    setForm((current) => ({
-                      ...current,
-                      status: (value || "ACTIVE") as AdminCustomer["status"],
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Dirección
-                <input
-                  placeholder="Ej: Carrera 25 #33-44"
-                  value={form.address}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      address: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Barrio
-                <input
-                  placeholder="Ej: Centro"
-                  value={form.neighborhood}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      neighborhood: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Ciudad
-                <input
-                  placeholder="Ej: Calarca"
-                  value={form.city}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      city: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Nombre del contacto de referencia
-                <input
-                  placeholder="Ej: Maria Gomez"
-                  value={form.referenceName}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      referenceName: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Relacion con el cliente
-                <input
-                  placeholder="Ej: Madre, hermano, vecino"
-                  value={form.referenceRelation}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      referenceRelation: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Telefono del contacto
-                <input
-                  placeholder="Ej: 310 555 1234"
-                  value={form.referencePhone}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      referencePhone: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-            </div>
-
-            <label className="adminFormSingle">
-              Observaciones
-              <textarea
-                placeholder="Ej: Cliente frecuente, pendiente validar credito, etc."
-                value={form.notes}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    notes: event.target.value,
-                  }))
-                }
-              />
-            </label>
-
-            <div className="modalActions">
-              <button
-                className="secondaryButton"
-                type="button"
-                onClick={() => setIsFormOpen(false)}
-              >
-                Cancelar
-              </button>
-              <button className="primaryButton" disabled={isSaving} type="submit">
-                {isSaving ? "Guardando..." : "Guardar cliente"}
-              </button>
-            </div>
-          </form>
-        </div>
+        <CustomerFormModal
+          error={formError}
+          form={form}
+          isEditing
+          isSaving={isSaving}
+          setForm={setForm}
+          onClose={() => setIsFormOpen(false)}
+          onSubmit={handleCustomerSubmit}
+        />
       ) : null}
     </section>
   );
