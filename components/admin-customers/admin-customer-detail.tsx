@@ -19,6 +19,7 @@ import {
   customerStatusLabels,
   type AdminCustomer,
 } from "@/lib/customers";
+import { validateCustomerInput } from "@/lib/customer-policy";
 import {
   CustomerFormModal,
   type CustomerFormState,
@@ -112,29 +113,9 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
     event.preventDefault();
     setFormError("");
 
-    if (!cleanText(form.fullName)) {
-      setFormError("Escribe el nombre completo del cliente.");
-      return;
-    }
-
-    const document = cleanText(form.document).replace(/\D/g, "");
-    if (document.length < 6 || document.length > 15) {
-      setFormError("La cédula debe tener entre 6 y 15 números.");
-      return;
-    }
-
-    const phone = cleanText(form.phone).replace(/\D/g, "");
-    if (phone.length < 7 || phone.length > 15) {
-      setFormError("El teléfono debe tener entre 7 y 15 números.");
-      return;
-    }
-
-    const referencePhone = cleanText(form.referencePhone).replace(/\D/g, "");
-    if (
-      referencePhone &&
-      (referencePhone.length < 7 || referencePhone.length > 15)
-    ) {
-      setFormError("El teléfono del contacto debe tener entre 7 y 15 números.");
+    const validationError = validateCustomerInput(form);
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
