@@ -217,16 +217,26 @@ export function AdminOrdersBrowser({
         return;
       }
 
+      const clearsCustomer = changes.status === "PENDING" || (
+        order.status === "PENDING" && changes.status === "CONTACTED"
+      );
+
       setOrders((currentOrders) => {
         return currentOrders.map((currentOrder) =>
           currentOrder.id === order.id
             ? {
                 ...currentOrder,
-                customerId: changes.customerId ?? currentOrder.customerId,
-                customerName: changes.customerId === undefined
+                customerId: clearsCustomer
+                  ? ""
+                  : changes.customerId ?? currentOrder.customerId,
+                customerName: clearsCustomer
+                  ? ""
+                  : changes.customerId === undefined
                   ? currentOrder.customerName
                   : selectedCustomer?.fullName ?? "",
-                customerDocument: changes.customerId === undefined
+                customerDocument: clearsCustomer
+                  ? ""
+                  : changes.customerId === undefined
                   ? currentOrder.customerDocument
                   : selectedCustomer?.document ?? "",
                 notes: changes.notes ?? currentOrder.notes,
@@ -236,7 +246,11 @@ export function AdminOrdersBrowser({
         );
       });
       setNotice(`Pedido #${order.shortId} actualizado.`);
-      if (changes.customerId !== undefined) {
+      if (
+        changes.customerId !== undefined ||
+        changes.status === "PENDING" ||
+        (order.status === "PENDING" && changes.status === "CONTACTED")
+      ) {
         setCustomerQueries((current) => ({ ...current, [order.id]: "" }));
       }
     } catch {
@@ -422,6 +436,7 @@ export function AdminOrdersBrowser({
                   ))}
                 </div>
 
+                {order.status !== "PENDING" ? (
                 <div className="orderCustomerPanel">
                   <div className="orderCustomerInfo">
                     <span>Cliente asociado</span>
@@ -489,6 +504,7 @@ export function AdminOrdersBrowser({
                     </p>
                   )}
                 </div>
+                ) : null}
 
                 <div className="orderFollowUp">
                   <p className="orderDescription">

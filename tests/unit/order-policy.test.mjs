@@ -35,7 +35,7 @@ test("keeps sold order status and customer immutable", () => {
 });
 
 test("edits or clears the customer only before confirmation", () => {
-  assert.equal(canEditOrderCustomer("PENDING", false), true);
+  assert.equal(canEditOrderCustomer("PENDING", false), false);
   assert.equal(canEditOrderCustomer("CONTACTED", false), true);
   assert.equal(canEditOrderCustomer("CONFIRMED", false), false);
   assert.equal(canEditOrderCustomer("CONTACTED", true), false);

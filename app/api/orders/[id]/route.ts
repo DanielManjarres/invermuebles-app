@@ -54,9 +54,20 @@ export async function PUT(
     );
   }
 
-  const nextCustomerId = body.customerId === undefined
-    ? currentOrder.customerId
+  const requestedCustomerId = body.customerId === undefined
+    ? currentOrder.status === "PENDING" ? null : currentOrder.customerId
     : body.customerId || null;
+  const nextCustomerId = nextStatus === "PENDING" ? null : requestedCustomerId;
+  const shouldClearCustomer = nextStatus === "PENDING" || (
+    currentOrder.status === "PENDING" && body.customerId === undefined
+  );
+
+  if (nextStatus === "PENDING" && body.customerId) {
+    return NextResponse.json(
+      { message: "Primero marca el pedido como contactado para asociar un cliente." },
+      { status: 409 },
+    );
+  }
 
   if (nextStatus === "CONFIRMED" && !nextCustomerId) {
     return NextResponse.json(
@@ -96,8 +107,9 @@ export async function PUT(
     const result = await prisma.order.updateMany({
       where: { id, status: currentOrder.status },
       data: {
-        customerId:
-          body.customerId === undefined ? undefined : body.customerId || null,
+        customerId: shouldClearCustomer
+          ? null
+          : body.customerId === undefined ? undefined : body.customerId || null,
         notes: body.notes === undefined ? undefined : body.notes.trim() || null,
         status: body.status,
       },

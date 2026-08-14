@@ -17,7 +17,7 @@ export function canChangeOrderStructure(
 }
 
 export function canEditOrderCustomer(status: OrderWorkflowStatus, hasSale: boolean) {
-  return !hasSale && (status === "PENDING" || status === "CONTACTED");
+  return !hasSale && status === "CONTACTED";
 }
 
 export function canDeleteOrder(hasSale: boolean) {
