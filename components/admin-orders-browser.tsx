@@ -1,27 +1,18 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Search, Trash2 } from "lucide-react";
 import {
-  CheckCircle2,
-  Clock3,
-  MessageCircle,
-  ReceiptText,
-  Search,
-  Trash2,
-  XCircle,
-} from "lucide-react";
+  AdminOrderCard,
+  type AdminOrderChanges,
+} from "@/components/admin-order-card";
 import {
-  orderChannelLabels,
-  orderStatusDescriptions,
   orderStatusLabels,
   type AdminOrder,
 } from "@/lib/orders";
 import type { AdminCustomer } from "@/lib/customers";
-import { canEditOrderCustomer, canPrepareOrderSale } from "@/lib/order-policy";
-import { canTransitionOrderStatus } from "@/lib/order-status-policy";
-import { SelectMenu } from "@/components/select-menu";
+import { canPrepareOrderSale } from "@/lib/order-policy";
 
 const allStatuses = "all";
 const ordersPerPage = 8;
@@ -35,25 +26,6 @@ const statusOptions: AdminOrder["status"][] = [
 ];
 
 const statusFilterOptions = statusOptions;
-
-const statusMenuOptions = statusOptions.map((status) => ({
-  label: orderStatusLabels[status],
-  value: status,
-}));
-
-function getStatusMenuOptions(order: AdminOrder) {
-  return statusMenuOptions.filter(({ value }) =>
-    canTransitionOrderStatus(order.status, value) &&
-    (value !== "CONFIRMED" || Boolean(order.customerId)),
-  );
-}
-
-const statusIcons: Record<AdminOrder["status"], ReactNode> = {
-  PENDING: <Clock3 size={16} />,
-  CONTACTED: <MessageCircle size={16} />,
-  CONFIRMED: <CheckCircle2 size={16} />,
-  CANCELLED: <XCircle size={16} />,
-};
 
 function getOrderSearchText(order: AdminOrder) {
   return [
@@ -186,11 +158,7 @@ export function AdminOrdersBrowser({
 
   async function updateOrder(
     order: AdminOrder,
-    changes: {
-      customerId?: string;
-      notes?: string;
-      status?: AdminOrder["status"];
-    },
+    changes: AdminOrderChanges,
   ) {
     if (savingOrderId) return;
 
@@ -394,224 +362,33 @@ export function AdminOrdersBrowser({
 
           <div className="ordersList">
             {paginatedOrders.map((order) => (
-              <article className="orderCard" key={order.id}>
-                <div className="orderCardHeader">
-                  <span className={`orderBadge ${order.status.toLowerCase()}`}>
-                    {statusIcons[order.status]}
-                    {orderStatusLabels[order.status]}
-                  </span>
-
-                  <div className="orderTitleBlock">
-                    <h3>Pedido #{order.shortId}</h3>
-                    <p>
-                      {order.createdAt} · {orderChannelLabels[order.channel]} ·{" "}
-                      {order.totalQuantity} unidad(es)
-                    </p>
-                  </div>
-
-                  <label className="orderStatusControl">
-                    Estado
-                    <SelectMenu
-                      disabled={savingOrderId === order.id || Boolean(order.saleId)}
-                      onChange={(value) =>
-                        updateOrder(order, { status: value as AdminOrder["status"] })
-                      }
-                      options={getStatusMenuOptions(order)}
-                      placeholder="Selecciona estado"
-                      value={order.status}
-                    />
-                  </label>
-                </div>
-
-                <div className="orderCardBody">
-                <div className="orderItems">
-                  {order.items.map((item) => (
-                    <div key={item.id}>
-                      <strong>{item.productName}</strong>
-                      <span>
-                        {item.productReference} · {item.productCategory} /{" "}
-                        {item.productClass}
-                      </span>
-                      <small>Cantidad: {item.quantity}</small>
-                    </div>
-                  ))}
-                </div>
-
-                {order.status !== "PENDING" ? (
-                <div className="orderCustomerPanel">
-                  <div className="orderCustomerInfo">
-                    <span>Cliente asociado</span>
-                    {order.customerName ? (
-                      <>
-                        <strong>{order.customerName}</strong>
-                        <small>
-                          {order.customerDocument
-                            ? `CC ${order.customerDocument}`
-                            : "Sin cedula registrada"}
-                        </small>
-                      </>
-                    ) : (
-                      <>
-                        <strong>Sin cliente asociado</strong>
-                        <small>
-                          Selecciona un cliente antes de crear la venta.
-                        </small>
-                      </>
-                    )}
-                  </div>
-
-                  {canEditOrderCustomer(order.status, Boolean(order.saleId)) ? (
-                    <div className="orderCustomerControls">
-                      <label className="orderCustomerSearch">
-                        Buscar cliente
-                        <div className="searchBox compactSearchBox">
-                          <Search size={17} />
-                          <input
-                            type="search"
-                            placeholder="Nombre, cédula, teléfono o ciudad"
-                            value={customerQueries[order.id] ?? ""}
-                            onChange={(event) =>
-                              setCustomerQueries((current) => ({
-                                ...current,
-                                [order.id]: event.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                      </label>
-                      <label className="orderCustomerControl">
-                        Asociar cliente
-                        <SelectMenu
-                          disabled={savingOrderId === order.id}
-                          onChange={(value) => updateOrder(order, { customerId: value })}
-                          options={getCustomerOptions(order)}
-                          placeholder="Sin cliente asociado"
-                          value={order.customerId}
-                        />
-                      </label>
-                      <button
-                        className="secondaryButton orderResetCustomer"
-                        disabled={!order.customerId || savingOrderId === order.id}
-                        type="button"
-                        onClick={() => updateOrder(order, { customerId: "" })}
-                      >
-                        <XCircle size={17} />
-                        Quitar cliente
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="orderCustomerLocked">
-                      Cliente fijado al confirmar el pedido.
-                    </p>
-                  )}
-                </div>
-                ) : null}
-                </div>
-
-                <div className="orderFollowUp">
-                  <p className="orderDescription">
-                    {orderStatusDescriptions[order.status]}
-                  </p>
-                  <label className="orderNotes">
-                    Observaciones
-                    <textarea
-                      rows={1}
-                      value={draftNotes[order.id] ?? ""}
-                      placeholder="Ej: Cliente contactado, pendiente confirmar forma de pago."
-                      onChange={(event) =>
-                        setDraftNotes((currentNotes) => ({
-                          ...currentNotes,
-                          [order.id]: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                  <div className="orderActionGroup">
-                    {order.status === "PENDING" || order.status === "CONTACTED" ? (
-                      <button
-                        className="futureSaleButton"
-                        disabled={
-                          savingOrderId === order.id ||
-                          (order.status === "CONTACTED" && !order.customerId)
-                        }
-                        title={
-                          order.status === "CONTACTED" && !order.customerId
-                            ? "Asocia un cliente antes de confirmar el pedido."
-                            : undefined
-                        }
-                        type="button"
-                        onClick={() => updateOrder(order, {
-                          status: order.status === "PENDING" ? "CONTACTED" : "CONFIRMED",
-                        })}
-                      >
-                        {order.status === "PENDING"
-                          ? <MessageCircle size={18} />
-                          : <CheckCircle2 size={18} />}
-                        {order.status === "PENDING" ? "Marcar contactado" : "Confirmar pedido"}
-                      </button>
-                    ) : null}
-                    <button
-                      className="secondaryButton"
-                      disabled={
-                        savingOrderId === order.id ||
-                        (draftNotes[order.id] ?? "") === order.notes
-                      }
-                      type="button"
-                      onClick={() => updateOrder(order, { notes: draftNotes[order.id] ?? "" })}
-                    >
-                      {(draftNotes[order.id] ?? "") === order.notes
-                        ? "Observación guardada"
-                        : "Guardar observación"}
-                    </button>
-
-                    {order.status === "CONFIRMED" ? (
-                      <button
-                        className={
-                          order.saleId
-                            ? "futureSaleButton saleCreatedButton"
-                            : "futureSaleButton"
-                        }
-                        disabled={
-                          !order.customerId ||
-                          savingOrderId === order.id ||
-                          Boolean(order.saleId)
-                        }
-                        title={
-                          order.saleId
-                            ? "Este pedido ya tiene venta creada."
-                            : !order.customerId
-                              ? "Asocia un cliente antes de crear la venta."
-                            : "Preparar la venta con cliente, modalidad y precios finales."
-                        }
-                        type="button"
-                        onClick={() => prepareSaleFromOrder(order)}
-                      >
-                        <ReceiptText size={18} />
-                        {order.saleId
-                          ? `Venta #${order.saleShortId}`
-                          : savingOrderId === order.id
-                            ? "Preparando..."
-                            : "Preparar venta"}
-                      </button>
-                    ) : null}
-
-                    {!order.saleId ? (
-                      <button
-                        className="dangerButton"
-                        disabled={savingOrderId === order.id || deletingOrderId === order.id}
-                        type="button"
-                        onClick={() => {
-                          setOrderToDelete(order);
-                          setDeleteConfirmation("");
-                        }}
-                      >
-                        <Trash2 size={18} />
-                        Eliminar pedido
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              </article>
+              <AdminOrderCard
+                customerOptions={getCustomerOptions(order)}
+                customerQuery={customerQueries[order.id] ?? ""}
+                deleting={deletingOrderId === order.id}
+                draftNotes={draftNotes[order.id] ?? ""}
+                key={order.id}
+                order={order}
+                saving={savingOrderId === order.id}
+                onCustomerQueryChange={(value) =>
+                  setCustomerQueries((current) => ({
+                    ...current,
+                    [order.id]: value,
+                  }))
+                }
+                onDraftNotesChange={(value) =>
+                  setDraftNotes((current) => ({
+                    ...current,
+                    [order.id]: value,
+                  }))
+                }
+                onPrepareSale={() => prepareSaleFromOrder(order)}
+                onRequestDelete={() => {
+                  setOrderToDelete(order);
+                  setDeleteConfirmation("");
+                }}
+                onUpdate={(changes) => updateOrder(order, changes)}
+              />
             ))}
           </div>
 
