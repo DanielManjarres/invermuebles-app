@@ -2339,8 +2339,8 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 12px 14px;
 }
 
 .orderCardHeader {
@@ -2424,7 +2424,7 @@ th {
 .orderCustomerPanel {
   align-items: end;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
 }
 
@@ -2434,7 +2434,7 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 4px;
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .orderCustomerInfo span,
@@ -2465,7 +2465,14 @@ th {
   align-items: end;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(180px, 0.75fr) minmax(220px, 1.25fr) max-content;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr) max-content;
+  min-width: 0;
+}
+
+.orderCustomerControl,
+.orderCustomerControls .selectMenu,
+.orderCustomerControls .selectMenuButton,
+.orderCustomerControls .selectMenuButton span {
   min-width: 0;
 }
 
@@ -2557,15 +2564,18 @@ th {
 }
 
 .orderFollowUp {
-  align-items: end;
+  align-items: center;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1.2fr) minmax(205px, auto);
+  gap: 10px 12px;
+  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1.55fr);
 }
 
 .orderActionGroup {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
 }
 
 .orderFollowUp .secondaryButton,
