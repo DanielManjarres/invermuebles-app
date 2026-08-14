@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Trash2 } from "lucide-react";
+import { Search } from "lucide-react";
 import {
   AdminOrderCard,
   type AdminOrderChanges,
 } from "@/components/admin-order-card";
+import { AdminOrderDeleteModal } from "@/components/admin-order-delete-modal";
 import {
   orderStatusLabels,
   type AdminOrder,
@@ -419,75 +420,17 @@ export function AdminOrdersBrowser({
       )}
 
       {orderToDelete ? (
-        <div className="modalOverlay" role="presentation">
-          <div className="adminModal recordDeleteModal">
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Acción permanente</p>
-                <h2>Eliminar pedido</h2>
-              </div>
-              <button
-                aria-label="Cerrar confirmacion"
-                className="modalClose"
-                type="button"
-                onClick={() => {
-                  setOrderToDelete(null);
-                  setDeleteConfirmation("");
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="recordDeleteWarning">
-              <Trash2 size={20} />
-              <p>
-                El pedido y sus productos asociados se eliminarán permanentemente.
-                Esta acción solo está disponible mientras no exista una venta relacionada.
-              </p>
-            </div>
-
-            <div className="recordDeleteTarget">
-              <span>Pedido seleccionado</span>
-              <strong>Pedido #{orderToDelete.shortId}</strong>
-              <small>{orderToDelete.totalQuantity} unidad(es)</small>
-            </div>
-
-            <label className="deleteConfirmationField">
-              Escribe ELIMINAR para confirmar
-              <input
-                value={deleteConfirmation}
-                onChange={(event) => setDeleteConfirmation(event.target.value)}
-              />
-            </label>
-
-            <div className="modalActions">
-              <button
-                className="secondaryButton"
-                type="button"
-                onClick={() => {
-                  setOrderToDelete(null);
-                  setDeleteConfirmation("");
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                className="dangerButton"
-                disabled={
-                  deletingOrderId === orderToDelete.id || deleteConfirmation !== "ELIMINAR"
-                }
-                type="button"
-                onClick={() => deleteOrder(orderToDelete)}
-              >
-                <Trash2 size={18} />
-                {deletingOrderId === orderToDelete.id
-                  ? "Eliminando..."
-                  : "Eliminar permanentemente"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <AdminOrderDeleteModal
+          confirmation={deleteConfirmation}
+          deleting={deletingOrderId === orderToDelete.id}
+          order={orderToDelete}
+          onCancel={() => {
+            setOrderToDelete(null);
+            setDeleteConfirmation("");
+          }}
+          onConfirmationChange={setDeleteConfirmation}
+          onConfirm={() => deleteOrder(orderToDelete)}
+        />
       ) : null}
     </section>
   );
