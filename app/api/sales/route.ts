@@ -1,5 +1,4 @@
 import {
-  OrderStatus,
   PaymentMethod,
   SaleSource,
   SaleStatus,
@@ -11,6 +10,7 @@ import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
+import { canPrepareOrderSale } from "@/lib/order-policy";
 
 type SaleItemRequest = {
   productId?: string;
@@ -162,8 +162,11 @@ export async function POST(request: Request) {
         });
 
         if (!order) throw new Error("ORDER_NOT_FOUND");
-        if (order.status !== OrderStatus.CONFIRMED) throw new Error("ORDER_NOT_CONFIRMED");
-        if (order.sale) throw new Error("ORDER_ALREADY_SOLD");
+        if (!canPrepareOrderSale(order.status, order.customerId, Boolean(order.sale))) {
+          if (order.sale) throw new Error("ORDER_ALREADY_SOLD");
+          if (!order.customerId) throw new Error("ORDER_CUSTOMER_REQUIRED");
+          throw new Error("ORDER_NOT_CONFIRMED");
+        }
 
         const requestedPrices = new Map(items.map((item) => [item.productId, item.unitPrice]));
         items = order.items.map((item) => ({
@@ -384,6 +387,7 @@ export async function POST(request: Request) {
       ORDER_NOT_FOUND: ["El pedido seleccionado no existe.", 404],
       ORDER_NOT_CONFIRMED: ["Solo se puede preparar una venta desde pedidos confirmados.", 400],
       ORDER_ALREADY_SOLD: ["Este pedido ya fue convertido en venta.", 400],
+      ORDER_CUSTOMER_REQUIRED: ["Asocia un cliente al pedido antes de crear la venta.", 400],
       PAYMENT_OVER_TOTAL: ["El pago inicial no puede ser mayor al valor de la venta.", 400],
       CASH_PAYMENT_INCOMPLETE: ["En contado el pago debe cubrir el total de la venta.", 400],
       RESERVED_MINIMUM_PAYMENT: ["Para separar se debe registrar al menos el 10 % del valor.", 400],

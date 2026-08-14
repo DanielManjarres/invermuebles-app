@@ -2295,11 +2295,16 @@ th {
 }
 
 .ordersSection .movementToolbar {
-  grid-template-columns: minmax(320px, 0.8fr) minmax(650px, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ordersSection .searchBox {
+  min-width: 0;
 }
 
 .ordersSection .inventoryFilters {
   flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 .ordersSection .filterButton {
@@ -2334,8 +2339,8 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 12px 14px;
 }
 
 .orderCardHeader {
@@ -2417,10 +2422,10 @@ th {
 }
 
 .orderCustomerPanel {
-  align-items: end;
+  align-items: start;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(320px, 1fr);
+  gap: 10px;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
 }
 
 .orderCustomerInfo {
@@ -2429,7 +2434,7 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 4px;
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .orderCustomerInfo span,
@@ -2454,6 +2459,48 @@ th {
 .orderCustomerControl {
   display: grid;
   gap: 6px;
+}
+
+.orderCustomerControls {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+}
+
+.orderCustomerControl,
+.orderCustomerControls .selectMenu,
+.orderCustomerControls .selectMenuButton,
+.orderCustomerControls .selectMenuButton span {
+  min-width: 0;
+}
+
+.orderCustomerSearch {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 900;
+  gap: 6px;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.orderCustomerSearch .searchBox {
+  min-width: 0;
+}
+
+.orderResetCustomer {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.orderCustomerLocked {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: 0;
 }
 
 .orderBadge {
@@ -2488,6 +2535,23 @@ th {
   color: #9b2924;
 }
 
+.orderCardBody {
+  align-items: start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1.45fr);
+  min-width: 0;
+}
+
+.orderCardBody > .orderItems {
+  grid-template-columns: 1fr;
+}
+
+.orderCardBody > .orderItems:only-child {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .orderItems {
   display: grid;
   gap: 8px;
@@ -2518,15 +2582,18 @@ th {
 }
 
 .orderFollowUp {
-  align-items: end;
+  align-items: center;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(190px, 0.5fr) minmax(320px, 1fr) auto;
+  gap: 10px 12px;
+  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1.55fr);
 }
 
 .orderActionGroup {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
 }
 
 .orderFollowUp .secondaryButton,
@@ -3693,6 +3760,19 @@ th {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .orderCardBody {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCardBody > .orderItems,
+  .orderCardBody > .orderItems:only-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .orderCardBody > .orderCustomerPanel {
+    grid-column: auto;
+  }
+
   .orderCardHeader,
   .orderCustomerPanel,
   .orderFollowUp,
@@ -3700,6 +3780,14 @@ th {
   .saleFormGrid,
   .salePaymentGrid {
     grid-template-columns: 1fr;
+  }
+
+  .orderCustomerControls {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .orderResetCustomer {
+    grid-column: auto;
   }
 
   .saleCreditSummary {
@@ -4007,6 +4095,21 @@ th {
 
   .orderItems {
     grid-template-columns: 1fr;
+  }
+
+  .orderCardBody,
+  .orderCardBody > .orderItems,
+  .orderCardBody > .orderItems:only-child {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCustomerControls {
+    grid-template-columns: 1fr;
+  }
+
+  .orderResetCustomer {
+    grid-column: auto;
+    width: 100%;
   }
 
   .orderStatusControl,
