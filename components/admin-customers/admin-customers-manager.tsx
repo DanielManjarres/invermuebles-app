@@ -58,8 +58,7 @@ function normalize(value: string) {
 
 function buildCustomerFromForm(
   form: CustomerFormState,
-  id: string,
-  base?: AdminCustomer
+  id: string
 ): AdminCustomer {
   const now = new Date().toLocaleString("es-CO", {
     dateStyle: "short",
@@ -81,25 +80,23 @@ function buildCustomerFromForm(
     status:
       form.status === "INACTIVE" || form.status === "BLOCKED"
         ? form.status
-        : (base?.overdueCreditsCount ?? 0) > 0
-          ? "OVERDUE"
-          : "ACTIVE",
+        : "ACTIVE",
     notes: cleanText(form.notes),
-    createdAt: base?.createdAt ?? now,
+    createdAt: now,
     updatedAt: now,
-    ordersCount: base?.ordersCount ?? 0,
-    salesCount: base?.salesCount ?? 0,
-    creditsCount: base?.creditsCount ?? 0,
-    activeCreditsCount: base?.activeCreditsCount ?? 0,
-    overdueCreditsCount: base?.overdueCreditsCount ?? 0,
-    paymentsCount: base?.paymentsCount ?? 0,
-    totalPaid: base?.totalPaid ?? 0,
-    lastOrderAt: base?.lastOrderAt ?? "Sin registros",
-    lastSaleAt: base?.lastSaleAt ?? "Sin registros",
-    lastPaymentAt: base?.lastPaymentAt ?? "Sin pagos registrados",
-    recentSales: base?.recentSales ?? [],
-    recentCredits: base?.recentCredits ?? [],
-    recentPayments: base?.recentPayments ?? [],
+    ordersCount: 0,
+    salesCount: 0,
+    creditsCount: 0,
+    activeCreditsCount: 0,
+    overdueCreditsCount: 0,
+    paymentsCount: 0,
+    totalPaid: 0,
+    lastOrderAt: "Sin registros",
+    lastSaleAt: "Sin registros",
+    lastPaymentAt: "Sin pagos registrados",
+    recentSales: [],
+    recentCredits: [],
+    recentPayments: [],
   };
 }
 
@@ -112,7 +109,6 @@ export function AdminCustomersManager({
     "ALL"
   );
   const [form, setForm] = useState<CustomerFormState>(emptyCustomerForm);
-  const [editingCustomerId, setEditingCustomerId] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
@@ -196,7 +192,6 @@ export function AdminCustomersManager({
 
   function openCreateForm() {
     setForm(emptyCustomerForm);
-    setEditingCustomerId("");
     setFormError("");
     setIsFormOpen(true);
   }
@@ -235,12 +230,9 @@ export function AdminCustomersManager({
 
     try {
       const response = await fetch("/api/customers", {
-        body: JSON.stringify({
-          ...form,
-          id: editingCustomerId || undefined,
-        }),
+        body: JSON.stringify(form),
         headers: { "Content-Type": "application/json" },
-        method: editingCustomerId ? "PUT" : "POST",
+        method: "POST",
       });
       const result = (await response.json()) as { id?: string; message?: string };
 
@@ -249,30 +241,11 @@ export function AdminCustomersManager({
         return;
       }
 
-      const existingCustomer = customers.find(
-        (customer) => customer.id === editingCustomerId
-      );
-      const savedCustomer = buildCustomerFromForm(
-        form,
-        result.id,
-        existingCustomer
-      );
+      const savedCustomer = buildCustomerFromForm(form, result.id);
 
-      setCustomers((currentCustomers) => {
-        if (editingCustomerId) {
-          return currentCustomers.map((customer) =>
-            customer.id === editingCustomerId ? savedCustomer : customer
-          );
-        }
-
-        return [savedCustomer, ...currentCustomers];
-      });
+      setCustomers((currentCustomers) => [savedCustomer, ...currentCustomers]);
       setIsFormOpen(false);
-      setNotice(
-        editingCustomerId
-          ? `${savedCustomer.fullName} fue actualizado.`
-          : `${savedCustomer.fullName} fue registrado.`
-      );
+      setNotice(`${savedCustomer.fullName} fue registrado.`);
     } catch {
       setFormError("No se pudo conectar con el sistema.");
     } finally {
@@ -417,7 +390,7 @@ export function AdminCustomersManager({
         <CustomerFormModal
           error={formError}
           form={form}
-          isEditing={Boolean(editingCustomerId)}
+          isEditing={false}
           isSaving={isSaving}
           setForm={setForm}
           onClose={() => setIsFormOpen(false)}
