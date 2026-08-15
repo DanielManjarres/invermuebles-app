@@ -25,10 +25,6 @@ type Props = {
   initialSales: AdminSale[];
 };
 
-function formatMoney(value: number) {
-  return `$ ${new Intl.NumberFormat("es-CO").format(value)}`;
-}
-
 function normalize(value: string) {
   return value
     .toLowerCase()
@@ -135,7 +131,6 @@ export function AdminCreditsManager({
   const selectedCustomer =
     visibleCustomers.find((customer) => customer.id === selectedCustomerId) ?? null;
 
-  const customerCredits = selectedCustomer ? getCustomerCredits(selectedCustomer.id, credits) : [];
   const customerAccounts = selectedCustomer
     ? accounts.filter((account) => account.customerId === selectedCustomer.id)
     : [];

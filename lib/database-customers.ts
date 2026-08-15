@@ -209,12 +209,14 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
     paymentsCount: payments.length,
     totalPaid: payments.reduce((total, payment) => total + payment.amount, 0),
     lastPaymentAt: payments[0]?.createdAt ?? "Sin pagos registrados",
-    recentAccounts: recentAccounts.map(({ createdAtValue, ...account }) =>
-      account
-    ),
-    recentPayments: payments.slice(0, 5).map(({ createdAtValue, ...payment }) =>
-      payment
-    ),
+    recentAccounts: recentAccounts.map(({ createdAtValue, ...account }) => {
+      void createdAtValue;
+      return account;
+    }),
+    recentPayments: payments.slice(0, 5).map(({ createdAtValue, ...payment }) => {
+      void createdAtValue;
+      return payment;
+    }),
   };
 }
 

@@ -211,7 +211,7 @@ export async function POST(request: Request) {
       let amountPaid = initialPayment;
       let balance = 0;
       let status: SaleStatus = SaleStatus.PENDING_DELIVERY;
-      let stockApplied = true;
+      const stockApplied = true;
       let reservedUntil: Date | null = null;
       let interestRate = 0;
       let principal = 0;

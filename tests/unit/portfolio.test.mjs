@@ -175,6 +175,22 @@ test("maps credit status, balance and payment allocation", () => {
   assert.equal(accounts[0].payments[0].interestAmount, 20_000);
 });
 
+test("maps fully paid credits into paid accounts", () => {
+  const accounts = buildPortfolioAccounts([
+    createCredit({
+      status: "PAID",
+      statusLabel: "Pagado",
+      outstandingPrincipal: 0,
+      interestBalance: 0,
+      balance: 0,
+      amountPaid: 1_200_000,
+    }),
+  ], []);
+
+  assert.equal(accounts[0].status, "PAID");
+  assert.equal(accounts[0].balance, 0);
+});
+
 test("excludes sales without a customer and sorts accounts newest first", () => {
   const accounts = buildPortfolioAccounts([], [
     createSale({

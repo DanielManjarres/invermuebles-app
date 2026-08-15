@@ -14,8 +14,24 @@ jobs:
     name: Pruebas y build
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: invermuebles_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d invermuebles_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/invermuebles_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/invermuebles_test
       ADMIN_EMAIL: admin@invermuebles.com
       ADMIN_PASSWORD: invermuebles2026
 
@@ -35,11 +51,8 @@ jobs:
       - name: Generar cliente Prisma
         run: npx prisma generate
 
-      - name: Ejecutar pruebas unitarias
-        run: npm run test:unit
+      - name: Aplicar migraciones en la base de pruebas
+        run: npx prisma migrate deploy
 
-      - name: Ejecutar pruebas de integracion
-        run: npm run test:integration
-
-      - name: Ejecutar prueba de sistema
-        run: npm run test:system
+      - name: Ejecutar validacion completa
+        run: npm test

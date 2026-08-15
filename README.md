@@ -7,7 +7,13 @@ Aplicacion web de ventas con panel administrativo basico para inventario, pensad
 ```bash
 npm.cmd install
 npm.cmd run dev
+npm.cmd test
+npm.cmd run test:coverage
 ```
+
+`npm test` ejecuta tipos, lint, cobertura, build y pruebas de sistema. La
+estrategia completa, los requisitos de la base aislada y la lista de aceptación
+están en [docs/testing-strategy.md](docs/testing-strategy.md).
 
 ## Alcance inicial
 
