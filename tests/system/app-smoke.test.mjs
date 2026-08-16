@@ -83,7 +83,7 @@ test("serves the login page from the production server", async () => {
 
 test("redirects unauthenticated administrators to login", async () => {
   const response = await fetch(`${baseUrl}/admin`, { redirect: "manual" });
-  const location = new URL(response.headers.get("location"));
+  const location = new URL(response.headers.get("location"), baseUrl);
 
   assert.ok(response.status === 307 || response.status === 308);
   assert.equal(location.pathname, "/login");

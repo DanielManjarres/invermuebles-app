@@ -5,7 +5,9 @@ const defaultUploadDir = path.join(process.cwd(), "public", "uploads", "products
 export const maxProductImageSize = 5 * 1024 * 1024;
 
 export function getProductImageUploadDir() {
-  return path.resolve(process.env.UPLOAD_DIR ?? defaultUploadDir);
+  return path.resolve(
+    /* turbopackIgnore: true */ process.env.UPLOAD_DIR ?? defaultUploadDir
+  );
 }
 
 export function getProductImageContentType(fileName: string) {
