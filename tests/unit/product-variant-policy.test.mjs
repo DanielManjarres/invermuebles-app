@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  canDeleteProductVariant,
   normalizeVariantAttributes,
   normalizeVariantReference,
   validateVariantInput,
@@ -98,5 +99,76 @@ test("rejects attributes from another product type and invalid options", () => {
       { attributeId: "width", value: "180" },
     ]).error,
     /opción válida/,
+  );
+});
+
+test("allows deleting an unused non-unique variant with only its initial entry", () => {
+  const result = canDeleteProductVariant({
+    activeAlternativeCount: 1,
+    isDefault: false,
+    orderItemsCount: 0,
+    saleItemsCount: 0,
+    stockMovements: [
+      {
+        note: "Variante creada desde gestión de productos",
+        reason: "Inventario inicial",
+        type: "ENTRY",
+      },
+    ],
+    variantCount: 2,
+  });
+
+  assert.equal(result.allowed, true);
+});
+
+test("protects the only variant and variants with commercial history", () => {
+  assert.equal(
+    canDeleteProductVariant({
+      activeAlternativeCount: 0,
+      isDefault: true,
+      orderItemsCount: 0,
+      saleItemsCount: 0,
+      stockMovements: [],
+      variantCount: 1,
+    }).allowed,
+    false,
+  );
+  assert.equal(
+    canDeleteProductVariant({
+      activeAlternativeCount: 1,
+      isDefault: false,
+      orderItemsCount: 1,
+      saleItemsCount: 0,
+      stockMovements: [],
+      variantCount: 2,
+    }).allowed,
+    false,
+  );
+});
+
+test("protects variants with later movements and defaults without replacement", () => {
+  assert.equal(
+    canDeleteProductVariant({
+      activeAlternativeCount: 1,
+      isDefault: false,
+      orderItemsCount: 0,
+      saleItemsCount: 0,
+      stockMovements: [
+        { note: null, reason: "Reposición", type: "ENTRY" },
+      ],
+      variantCount: 2,
+    }).allowed,
+    false,
+  );
+  assert.equal(
+    canDeleteProductVariant({
+      activeAlternativeCount: 0,
+      isDefault: true,
+      orderItemsCount: 0,
+      saleItemsCount: 0,
+      stockMovements: [],
+      variantCount: 2,
+    }).allowed,
+    false,
   );
 });

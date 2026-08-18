@@ -23,6 +23,12 @@ export type NormalizedVariantAttribute = {
   value: string;
 };
 
+type VariantDeleteMovement = {
+  note: string | null;
+  reason: string;
+  type: string;
+};
+
 function cleanText(value?: string) {
   return value?.trim().replace(/\s+/g, " ") ?? "";
 }
@@ -166,4 +172,52 @@ export function normalizeVariantAttributes(
   }
 
   return { error: "", values };
+}
+
+export function canDeleteProductVariant(input: {
+  activeAlternativeCount: number;
+  isDefault: boolean;
+  orderItemsCount: number;
+  saleItemsCount: number;
+  stockMovements: VariantDeleteMovement[];
+  variantCount: number;
+}) {
+  if (input.variantCount <= 1) {
+    return {
+      allowed: false,
+      reason: "Cada producto debe conservar al menos una variante.",
+    };
+  }
+
+  if (input.orderItemsCount > 0 || input.saleItemsCount > 0) {
+    return {
+      allowed: false,
+      reason:
+        "Esta variante tiene pedidos o ventas registrados. Desactívala para conservar el historial.",
+    };
+  }
+
+  const hasOnlyInitialEntries = input.stockMovements.every(
+    (movement) =>
+      movement.type === "ENTRY" &&
+      movement.reason === "Inventario inicial" &&
+      movement.note === "Variante creada desde gestión de productos",
+  );
+  if (!hasOnlyInitialEntries) {
+    return {
+      allowed: false,
+      reason:
+        "Esta variante tiene movimientos de inventario posteriores a su creación y no puede eliminarse.",
+    };
+  }
+
+  if (input.isDefault && input.activeAlternativeCount === 0) {
+    return {
+      allowed: false,
+      reason:
+        "Activa otra variante antes de eliminar la variante predeterminada.",
+    };
+  }
+
+  return { allowed: true, reason: "" };
 }
