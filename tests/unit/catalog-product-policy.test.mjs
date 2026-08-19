@@ -56,6 +56,13 @@ test("accepts http images and rejects invalid image URLs", () => {
     primaryImageUrl: "https://example.com/product.webp",
   };
   assert.equal(validateCatalogProductInput(validInput), "");
+  assert.equal(
+    validateCatalogProductInput({
+      ...validInput,
+      primaryImageUrl: "/api/product-images/product.webp",
+    }),
+    "",
+  );
   assert.match(
     validateCatalogProductInput({ ...validInput, primaryImageUrl: "imagen" }),
     /URL válida/i,

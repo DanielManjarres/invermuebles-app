@@ -42,6 +42,14 @@ export function validateCatalogProductInput(input: {
   }
 
   if (input.primaryImageUrl) {
+    if (
+      input.primaryImageUrl.startsWith("/") &&
+      !input.primaryImageUrl.startsWith("//") &&
+      !/\s/.test(input.primaryImageUrl)
+    ) {
+      return "";
+    }
+
     try {
       const url = new URL(input.primaryImageUrl);
       if (url.protocol !== "http:" && url.protocol !== "https:") {
