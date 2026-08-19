@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  AlertTriangle,
   Boxes,
   PackageCheck,
   PackageX,
@@ -19,17 +20,37 @@ import {
   type MovementType,
   type StockMovementFormState,
 } from "@/lib/stock-movements";
-import { calculateNextStock } from "@/lib/stock-calculator";
+import {
+  calculateNextStock,
+  isValidStockMovementQuantity,
+} from "@/lib/stock-calculator";
 
 type AdminInventoryManagerProps = {
   products: Product[];
 };
 
-type InventoryFilter = "all" | "available" | "outOfStock";
+type InventoryFilter = "all" | "available" | "lowStock" | "outOfStock";
+
+type InventoryItem = {
+  active: boolean;
+  category: string;
+  isLegacy: boolean;
+  key: string;
+  location: string;
+  minimumStock: number;
+  productId: string;
+  productName: string;
+  productType: string;
+  reference: string;
+  stock: number;
+  variantId?: string;
+  variantName: string;
+};
 
 const filters: Array<{ label: string; value: InventoryFilter }> = [
   { label: "Todos", value: "all" },
   { label: "Disponibles", value: "available" },
+  { label: "Stock bajo", value: "lowStock" },
   { label: "Agotados", value: "outOfStock" },
 ];
 
@@ -48,23 +69,78 @@ function createCategoryId(category: string) {
     .toLowerCase()}`;
 }
 
-function matchesFilter(product: Product, filter: InventoryFilter) {
+function createInventoryItems(products: Product[]): InventoryItem[] {
+  return products.flatMap<InventoryItem>((product): InventoryItem[] => {
+    const category = product.catalogCategory || product.category;
+    const productType = product.catalogProductType || product.productClass;
+
+    if (product.variants && product.variants.length > 0) {
+      return product.variants.map((variant) => ({
+        active: variant.active,
+        category,
+        isLegacy: false,
+        key: `${product.id}-${variant.id}`,
+        location: variant.location,
+        minimumStock: variant.minimumStock,
+        productId: product.id,
+        productName: product.name,
+        productType,
+        reference: variant.reference,
+        stock: variant.stock,
+        variantId: variant.id,
+        variantName: variant.name,
+      }));
+    }
+
+    return [{
+      active: true,
+      category,
+      isLegacy: true,
+      key: product.id,
+      location: "",
+      minimumStock: 0,
+      productId: product.id,
+      productName: product.name,
+      productType,
+      reference: product.reference,
+      stock: product.stock,
+      variantName: "Referencia principal",
+    }];
+  });
+}
+
+function isLowStock(item: InventoryItem) {
+  return item.stock > 0 && item.stock <= item.minimumStock;
+}
+
+function matchesFilter(item: InventoryItem, filter: InventoryFilter) {
   if (filter === "available") {
-    return product.stock > 0;
+    return item.active && item.stock > item.minimumStock;
+  }
+
+  if (filter === "lowStock") {
+    return item.active && isLowStock(item);
   }
 
   if (filter === "outOfStock") {
-    return product.stock === 0;
+    return item.active && item.stock === 0;
   }
 
   return true;
+}
+
+function getStockStatus(item: InventoryItem) {
+  if (!item.active) return { className: "unavailable", label: "Inactiva" };
+  if (item.stock === 0) return { className: "unavailable", label: "Agotado" };
+  if (isLowStock(item)) return { className: "stockLow", label: "Stock bajo" };
+  return { className: "available", label: "Disponible" };
 }
 
 export function AdminInventoryManager({ products }: AdminInventoryManagerProps) {
   const [inventory, setInventory] = useState<Product[]>(products);
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<InventoryFilter>("all");
-  const [stockProduct, setStockProduct] = useState<Product | null>(null);
+  const [stockItem, setStockItem] = useState<InventoryItem | null>(null);
   const [stockMovementForm, setStockMovementForm] =
     useState<StockMovementFormState>(createMovementForm());
   const [stockError, setStockError] = useState("");
@@ -75,47 +151,62 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     setInventory(products);
   }, [products]);
 
-  const totalProducts = inventory.length;
-  const availableProducts = inventory.filter((product) => product.stock > 0).length;
-  const outOfStock = inventory.filter((product) => product.stock === 0).length;
+  const inventoryItems = useMemo(() => createInventoryItems(inventory), [inventory]);
+  const totalReferences = inventoryItems.length;
+  const availableReferences = inventoryItems.filter(
+    (item) => item.active && item.stock > item.minimumStock
+  ).length;
+  const lowStockReferences = inventoryItems.filter(
+    (item) => item.active && isLowStock(item)
+  ).length;
+  const outOfStock = inventoryItems.filter(
+    (item) => item.active && item.stock === 0
+  ).length;
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return inventory.filter((product) => {
+    return inventoryItems.filter((item) => {
       const matchesQuery =
         normalizedQuery.length === 0 ||
         [
-          product.name,
-          product.reference,
-          product.category,
-          product.productClass,
+          item.productName,
+          item.variantName,
+          item.reference,
+          item.category,
+          item.productType,
+          item.location,
         ]
           .join(" ")
           .toLowerCase()
           .includes(normalizedQuery);
 
-      return matchesQuery && matchesFilter(product, activeFilter);
+      return matchesQuery && matchesFilter(item, activeFilter);
     });
-  }, [activeFilter, inventory, query]);
+  }, [activeFilter, inventoryItems, query]);
 
   const groupedProducts = useMemo(
     () =>
-      Array.from(new Set(filteredProducts.map((product) => product.category))).map(
+      Array.from(new Set(filteredProducts.map((item) => item.category))).map(
         (category) => {
           const items = filteredProducts.filter(
-            (product) => product.category === category
+            (item) => item.category === category
           );
 
           return {
             category,
             id: createCategoryId(category),
             items,
-            classes: Array.from(
-              new Set(items.map((product) => product.productClass))
+            productTypes: Array.from(
+              new Set(items.map((item) => item.productType))
             ),
-            outOfStock: items.filter((product) => product.stock === 0).length,
-            available: items.filter((product) => product.stock > 0).length,
+            lowStock: items.filter((item) => item.active && isLowStock(item)).length,
+            outOfStock: items.filter(
+              (item) => item.active && item.stock === 0
+            ).length,
+            available: items.filter(
+              (item) => item.active && item.stock > item.minimumStock
+            ).length,
           };
         }
       ),
@@ -127,11 +218,14 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   const movementQuantity = Number(stockMovementForm.quantity);
   const hasValidMovementQuantity =
     stockMovementForm.quantity.trim() !== "" &&
-    Number.isFinite(movementQuantity) &&
-    movementQuantity > 0;
+    Boolean(stockMovementForm.type) &&
+    isValidStockMovementQuantity(
+      stockMovementForm.type || "entry",
+      movementQuantity
+    );
   const projectedStock =
-    stockProduct && stockMovementForm.type && hasValidMovementQuantity
-      ? calculateNextStock(stockProduct.stock, stockMovementForm.type, movementQuantity)
+    stockItem && stockMovementForm.type && hasValidMovementQuantity
+      ? calculateNextStock(stockItem.stock, stockMovementForm.type, movementQuantity)
       : null;
   const isInvalidExit =
     stockMovementForm.type === "exit" &&
@@ -148,15 +242,15 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     ? movementNotePlaceholders[stockMovementForm.type]
     : "Opcional";
 
-  function openStockForm(product: Product) {
-    setStockProduct(product);
+  function openStockForm(item: InventoryItem) {
+    setStockItem(item);
     setStockMovementForm(createMovementForm());
     setStockError("");
     setNotice("");
   }
 
   function closeStockForm() {
-    setStockProduct(null);
+    setStockItem(null);
     setStockError("");
   }
 
@@ -173,7 +267,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
   async function handleStockSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!stockProduct) {
+    if (!stockItem) {
       return;
     }
 
@@ -188,12 +282,16 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     }
 
     if (!hasValidMovementQuantity) {
-      setStockError("La cantidad debe ser mayor a cero.");
+      setStockError(
+        stockMovementForm.type === "adjustment"
+          ? "El stock real debe ser un entero mayor o igual a cero."
+          : "La cantidad debe ser un entero mayor a cero."
+      );
       return;
     }
 
     const quantity = movementQuantity;
-    const previousStock = stockProduct.stock;
+    const previousStock = stockItem.stock;
     const nextStock = projectedStock ?? previousStock;
 
     if (isInvalidExit) {
@@ -212,7 +310,8 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          productId: stockProduct.id,
+          productId: stockItem.productId,
+          variantId: stockItem.variantId,
           type: stockMovementForm.type,
           quantity,
           reason: stockMovementForm.reason,
@@ -239,17 +338,30 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       return;
     }
 
-    const nextInventory = inventory.map((product) =>
-      product.id === stockProduct.id
-        ? { ...product, stock: result.nextStock ?? nextStock }
-        : product
-    );
+    const nextInventory = inventory.map((product) => {
+      if (product.id !== stockItem.productId) return product;
+
+      if (!stockItem.variantId) {
+        return { ...product, stock: result.nextStock ?? nextStock };
+      }
+
+      const variants = (product.variants ?? []).map((variant) =>
+        variant.id === stockItem.variantId
+          ? { ...variant, stock: result.nextStock ?? nextStock }
+          : variant
+      );
+      return {
+        ...product,
+        stock: variants.reduce((total, variant) => total + variant.stock, 0),
+        variants,
+      };
+    });
 
     setInventory(nextInventory);
     setNotice(
-      `${movementLabels[stockMovementForm.type]} registrada para ${stockProduct.name}. Stock actual: ${result.nextStock}.`
+      `${movementLabels[stockMovementForm.type]} registrada para ${stockItem.productName} · ${stockItem.variantName}. Stock actual: ${result.nextStock}.`
     );
-    setStockProduct(null);
+    setStockItem(null);
   }
 
   return (
@@ -257,13 +369,18 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
       <section className="statsGrid">
         <div className="stat">
           <Boxes size={22} />
-          <span>Total productos</span>
-          <strong>{totalProducts}</strong>
+          <span>Total referencias</span>
+          <strong>{totalReferences}</strong>
         </div>
         <div className="stat">
           <PackageCheck size={22} />
           <span>Disponibles</span>
-          <strong>{availableProducts}</strong>
+          <strong>{availableReferences}</strong>
+        </div>
+        <div className="stat">
+          <AlertTriangle size={22} />
+          <span>Stock bajo</span>
+          <strong>{lowStockReferences}</strong>
         </div>
         <div className="stat">
           <PackageX size={22} />
@@ -276,7 +393,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         <div className="sectionHeader inventoryHeader">
           <div>
             <p className="eyebrow">Control interno</p>
-            <h2>Inventario por tipo de producto</h2>
+            <h2>Inventario por variante</h2>
           </div>
         </div>
 
@@ -285,7 +402,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
             <Search size={18} />
             <input
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por producto, referencia, tipo o clase"
+              placeholder="Buscar por producto, variante, referencia o ubicación"
               type="search"
               value={query}
             />
@@ -322,7 +439,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               <a className="inventoryShortcut" href={`#${group.id}`} key={group.id}>
                 <span>{group.category}</span>
                 <small>
-                  {group.items.length} productos
+                  {group.items.length} referencia(s)
                   {group.outOfStock > 0
                     ? ` · ${group.outOfStock} agotado(s)`
                     : ""}
@@ -334,7 +451,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
 
         {groupedProducts.length === 0 ? (
           <div className="emptyState">
-            <h2>No se encontraron productos</h2>
+            <h2>No se encontraron referencias</h2>
             <p>Cambia la búsqueda o selecciona otro filtro del inventario.</p>
           </div>
         ) : (
@@ -343,12 +460,13 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
               <article className="inventoryGroup" id={group.id} key={group.category}>
                 <div className="inventoryGroupHeader">
                   <div>
-                    <p className="eyebrow">{group.classes.join(" / ")}</p>
+                    <p className="eyebrow">{group.productTypes.join(" / ")}</p>
                     <h3>{group.category}</h3>
                   </div>
                   <div className="inventoryGroupStats">
-                    <span>{group.items.length} productos</span>
+                    <span>{group.items.length} referencias</span>
                     <span>{group.available} disponibles</span>
+                    <span>{group.lowStock} con stock bajo</span>
                     <span>{group.outOfStock} agotados</span>
                   </div>
                 </div>
@@ -358,43 +476,53 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                     <thead>
                       <tr>
                         <th>Producto</th>
-                        <th>Clase</th>
+                        <th>Variante</th>
+                        <th>Tipo</th>
                         <th>Referencia</th>
+                        <th>Ubicación</th>
                         <th>Cantidad</th>
+                        <th>Mínimo</th>
                         <th>Estado</th>
                         <th className="actionsHeader">Gestión</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {group.items.map((product) => (
-                        <tr key={product.id}>
+                      {group.items.map((item) => {
+                        const status = getStockStatus(item);
+                        return (
+                        <tr key={item.key}>
                           <td>
-                            <strong>{product.name}</strong>
+                            <strong>{item.productName}</strong>
                           </td>
-                          <td>{product.productClass}</td>
-                          <td>{product.reference}</td>
-                          <td>{product.stock}</td>
                           <td>
-                            <span
-                              className={
-                                product.stock > 0 ? "available" : "unavailable"
-                              }
-                            >
-                              {product.stock > 0 ? "Disponible" : "Agotado"}
+                            {item.variantName}
+                            {item.isLegacy ? (
+                              <small className="inventoryLegacyNote">Sin migrar</small>
+                            ) : null}
+                          </td>
+                          <td>{item.productType}</td>
+                          <td>{item.reference}</td>
+                          <td>{item.location || "Sin registrar"}</td>
+                          <td>{item.stock}</td>
+                          <td>{item.minimumStock}</td>
+                          <td>
+                            <span className={status.className}>
+                              {status.label}
                             </span>
                           </td>
                           <td className="actionsCell">
                             <button
                               className="manageButton"
                               type="button"
-                              onClick={() => openStockForm(product)}
+                              onClick={() => openStockForm(item)}
                             >
                               <RotateCcw size={15} />
                               Registrar movimiento
                             </button>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -404,13 +532,16 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         )}
       </section>
 
-      {stockProduct ? (
+      {stockItem ? (
         <div className="modalOverlay" role="dialog" aria-modal="true">
           <form className="adminModal smallModal" onSubmit={handleStockSubmit}>
             <div className="modalHeader">
               <div>
                 <p className="eyebrow">Movimiento de inventario</p>
-                <h2>{stockProduct.name}</h2>
+                <h2>{stockItem.productName}</h2>
+                <p>
+                  {stockItem.variantName} · {stockItem.reference}
+                </p>
               </div>
               <button
                 className="modalClose"
@@ -424,7 +555,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
 
             <div className="stockSummary">
               <span>Stock actual</span>
-              <strong>{stockProduct.stock}</strong>
+              <strong>{stockItem.stock}</strong>
             </div>
 
             <p className="formHint">
@@ -456,7 +587,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
                   : "Cantidad"}
                 <input
                   autoFocus
-                  min="1"
+                  min={stockMovementForm.type === "adjustment" ? "0" : "1"}
                   required
                   type="number"
                   value={stockMovementForm.quantity}
@@ -511,7 +642,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
             >
               <div>
                 <span>Stock actual</span>
-                <strong>{stockProduct.stock}</strong>
+                <strong>{stockItem.stock}</strong>
               </div>
               <div>
                 <span>Movimiento</span>

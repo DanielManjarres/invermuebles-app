@@ -511,6 +511,7 @@ p {
 
 .tag,
 .available,
+.stockLow,
 .unavailable {
   border-radius: 999px;
   display: inline-flex;
@@ -527,6 +528,11 @@ p {
 .available {
   background: #e4f3df;
   color: var(--primary-dark);
+}
+
+.stockLow {
+  background: #fff1cc;
+  color: #8a5700;
 }
 
 .unavailable {
@@ -1446,6 +1452,14 @@ th {
 .inventoryTable th,
 .inventoryTable td {
   vertical-align: middle;
+}
+
+.inventoryLegacyNote {
+  color: var(--muted);
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 3px;
 }
 
 .priceStack {
@@ -4119,6 +4133,7 @@ th {
 
   .tag,
   .available,
+  .stockLow,
   .unavailable {
     font-size: 0.68rem;
     padding: 5px 8px;

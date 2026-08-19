@@ -36,8 +36,14 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
       ...(filters.availableOnly ? { stock: { gt: 0 } } : {}),
     },
     include: {
+      catalogProductType: {
+        include: { category: true },
+      },
       productClass: true,
       productType: true,
+      variants: {
+        orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+      },
     },
     orderBy: [{ productType: { name: "asc" } }, { name: "asc" }],
   });
@@ -54,6 +60,18 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     stock: product.stock,
     visible: product.visible,
     image: product.imageUrl ?? fallbackImage,
+    catalogCategory: product.catalogProductType?.category.name,
+    catalogProductType: product.catalogProductType?.name,
+    variants: product.variants.map((variant) => ({
+      active: variant.active,
+      id: variant.id,
+      isDefault: variant.isDefault,
+      location: variant.location ?? "",
+      minimumStock: variant.minimumStock,
+      name: variant.name,
+      reference: variant.reference,
+      stock: variant.stock,
+    })),
   }));
 }
 
@@ -67,6 +85,7 @@ export async function getStockMovements(): Promise<StockMovement[]> {
           productType: true,
         },
       },
+      variant: true,
       user: true,
     },
     orderBy: { createdAt: "desc" },
@@ -75,10 +94,15 @@ export async function getStockMovements(): Promise<StockMovement[]> {
   return movements.map((movement) => ({
     id: movement.id,
     productId: movement.productId,
-    productName: movement.product.name,
-    productReference: movement.product.reference,
+    productName: movement.variant
+      ? `${movement.product.name} · ${movement.variant.name}`
+      : movement.product.name,
+    productReference: movement.variant?.reference ?? movement.product.reference,
     productCategory: movement.product.productType.name,
     productClass: movement.product.productClass.name,
+    variantId: movement.variantId ?? undefined,
+    variantName: movement.variant?.name ?? undefined,
+    variantReference: movement.variant?.reference ?? undefined,
     type: mapMovementType(movement.type),
     quantity: movement.quantity,
     previousStock: movement.previousStock,

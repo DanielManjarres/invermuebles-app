@@ -10,6 +10,20 @@ export type Product = {
   stock: number;
   visible: boolean;
   image: string;
+  catalogCategory?: string;
+  catalogProductType?: string;
+  variants?: ProductInventoryVariant[];
+};
+
+export type ProductInventoryVariant = {
+  active: boolean;
+  id: string;
+  isDefault: boolean;
+  location: string;
+  minimumStock: number;
+  name: string;
+  reference: string;
+  stock: number;
 };
 
 export const products: Product[] = [
