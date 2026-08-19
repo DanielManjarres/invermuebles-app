@@ -319,6 +319,7 @@ export function AdminProductsManager({
             <div className="catalogVariantGrid">
               {managingProduct.variants.map((variant) => (
                 <button
+                  aria-label={`Editar variante ${variant.name}`}
                   className="catalogVariantCard"
                   key={variant.id}
                   type="button"
@@ -346,7 +347,7 @@ export function AdminProductsManager({
                   </span>
                   <span className="catalogVariantEdit">
                     <Pencil size={16} />
-                    Editar
+                    Editar variante
                   </span>
                 </button>
               ))}
