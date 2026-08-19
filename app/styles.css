@@ -1501,6 +1501,20 @@ th {
   padding: 12px;
 }
 
+.catalogAttributeForm .checkRow {
+  align-self: end;
+  display: flex;
+  flex-direction: row;
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.catalogAttributeForm .checkRow input {
+  flex: 0 0 18px;
+  margin: 0;
+  width: 18px;
+}
+
 .catalogAttributeList {
   display: grid;
   gap: 8px;
@@ -1555,8 +1569,10 @@ th {
   gap: 2px;
 }
 
-.catalogAttributeActions {
+.catalogAttributeList .catalogAttributeActions {
+  align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 

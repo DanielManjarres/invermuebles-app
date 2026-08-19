@@ -20,6 +20,13 @@ type TaxonomyTarget = {
   label: string;
 };
 
+const ATTRIBUTE_TYPE_LABELS: Record<CatalogAttributeDataType, string> = {
+  BOOLEAN: "Sí / No",
+  NUMBER: "Número",
+  OPTION: "Lista de opciones",
+  TEXT: "Texto",
+};
+
 async function mutateTaxonomy(
   endpoint: string,
   method: "POST" | "PUT" | "DELETE",
@@ -426,7 +433,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                     <div>
                       <strong>{attribute.name}</strong>
                       <span>
-                        {attribute.dataType}
+                        {ATTRIBUTE_TYPE_LABELS[attribute.dataType]}
                         {attribute.unit ? ` · ${attribute.unit}` : ""}
                         {attribute.required ? " · Obligatorio" : " · Opcional"}
                       </span>
@@ -511,7 +518,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                           })
                         }
                       >
-                        <Pencil size={14} />
+                        <Pencil size={14} /> Editar
                       </button>
                       <button
                         className="dangerButton"
@@ -525,7 +532,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                           })
                         }
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={14} /> Eliminar
                       </button>
                     </div>
                   </article>
