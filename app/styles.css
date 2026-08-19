@@ -1159,6 +1159,31 @@ th {
   min-width: 860px;
 }
 
+.productVariantSelector {
+  color: var(--text);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.productVariantSelector select {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 42px;
+  padding: 0 10px;
+}
+
+.productVariantSelector span,
+.cartVariantName {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .catalogProductStats {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

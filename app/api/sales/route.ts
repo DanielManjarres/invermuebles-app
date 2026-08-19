@@ -16,6 +16,7 @@ type SaleItemRequest = {
   productId?: string;
   quantity?: number;
   unitPrice?: number;
+  variantId?: string;
 };
 
 type SaleRequest = {
@@ -35,12 +36,16 @@ const allowedSaleTypes = new Set<SaleType>(Object.values(SaleType));
 const financingTypes = new Set<SaleType>([SaleType.CREDIT, SaleType.CREDIT_CASH]);
 
 function normalizeItems(items: SaleItemRequest[] = []) {
-  const itemMap = new Map<string, { productId: string; quantity: number; unitPrice: number }>();
+  const itemMap = new Map<
+    string,
+    { productId: string; quantity: number; unitPrice: number; variantId: string }
+  >();
 
   for (const item of items) {
     const productId = item.productId?.trim() ?? "";
     const quantity = Number(item.quantity);
     const unitPrice = Number(item.unitPrice);
+    const variantId = item.variantId?.trim() ?? "";
 
     if (
       !productId ||
@@ -52,7 +57,12 @@ function normalizeItems(items: SaleItemRequest[] = []) {
       continue;
     }
 
-    itemMap.set(productId, { productId, quantity, unitPrice });
+    itemMap.set(variantId || productId, {
+      productId,
+      quantity,
+      unitPrice,
+      variantId,
+    });
   }
 
   return Array.from(itemMap.values());
@@ -168,11 +178,15 @@ export async function POST(request: Request) {
           throw new Error("ORDER_NOT_CONFIRMED");
         }
 
-        const requestedPrices = new Map(items.map((item) => [item.productId, item.unitPrice]));
+        const requestedPrices = new Map(
+          items.map((item) => [item.variantId || item.productId, item.unitPrice]),
+        );
         items = order.items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: requestedPrices.get(item.productId) ?? 0,
+          unitPrice:
+            requestedPrices.get(item.variantId ?? item.productId) ?? 0,
+          variantId: item.variantId ?? "",
         }));
       }
 
@@ -180,30 +194,62 @@ export async function POST(request: Request) {
 
       const products = await tx.product.findMany({
         where: { id: { in: items.map((item) => item.productId) } },
-        include: { productClass: true, productType: true },
+        include: {
+          catalogProductType: { include: { category: true } },
+          productClass: true,
+          productType: true,
+        },
       });
 
-      if (products.length !== items.length) throw new Error("PRODUCT_NOT_FOUND");
+      const variants = await tx.productVariant.findMany({
+        where: {
+          id: { in: items.map((item) => item.variantId).filter(Boolean) },
+        },
+        include: {
+          attributeValues: {
+            include: { attribute: true },
+            orderBy: { attribute: { position: "asc" } },
+          },
+        },
+      });
 
       const productsById = new Map(products.map((product) => [product.id, product]));
+      const variantsById = new Map(variants.map((variant) => [variant.id, variant]));
       const saleItems = items.map((item) => {
         const product = productsById.get(item.productId);
         if (!product) throw new Error("PRODUCT_NOT_FOUND");
-        if (product.stock < item.quantity) {
-          throw new Error(`OUT_OF_STOCK:${product.name}:${product.stock}`);
+        const variant = item.variantId ? variantsById.get(item.variantId) : null;
+        if (item.variantId && (!variant || variant.productId !== product.id)) {
+          throw new Error("VARIANT_NOT_FOUND");
+        }
+        if (variant && !variant.active) throw new Error("VARIANT_UNAVAILABLE");
+        const availableStock = variant?.stock ?? product.stock;
+        if (availableStock < item.quantity) {
+          throw new Error(`OUT_OF_STOCK:${product.name}:${availableStock}`);
         }
 
-        const unitPrice = item.unitPrice || Number(product.salePrice);
+        const unitPrice = item.unitPrice || Number(variant?.salePrice ?? product.salePrice);
         return {
-          cost: product.cost,
+          cost: variant?.cost ?? product.cost,
           lineTotal: unitPrice * item.quantity,
-          productCategory: product.productType.name,
-          productClass: product.productClass.name,
+          productCategory:
+            product.catalogProductType?.category.name ?? product.productType.name,
+          productClass:
+            product.catalogProductType?.name ?? product.productClass.name,
           productId: product.id,
           productName: product.name,
-          productReference: product.reference,
+          productReference: variant?.reference ?? product.reference,
           quantity: item.quantity,
           unitPrice,
+          variantAttributes: variant
+            ? variant.attributeValues.map((value) => ({
+                name: value.attribute.name,
+                unit: value.attribute.unit,
+                value: value.value,
+              }))
+            : undefined,
+          variantId: variant?.id ?? null,
+          variantName: variant?.name ?? null,
         };
       });
       const total = saleItems.reduce((sum, item) => sum + item.lineTotal, 0);
@@ -324,29 +370,65 @@ export async function POST(request: Request) {
 
       if (stockApplied) {
         const stockItems = [...saleItems].sort((first, second) =>
-          first.productId.localeCompare(second.productId),
+          (first.variantId ?? first.productId).localeCompare(
+            second.variantId ?? second.productId,
+          ),
         );
 
         for (const item of stockItems) {
           const product = productsById.get(item.productId)!;
-          const stockUpdate = await tx.product.updateMany({
-            where: { id: product.id, stock: { gte: item.quantity } },
-            data: { stock: { decrement: item.quantity } },
-          });
+          const variant = item.variantId
+            ? variantsById.get(item.variantId)
+            : null;
+          const stockUpdate = variant
+            ? await tx.productVariant.updateMany({
+                where: {
+                  active: true,
+                  id: variant.id,
+                  stock: { gte: item.quantity },
+                },
+                data: { stock: { decrement: item.quantity } },
+              })
+            : await tx.product.updateMany({
+                where: { id: product.id, stock: { gte: item.quantity } },
+                data: { stock: { decrement: item.quantity } },
+              });
 
           if (!stockUpdate.count) {
-            const currentProduct = await tx.product.findUnique({
-              where: { id: product.id },
-              select: { stock: true },
-            });
-            throw new Error(`OUT_OF_STOCK:${product.name}:${currentProduct?.stock ?? 0}`);
+            const currentStock = variant
+              ? await tx.productVariant.findUnique({
+                  where: { id: variant.id },
+                  select: { stock: true },
+                })
+              : await tx.product.findUnique({
+                  where: { id: product.id },
+                  select: { stock: true },
+                });
+            throw new Error(
+              `OUT_OF_STOCK:${product.name}:${currentStock?.stock ?? 0}`,
+            );
           }
 
-          const updatedProduct = await tx.product.findUniqueOrThrow({
-            where: { id: product.id },
-            select: { stock: true },
-          });
-          const nextStock = updatedProduct.stock;
+          if (variant) {
+            const productUpdate = await tx.product.updateMany({
+              where: { id: product.id, stock: { gte: item.quantity } },
+              data: { stock: { decrement: item.quantity } },
+            });
+            if (!productUpdate.count) {
+              throw new Error(`OUT_OF_STOCK:${product.name}:${variant.stock}`);
+            }
+          }
+
+          const updatedStock = variant
+            ? await tx.productVariant.findUniqueOrThrow({
+                where: { id: variant.id },
+                select: { stock: true },
+              })
+            : await tx.product.findUniqueOrThrow({
+                where: { id: product.id },
+                select: { stock: true },
+              });
+          const nextStock = updatedStock.stock;
           await tx.stockMovement.create({
             data: {
               nextStock,
@@ -357,6 +439,7 @@ export async function POST(request: Request) {
               note: body.notes?.trim() || null,
               type: StockMovementType.EXIT,
               userId: adminUserId,
+              variantId: variant?.id ?? null,
             },
           });
         }
@@ -384,6 +467,8 @@ export async function POST(request: Request) {
       CUSTOMER_UNAVAILABLE: ["El cliente está inactivo o bloqueado para nuevas ventas.", 400],
       EMPTY_SALE: ["Agrega al menos un producto a la venta.", 400],
       PRODUCT_NOT_FOUND: ["Uno de los productos no existe.", 404],
+      VARIANT_NOT_FOUND: ["Una de las variantes seleccionadas no existe.", 404],
+      VARIANT_UNAVAILABLE: ["Una de las variantes seleccionadas está inactiva.", 400],
       ORDER_NOT_FOUND: ["El pedido seleccionado no existe.", 404],
       ORDER_NOT_CONFIRMED: ["Solo se puede preparar una venta desde pedidos confirmados.", 400],
       ORDER_ALREADY_SOLD: ["Este pedido ya fue convertido en venta.", 400],

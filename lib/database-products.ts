@@ -42,6 +42,12 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
       productClass: true,
       productType: true,
       variants: {
+        include: {
+          attributeValues: {
+            include: { attribute: true },
+            orderBy: { attribute: { position: "asc" } },
+          },
+        },
         orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       },
     },
@@ -64,12 +70,19 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     catalogProductType: product.catalogProductType?.name,
     variants: product.variants.map((variant) => ({
       active: variant.active,
+      attributes: variant.attributeValues.map((value) => ({
+        name: value.attribute.name,
+        unit: value.attribute.unit ?? "",
+        value: value.value,
+      })),
+      cost: Number(variant.cost),
       id: variant.id,
       isDefault: variant.isDefault,
       location: variant.location ?? "",
       minimumStock: variant.minimumStock,
       name: variant.name,
       reference: variant.reference,
+      salePrice: Number(variant.salePrice),
       stock: variant.stock,
     })),
   }));
@@ -162,11 +175,13 @@ export async function getOrders(): Promise<AdminOrder[]> {
     const items = order.items.map((item) => ({
       id: item.id,
       productId: item.productId,
-      productName: item.product.name,
-      productReference: item.product.reference,
-      productCategory: item.product.productType.name,
-      productClass: item.product.productClass.name,
+      productName: item.productName ?? item.product.name,
+      productReference: item.productReference ?? item.product.reference,
+      productCategory: item.productCategory ?? item.product.productType.name,
+      productClass: item.productTypeName ?? item.product.productClass.name,
       quantity: item.quantity,
+      variantId: item.variantId ?? "",
+      variantName: item.variantName ?? "",
     }));
 
     return {

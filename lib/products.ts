@@ -17,12 +17,19 @@ export type Product = {
 
 export type ProductInventoryVariant = {
   active: boolean;
+  attributes: Array<{
+    name: string;
+    unit: string;
+    value: string;
+  }>;
+  cost: number;
   id: string;
   isDefault: boolean;
   location: string;
   minimumStock: number;
   name: string;
   reference: string;
+  salePrice: number;
   stock: number;
 };
 

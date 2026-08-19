@@ -115,7 +115,7 @@ export function AdminCreditDetail({
           {credit.items.map((item) => (
             <li key={item.id}>
               <span>
-                {item.productName} x {item.quantity}
+                {item.productName}{item.variantName ? ` · ${item.variantName}` : ""} x {item.quantity}
               </span>
               <b>{formatMoney(item.lineTotal)}</b>
             </li>

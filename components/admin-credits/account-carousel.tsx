@@ -24,8 +24,9 @@ function formatMoney(value: number) {
 function getProductSummary(account: PortfolioAccount) {
   const firstItem = account.items[0];
   if (!firstItem) return "Sin productos registrados";
-  if (account.items.length === 1) return firstItem.productName;
-  return `${firstItem.productName} y ${account.items.length - 1} producto(s) más`;
+  const firstItemName = `${firstItem.productName}${firstItem.variantName ? ` · ${firstItem.variantName}` : ""}`;
+  if (account.items.length === 1) return firstItemName;
+  return `${firstItemName} y ${account.items.length - 1} producto(s) más`;
 }
 
 function getSaleDate(account: PortfolioAccount) {

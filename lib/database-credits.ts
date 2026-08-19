@@ -32,11 +32,27 @@ function formatDate(date: Date) {
   });
 }
 
+function mapVariantAttributes(value: Prisma.JsonValue | null) {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((attribute) => {
+    if (!attribute || typeof attribute !== "object" || Array.isArray(attribute)) return [];
+
+    const name = typeof attribute.name === "string" ? attribute.name : "";
+    const unit = typeof attribute.unit === "string" ? attribute.unit : "";
+    const attributeValue = typeof attribute.value === "string" ? attribute.value : "";
+    return name && attributeValue ? [{ name, unit, value: attributeValue }] : [];
+  });
+}
+
 function mapCredit(credit: CreditWithRelations): AdminCredit {
   const items =
     credit.sale?.items.map((item) => ({
       id: item.id,
       productId: item.productId,
+      variantId: item.variantId ?? "",
+      variantName: item.variantName ?? "",
+      variantAttributes: mapVariantAttributes(item.variantAttributes),
       productName: item.productName,
       productReference: item.productReference,
       productCategory: item.productCategory,

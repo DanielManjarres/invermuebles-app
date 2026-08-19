@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Product } from "@/lib/products";
+import type { Product, ProductInventoryVariant } from "@/lib/products";
 
 export type AdminSaleCartItem = {
-  id: string;
+  productId: string;
+  variantId?: string;
   quantity: number;
 };
 
@@ -26,11 +27,12 @@ function readAdminSaleCart(): AdminSaleCartItem[] {
   }
 
   try {
-    const parsedItems = JSON.parse(storedCart) as AdminSaleCartItem[];
+    const parsedItems = JSON.parse(storedCart) as Array<AdminSaleCartItem & { id?: string }>;
     return parsedItems
-      .filter((item) => item.id)
+      .filter((item) => item.productId || item.id)
       .map((item) => ({
-        id: item.id,
+        productId: item.productId || item.id || "",
+        variantId: item.variantId,
         quantity: item.quantity && item.quantity > 0 ? item.quantity : 1,
       }));
   } catch {
@@ -75,14 +77,27 @@ export function useAdminSaleCart(products: Product[] = []) {
     saveAdminSaleCart(nextItems);
   }
 
-  function addProduct(product: Product): AdminSaleCartResult {
+  function addProduct(product: Product, requestedVariantId?: string): AdminSaleCartResult {
+    const availableVariants = (product.variants ?? []).filter(
+      (variant) => variant.active && variant.stock > 0,
+    );
+    const variant = requestedVariantId
+      ? availableVariants.find((item) => item.id === requestedVariantId)
+      : availableVariants.find((item) => item.isDefault) ?? availableVariants[0];
+    const variantId = variant?.id;
+    const lineId = variantId ?? product.id;
+    const availableStock = variant?.stock ?? product.stock;
     const currentItems = readAdminSaleCart();
-    const existingItem = currentItems.find((item) => item.id === product.id);
+    const existingItem = currentItems.find(
+      (item) => (item.variantId ?? item.productId) === lineId,
+    );
 
     if (existingItem) {
-      const nextQuantity = Math.min(existingItem.quantity + 1, product.stock);
+      const nextQuantity = Math.min(existingItem.quantity + 1, availableStock);
       const nextItems = currentItems.map((item) =>
-        item.id === product.id ? { ...item, quantity: nextQuantity } : item
+        (item.variantId ?? item.productId) === lineId
+          ? { ...item, quantity: nextQuantity }
+          : item
       );
 
       saveCart(nextItems);
@@ -92,7 +107,7 @@ export function useAdminSaleCart(products: Product[] = []) {
       };
     }
 
-    saveCart([...currentItems, { id: product.id, quantity: 1 }]);
+    saveCart([...currentItems, { productId: product.id, variantId, quantity: 1 }]);
     return {
       quantity: 1,
       status: "added",
@@ -105,17 +120,28 @@ export function useAdminSaleCart(products: Product[] = []) {
 
   const detailedItems = items
     .map((item) => {
-      const product = products.find((currentProduct) => currentProduct.id === item.id);
-      if (!product || product.stock < 1) {
+      const product = products.find((currentProduct) => currentProduct.id === item.productId);
+      const variant = item.variantId
+        ? product?.variants?.find((currentVariant) => currentVariant.id === item.variantId)
+        : undefined;
+      const availableStock = variant?.stock ?? product?.stock ?? 0;
+      if (!product || (item.variantId && !variant) || availableStock < 1) {
         return null;
       }
 
       return {
+        lineId: item.variantId ?? product.id,
         product,
-        quantity: Math.min(item.quantity, product.stock),
+        variant,
+        quantity: Math.min(item.quantity, availableStock),
       };
     })
-    .filter((item): item is { product: Product; quantity: number } => item !== null);
+    .filter((item): item is {
+      lineId: string;
+      product: Product;
+      quantity: number;
+      variant: ProductInventoryVariant | undefined;
+    } => item !== null);
 
   const totalQuantity = detailedItems.reduce(
     (total, item) => total + item.quantity,

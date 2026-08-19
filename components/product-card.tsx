@@ -9,7 +9,7 @@ import type { AdminSaleCartResult } from "@/components/use-admin-sale-cart";
 type ProductCardProps = {
   actionLabel?: string;
   detailActionLabel?: string;
-  onAdminSaleAdd?: (product: Product) => AdminSaleCartResult;
+  onAdminSaleAdd?: (product: Product, variantId?: string) => AdminSaleCartResult;
   product: Product;
   showAdminSaleAction?: boolean;
   showCartAction?: boolean;
@@ -33,7 +33,22 @@ export function ProductCard({
   const { addItem } = useCart();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [cartFeedback, setCartFeedback] = useState("");
-  const isAvailable = product.stock > 0;
+  const selectableVariants = (product.variants ?? []).filter(
+    (variant) => variant.active,
+  );
+  const initialVariant =
+    selectableVariants.find((variant) => variant.isDefault && variant.stock > 0) ??
+    selectableVariants.find((variant) => variant.stock > 0) ??
+    selectableVariants.find((variant) => variant.isDefault) ??
+    selectableVariants[0];
+  const [selectedVariantId, setSelectedVariantId] = useState(initialVariant?.id ?? "");
+  const selectedVariant =
+    selectableVariants.find((variant) => variant.id === selectedVariantId) ??
+    initialVariant;
+  const usesVariantSelection = selectableVariants.length > 0;
+  const isAvailable = usesVariantSelection
+    ? Boolean(selectedVariant && selectedVariant.stock > 0)
+    : product.stock > 0;
   const productSummary = createSummary(product.details);
   const isAddedFeedback =
     cartFeedback === "Producto agregado al carrito" ||
@@ -51,7 +66,7 @@ export function ProductCard({
 
   function handleAddToCart() {
     if (showAdminSaleAction && onAdminSaleAdd) {
-      const result = onAdminSaleAdd(product);
+      const result = onAdminSaleAdd(product, selectedVariant?.id);
       setCartFeedback(
         result.status === "added"
           ? "Producto agregado a venta local"
@@ -61,13 +76,16 @@ export function ProductCard({
     }
 
     const result = addItem({
-      category: product.category,
+      category: product.catalogCategory || product.category,
       details: product.details,
-      id: product.id,
+      id: selectedVariant?.id ?? product.id,
       image: product.image,
       name: product.name,
+      productId: product.id,
       quantity: 1,
-      reference: product.reference,
+      reference: selectedVariant?.reference ?? product.reference,
+      variantId: selectedVariant?.id,
+      variantName: selectedVariant?.name,
     });
 
     setCartFeedback(
@@ -98,7 +116,11 @@ export function ProductCard({
           <div>
             <span className="tag">{product.category}</span>
             <h2>{product.name}</h2>
-            <span className="reference">{product.reference}</span>
+            <span className="reference">
+              {usesVariantSelection
+                ? selectedVariant?.reference ?? product.reference
+                : product.reference}
+            </span>
             <p>{productSummary}</p>
           </div>
           <div className="productFooter">
@@ -151,8 +173,44 @@ export function ProductCard({
             <div className="productDetailInfo">
               <span className="tag">{product.category}</span>
               <h2>{product.name}</h2>
-              <span className="reference">{product.reference}</span>
+              <span className="reference">
+                {usesVariantSelection
+                  ? selectedVariant?.reference ?? product.reference
+                  : product.reference}
+              </span>
               <p>{product.details}</p>
+              {usesVariantSelection ? (
+                <label className="productVariantSelector">
+                  Presentación
+                  <select
+                    value={selectedVariant?.id ?? ""}
+                    onChange={(event) => {
+                      setSelectedVariantId(event.target.value);
+                      setCartFeedback("");
+                    }}
+                  >
+                    {selectableVariants.map((variant) => (
+                      <option
+                        disabled={variant.stock <= 0}
+                        key={variant.id}
+                        value={variant.id}
+                      >
+                        {variant.name} · {variant.reference} · {variant.stock} disponible(s)
+                      </option>
+                    ))}
+                  </select>
+                  {selectedVariant?.attributes.length ? (
+                    <span>
+                      {selectedVariant.attributes
+                        .map(
+                          (attribute) =>
+                            `${attribute.name}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`,
+                        )
+                        .join(" · ")}
+                    </span>
+                  ) : null}
+                </label>
+              ) : null}
               <dl className="productDetailList">
                 <div>
                   <dt>Clase</dt>

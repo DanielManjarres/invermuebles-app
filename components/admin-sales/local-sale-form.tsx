@@ -5,7 +5,7 @@ import { Minus, PackageSearch, Plus, ReceiptText, Search, Trash2 } from "lucide-
 
 import { MoneyInput } from "@/components/admin-sales/form-controls";
 import { SelectMenu } from "@/components/select-menu";
-import type { Product } from "@/lib/products";
+import type { Product, ProductInventoryVariant } from "@/lib/products";
 import {
   paymentMethodLabels,
   saleTypeLabels,
@@ -14,7 +14,9 @@ import {
 } from "@/lib/sales";
 
 export type SaleCartItem = {
+  lineId: string;
   product: Product;
+  variant?: ProductInventoryVariant;
   quantity: number;
   unitPrice: number;
 };
@@ -61,12 +63,12 @@ type Props = {
   onPaymentMethodChange: (value: PaymentMethod) => void;
   onProductChange: (value: string) => void;
   onProductQueryChange: (value: string) => void;
-  onRemoveItem: (productId: string) => void;
+  onRemoveItem: (lineId: string) => void;
   onSaleTypeChange: (value: string) => void;
   onSistecreditoApprovalChange: (value: string) => void;
   onSubmit: () => void;
-  onUnitPriceChange: (productId: string, value: number) => void;
-  onUpdateQuantity: (productId: string, quantity: number) => void;
+  onUnitPriceChange: (lineId: string, value: number) => void;
+  onUpdateQuantity: (lineId: string, quantity: number) => void;
 };
 
 const saleTypeOptions = Object.entries(saleTypeLabels).map(([value, label]) => ({ label, value }));
@@ -205,16 +207,16 @@ export function AdminLocalSaleForm(props: Props) {
         {cartItems.length === 0 ? (
           <div className="emptyState compactEmptyState"><h2>Sin productos</h2><p>Agrega productos desde el catálogo admin para iniciar la venta.</p></div>
         ) : cartItems.map((item) => (
-          <article className="saleCartItem" key={item.product.id}>
-            <div className="saleCartProductInfo"><strong>{item.product.name}</strong><span>{item.product.reference} · Base {formatMoney(item.product.salePrice)}</span></div>
+          <article className="saleCartItem" key={item.lineId}>
+            <div className="saleCartProductInfo"><strong>{item.product.name}{item.variant ? ` · ${item.variant.name}` : ""}</strong><span>{item.variant?.reference ?? item.product.reference} · Base {formatMoney(item.variant?.salePrice ?? item.product.salePrice)}</span></div>
             <div className="saleQuantityBlock"><span>Cantidad</span><div className="quantityControl" aria-label="Cambiar cantidad">
-              <button className="quantityButton" type="button" disabled={item.quantity === 1} onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}><Minus size={16} /></button>
-              <QuantityInput max={item.product.stock} value={item.quantity} onValueChange={(quantity) => onUpdateQuantity(item.product.id, quantity)} />
-              <button className="quantityButton" type="button" disabled={item.quantity >= item.product.stock} onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}><Plus size={16} /></button>
+              <button className="quantityButton" type="button" disabled={item.quantity === 1} onClick={() => onUpdateQuantity(item.lineId, item.quantity - 1)}><Minus size={16} /></button>
+              <QuantityInput max={item.variant?.stock ?? item.product.stock} value={item.quantity} onValueChange={(quantity) => onUpdateQuantity(item.lineId, quantity)} />
+              <button className="quantityButton" type="button" disabled={item.quantity >= (item.variant?.stock ?? item.product.stock)} onClick={() => onUpdateQuantity(item.lineId, item.quantity + 1)}><Plus size={16} /></button>
             </div></div>
-            <label className="salePriceField">Precio vendido<MoneyInput value={item.unitPrice} onValueChange={(value) => onUnitPriceChange(item.product.id, value)} /></label>
+            <label className="salePriceField">Precio vendido<MoneyInput value={item.unitPrice} onValueChange={(value) => onUnitPriceChange(item.lineId, value)} /></label>
             <div className="saleLineTotal"><span>Subtotal</span><strong>{formatMoney(item.unitPrice * item.quantity)}</strong></div>
-            <button className="iconButton" type="button" title="Quitar producto" onClick={() => onRemoveItem(item.product.id)}><Trash2 size={18} /></button>
+            <button className="iconButton" type="button" title="Quitar producto" onClick={() => onRemoveItem(item.lineId)}><Trash2 size={18} /></button>
           </article>
         ))}
       </div>
