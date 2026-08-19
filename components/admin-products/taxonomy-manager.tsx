@@ -191,6 +191,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
               <label>
                 Categoría
                 <select
+                  disabled={!categories.length}
                   required
                   value={categoryId}
                   onChange={(event) => {
@@ -201,7 +202,9 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                     setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
                   }}
                 >
-                  <option value="">Selecciona</option>
+                  <option value="">
+                    {categories.length ? "Selecciona una categoría" : "Primero crea una categoría"}
+                  </option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -212,6 +215,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
               <label>
                 Nuevo tipo de producto
                 <input
+                  disabled={!categories.length}
                   required
                   value={productTypeName}
                   onChange={(event) => setProductTypeName(event.target.value)}
@@ -227,6 +231,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
             <label>
               Categoría a configurar
               <select
+                disabled={!categories.length}
                 value={categoryId}
                 onChange={(event) => {
                   const nextCategory = categories.find(
@@ -236,6 +241,9 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                   setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
                 }}
               >
+                <option value="">
+                  {categories.length ? "Selecciona una categoría" : "Sin categorías registradas"}
+                </option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}{category.active ? "" : " (inactiva)"}
@@ -246,12 +254,18 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
             <label>
               Tipo de producto
               <select
+                disabled={!selectedCategory?.productTypes.length}
                 value={selectedType?.id ?? ""}
                 onChange={(event) => {
                   setProductTypeId(event.target.value);
                   setOptionAttributeId("");
                 }}
               >
+                <option value="">
+                  {selectedCategory?.productTypes.length
+                    ? "Selecciona un tipo"
+                    : "Sin tipos registrados"}
+                </option>
                 {(selectedCategory?.productTypes ?? []).map((productType) => (
                   <option key={productType.id} value={productType.id}>
                     {productType.name}{productType.active ? "" : " (inactivo)"}
