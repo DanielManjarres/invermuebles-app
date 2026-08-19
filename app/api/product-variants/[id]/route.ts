@@ -252,6 +252,12 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
     await transaction.stockMovement.deleteMany({ where: { variantId: variant.id } });
     await transaction.productVariant.delete({ where: { id: variant.id } });
+    if (variant.stock > 0) {
+      await transaction.product.update({
+        where: { id: variant.productId },
+        data: { stock: { decrement: variant.stock } },
+      });
+    }
   });
 
   return NextResponse.json({

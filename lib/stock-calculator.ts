@@ -19,3 +19,14 @@ export function calculateNextStock(
 export function isValidStockQuantity(quantity: number) {
   return Number.isFinite(quantity) && quantity > 0 && Number.isInteger(quantity);
 }
+
+export function isValidStockMovementQuantity(
+  movementType: MovementType,
+  quantity: number,
+) {
+  if (!Number.isFinite(quantity) || !Number.isInteger(quantity)) {
+    return false;
+  }
+
+  return movementType === "adjustment" ? quantity >= 0 : quantity > 0;
+}

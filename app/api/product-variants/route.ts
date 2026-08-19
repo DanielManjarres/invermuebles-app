@@ -183,6 +183,13 @@ export async function POST(request: Request) {
       });
 
       if (stock > 0) {
+        await transaction.product.update({
+          where: { id: product.id },
+          data: { stock: { increment: stock } },
+        });
+      }
+
+      if (stock > 0) {
         await transaction.stockMovement.create({
           data: {
             nextStock: stock,

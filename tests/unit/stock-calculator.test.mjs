@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   calculateNextStock,
+  isValidStockMovementQuantity,
   isValidStockQuantity,
 } from "../../lib/stock-calculator.ts";
 
@@ -22,4 +23,12 @@ test("isValidStockQuantity accepts only positive integers", () => {
   assert.equal(isValidStockQuantity(0), false);
   assert.equal(isValidStockQuantity(-1), false);
   assert.equal(isValidStockQuantity(1.5), false);
+});
+
+test("allows zero only when setting stock through an adjustment", () => {
+  assert.equal(isValidStockMovementQuantity("adjustment", 0), true);
+  assert.equal(isValidStockMovementQuantity("entry", 0), false);
+  assert.equal(isValidStockMovementQuantity("exit", 0), false);
+  assert.equal(isValidStockMovementQuantity("adjustment", -1), false);
+  assert.equal(isValidStockMovementQuantity("adjustment", 1.5), false);
 });
