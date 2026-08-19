@@ -121,6 +121,25 @@ test("allows deleting an unused non-unique variant with only its initial entry",
   assert.equal(result.allowed, true);
 });
 
+test("recognizes the initial entry created together with a product", () => {
+  const result = canDeleteProductVariant({
+    activeAlternativeCount: 1,
+    isDefault: false,
+    orderItemsCount: 0,
+    saleItemsCount: 0,
+    stockMovements: [
+      {
+        note: "Variante creada junto con el producto",
+        reason: "Inventario inicial",
+        type: "ENTRY",
+      },
+    ],
+    variantCount: 2,
+  });
+
+  assert.equal(result.allowed, true);
+});
+
 test("protects the only variant and variants with commercial history", () => {
   assert.equal(
     canDeleteProductVariant({

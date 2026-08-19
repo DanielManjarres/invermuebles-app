@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 import {
+  INITIAL_STOCK_REASON,
+  PRODUCT_VARIANT_INITIAL_NOTE,
   normalizeVariantAttributes,
   normalizeVariantReference,
   validateVariantInput,
@@ -193,11 +195,11 @@ export async function POST(request: Request) {
         await transaction.stockMovement.create({
           data: {
             nextStock: stock,
-            note: "Variante creada desde gestión de productos",
+            note: PRODUCT_VARIANT_INITIAL_NOTE,
             previousStock: 0,
             productId: product.id,
             quantity: stock,
-            reason: "Inventario inicial",
+            reason: INITIAL_STOCK_REASON,
             type: StockMovementType.ENTRY,
             userId: adminUserId,
             variantId: createdVariant.id,

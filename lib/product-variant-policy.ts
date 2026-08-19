@@ -29,6 +29,12 @@ type VariantDeleteMovement = {
   type: string;
 };
 
+export const INITIAL_STOCK_REASON = "Inventario inicial";
+export const PRODUCT_VARIANT_INITIAL_NOTE =
+  "Variante creada desde gestión de productos";
+export const CATALOG_PRODUCT_INITIAL_NOTE =
+  "Variante creada junto con el producto";
+
 function cleanText(value?: string) {
   return value?.trim().replace(/\s+/g, " ") ?? "";
 }
@@ -200,8 +206,9 @@ export function canDeleteProductVariant(input: {
   const hasOnlyInitialEntries = input.stockMovements.every(
     (movement) =>
       movement.type === "ENTRY" &&
-      movement.reason === "Inventario inicial" &&
-      movement.note === "Variante creada desde gestión de productos",
+      movement.reason === INITIAL_STOCK_REASON &&
+      (movement.note === PRODUCT_VARIANT_INITIAL_NOTE ||
+        movement.note === CATALOG_PRODUCT_INITIAL_NOTE),
   );
   if (!hasOnlyInitialEntries) {
     return {
