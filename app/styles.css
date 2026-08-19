@@ -1359,18 +1359,20 @@ th {
 .catalogVariantGrid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .catalogVariantCard {
+  align-items: center;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--text);
   display: grid;
-  gap: 6px;
+  gap: 16px;
+  grid-template-columns: minmax(260px, 2fr) minmax(120px, 0.7fr) minmax(70px, 0.35fr) auto auto;
   padding: 13px;
   text-align: left;
+  width: 100%;
 }
 
 .catalogVariantCard:hover {
@@ -1378,16 +1380,48 @@ th {
   box-shadow: 0 8px 22px rgba(7, 85, 42, 0.08);
 }
 
-.catalogVariantCard > span:not(.catalogVariantCardHeader),
-.catalogVariantCard small {
+.catalogVariantIdentity,
+.catalogVariantMetric {
+  display: grid;
+  gap: 3px;
+}
+
+.catalogVariantIdentity small,
+.catalogVariantMetric small {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 700;
 }
 
-.catalogVariantCardHeader .available,
-.catalogVariantCardHeader .unavailable {
+.catalogVariantBadges {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.catalogVariantBadges .available,
+.catalogVariantBadges .unavailable,
+.catalogVariantDefault {
   font-size: 0.72rem;
+}
+
+.catalogVariantDefault {
+  background: var(--surface-soft);
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 800;
+  padding: 6px 10px;
+}
+
+.catalogVariantEdit {
+  align-items: center;
+  color: var(--primary);
+  display: inline-flex;
+  font-weight: 800;
+  gap: 6px;
+  justify-content: flex-end;
 }
 
 .variantModalActions {
@@ -1609,8 +1643,13 @@ th {
     grid-column: 1 / -1;
   }
 
-  .catalogVariantGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .catalogVariantCard {
+    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(80px, auto));
+  }
+
+  .catalogVariantBadges,
+  .catalogVariantEdit {
+    justify-content: flex-start;
   }
 
   .catalogAttributeForm {
@@ -1631,9 +1670,17 @@ th {
 @media (max-width: 640px) {
   .catalogProductStats,
   .catalogProductRow,
-  .catalogProductSummary,
-  .catalogVariantGrid {
+  .catalogProductSummary {
     grid-template-columns: 1fr;
+  }
+
+  .catalogVariantCard {
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalogVariantIdentity {
+    grid-column: 1 / -1;
   }
 
   .catalogProductIdentity {

@@ -324,24 +324,30 @@ export function AdminProductsManager({
                   type="button"
                   onClick={() => setEditingVariant(variant)}
                 >
-                  <span className="catalogVariantCardHeader">
+                  <span className="catalogVariantIdentity">
                     <strong>{variant.name}</strong>
+                    <small>{variant.reference}</small>
+                  </span>
+                  <span className="catalogVariantMetric">
+                    <small>Precio</small>
+                    <strong>{formatCurrency(variant.salePrice)}</strong>
+                  </span>
+                  <span className="catalogVariantMetric">
+                    <small>Stock</small>
+                    <strong>{variant.stock}</strong>
+                  </span>
+                  <span className="catalogVariantBadges">
+                    {variant.isDefault ? (
+                      <span className="catalogVariantDefault">Predeterminada</span>
+                    ) : null}
                     <span className={variant.active ? "available" : "unavailable"}>
                       {variant.active ? "Activa" : "Inactiva"}
                     </span>
                   </span>
-                  <span>{variant.reference}</span>
-                  <span>
-                    {formatCurrency(variant.salePrice)} · Stock {variant.stock}
+                  <span className="catalogVariantEdit">
+                    <Pencil size={16} />
+                    Editar
                   </span>
-                  <small>
-                    {variant.isDefault ? "Predeterminada" : "Variante"}
-                    {variant.attributeValues.length
-                      ? ` · ${variant.attributeValues
-                          .map((value) => `${value.attributeName}: ${value.value}`)
-                          .join(" · ")}`
-                      : ""}
-                  </small>
                 </button>
               ))}
             </div>
