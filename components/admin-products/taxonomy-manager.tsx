@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { SelectMenu } from "@/components/select-menu";
 import type {
   CatalogAttributeDataType,
   CatalogCategory,
@@ -70,6 +71,16 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
   );
   const optionAttributes = (selectedType?.attributes ?? []).filter(
     (attribute) => attribute.dataType === "OPTION",
+  );
+  const categoryOptions = categories.map((category) => ({
+    label: `${category.name}${category.active ? "" : " (inactiva)"}`,
+    value: category.id,
+  }));
+  const productTypeOptions = (selectedCategory?.productTypes ?? []).map(
+    (productType) => ({
+      label: `${productType.name}${productType.active ? "" : " (inactivo)"}`,
+      value: productType.id,
+    }),
   );
 
   async function runMutation(action: () => Promise<void>) {
@@ -190,27 +201,21 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
             <form onSubmit={addProductType}>
               <label>
                 Categoría
-                <select
+                <SelectMenu
                   disabled={!categories.length}
-                  required
+                  options={categoryOptions}
+                  placeholder={
+                    categories.length ? "Selecciona una categoría" : "Primero crea una categoría"
+                  }
                   value={categoryId}
-                  onChange={(event) => {
+                  onChange={(value) => {
                     const nextCategory = categories.find(
-                      (category) => category.id === event.target.value,
+                      (category) => category.id === value,
                     );
-                    setCategoryId(event.target.value);
+                    setCategoryId(value);
                     setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
                   }}
-                >
-                  <option value="">
-                    {categories.length ? "Selecciona una categoría" : "Primero crea una categoría"}
-                  </option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </label>
               <label>
                 Nuevo tipo de producto
@@ -230,48 +235,38 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
           <div className="catalogTaxonomySelector">
             <label>
               Categoría a configurar
-              <select
+              <SelectMenu
                 disabled={!categories.length}
+                options={categoryOptions}
+                placeholder={
+                  categories.length ? "Selecciona una categoría" : "Sin categorías registradas"
+                }
                 value={categoryId}
-                onChange={(event) => {
+                onChange={(value) => {
                   const nextCategory = categories.find(
-                    (category) => category.id === event.target.value,
+                    (category) => category.id === value,
                   );
-                  setCategoryId(event.target.value);
+                  setCategoryId(value);
                   setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
                 }}
-              >
-                <option value="">
-                  {categories.length ? "Selecciona una categoría" : "Sin categorías registradas"}
-                </option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}{category.active ? "" : " (inactiva)"}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             <label>
               Tipo de producto
-              <select
+              <SelectMenu
                 disabled={!selectedCategory?.productTypes.length}
+                options={productTypeOptions}
+                placeholder={
+                  selectedCategory?.productTypes.length
+                    ? "Selecciona un tipo"
+                    : "Sin tipos registrados"
+                }
                 value={selectedType?.id ?? ""}
-                onChange={(event) => {
-                  setProductTypeId(event.target.value);
+                onChange={(value) => {
+                  setProductTypeId(value);
                   setOptionAttributeId("");
                 }}
-              >
-                <option value="">
-                  {selectedCategory?.productTypes.length
-                    ? "Selecciona un tipo"
-                    : "Sin tipos registrados"}
-                </option>
-                {(selectedCategory?.productTypes ?? []).map((productType) => (
-                  <option key={productType.id} value={productType.id}>
-                    {productType.name}{productType.active ? "" : " (inactivo)"}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
           </div>
 

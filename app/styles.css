@@ -1441,7 +1441,7 @@ th {
 }
 
 .catalogTaxonomyForms form:nth-child(2) {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) auto;
 }
 
 .catalogTaxonomySelector {
@@ -1477,6 +1477,7 @@ th {
   font-size: 0.82rem;
   font-weight: 800;
   gap: 6px;
+  min-width: 0;
 }
 
 .catalogTaxonomyWorkspace input,
@@ -1486,7 +1487,9 @@ th {
   border-radius: 8px;
   color: var(--text);
   min-height: 42px;
+  min-width: 0;
   padding: 0 11px;
+  width: 100%;
 }
 
 .catalogAttributeForm {
