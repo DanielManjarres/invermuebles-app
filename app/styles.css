@@ -1159,6 +1159,157 @@ th {
   min-width: 860px;
 }
 
+.catalogProductStats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.catalogProductsSection {
+  padding-top: 18px;
+}
+
+.catalogProductList {
+  display: grid;
+  gap: 12px;
+}
+
+.catalogProductRow {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(300px, 1.25fr) minmax(300px, 0.9fr) auto;
+  padding: 14px;
+}
+
+.catalogProductIdentity {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+}
+
+.catalogProductIdentity img,
+.catalogProductImagePlaceholder {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex: 0 0 72px;
+  height: 72px;
+  justify-content: center;
+  object-fit: cover;
+  width: 72px;
+}
+
+.catalogProductIdentity h3 {
+  font-size: 1.05rem;
+  margin: 5px 0 3px;
+}
+
+.catalogProductIdentity p {
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+.catalogProductBadges {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.catalogProductBadges .available,
+.catalogProductBadges .unavailable {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.catalogProductSummary {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.catalogProductSummary div {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+}
+
+.catalogProductSummary span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.catalogProductSummary strong {
+  font-size: 0.9rem;
+}
+
+.catalogProductActions {
+  display: grid;
+  gap: 8px;
+}
+
+.catalogProductActions button {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.catalogProductModal {
+  max-width: 860px;
+  width: min(100%, 860px);
+}
+
+.catalogFormSectionTitle {
+  border-bottom: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 3px;
+  margin-top: 4px;
+  padding: 12px 0;
+}
+
+.catalogFormSectionTitle span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .catalogProductStats,
+  .catalogProductRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalogProductIdentity {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .catalogProductStats,
+  .catalogProductRow,
+  .catalogProductSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogProductIdentity {
+    align-items: flex-start;
+  }
+}
+
 .productActionsCell {
   position: relative;
 }
