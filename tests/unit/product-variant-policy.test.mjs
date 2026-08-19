@@ -149,6 +149,74 @@ test("builds the variant name from its configured attributes", () => {
   );
 });
 
+test("builds readable boolean names and falls back to the reference", () => {
+  const booleanDefinition = {
+    active: true,
+    dataType: "BOOLEAN",
+    id: "smart",
+    name: "Smart TV",
+    options: [],
+    required: false,
+  };
+
+  assert.equal(
+    buildVariantName(
+      [booleanDefinition],
+      [{ attributeId: "smart", optionId: null, value: "true" }],
+      "REF-1",
+    ),
+    "Smart TV: Sí",
+  );
+  assert.equal(
+    buildVariantName(
+      [booleanDefinition],
+      [{ attributeId: "smart", optionId: null, value: "false" }],
+      "REF-1",
+    ),
+    "Smart TV: No",
+  );
+  assert.equal(buildVariantName([booleanDefinition], [], " ref-1 "), "REF-1");
+});
+
+test("ignores inactive and empty attributes when building a variant name", () => {
+  assert.equal(
+    buildVariantName(
+      [
+        {
+          active: false,
+          dataType: "TEXT",
+          id: "inactive",
+          name: "Inactivo",
+          options: [],
+          required: false,
+        },
+        {
+          active: true,
+          dataType: "TEXT",
+          id: "empty",
+          name: "Vacío",
+          options: [],
+          required: false,
+        },
+        {
+          active: true,
+          dataType: "NUMBER",
+          id: "year",
+          name: "Año",
+          options: [],
+          required: false,
+        },
+      ],
+      [
+        { attributeId: "inactive", optionId: null, value: "Oculto" },
+        { attributeId: "year", optionId: null, value: "2025" },
+      ],
+      "REF-2",
+    ),
+    "2025",
+  );
+});
+
 test("rejects missing required and duplicated attributes", () => {
   assert.match(normalizeVariantAttributes(definitions, []).error, /Color/);
   assert.match(
