@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { SelectMenu } from "@/components/select-menu";
 import type {
   CatalogAttributeDataType,
@@ -38,6 +39,7 @@ async function mutateTaxonomy(
 }
 
 export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [productTypeId, setProductTypeId] = useState(
@@ -88,7 +90,8 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
     setIsSaving(true);
     try {
       await action();
-      window.location.reload();
+      router.refresh();
+      setIsSaving(false);
     } catch (mutationError) {
       setError(
         mutationError instanceof Error
