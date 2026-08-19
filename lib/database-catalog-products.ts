@@ -54,7 +54,6 @@ export async function getCatalogProductConfiguration(): Promise<
 
 export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
   const products = await prisma.product.findMany({
-    where: { catalogProductTypeId: { not: null } },
     include: {
       catalogProductType: { include: { category: true } },
       images: {
@@ -62,6 +61,8 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
         orderBy: { position: "asc" },
         take: 1,
       },
+      productClass: true,
+      productType: true,
       variants: {
         include: {
           attributeValues: {
@@ -75,21 +76,19 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
     orderBy: { name: "asc" },
   });
 
-  return products.flatMap((product) => {
-    if (!product.catalogProductType) return [];
-
-    return [
-      {
+  return products.map((product) => ({
         brand: product.brand ?? "",
-        categoryId: product.catalogProductType.category.id,
-        categoryName: product.catalogProductType.category.name,
+        categoryId: product.catalogProductType?.category.id ?? "",
+        categoryName:
+          product.catalogProductType?.category.name ?? product.productType.name,
         details: product.details,
         id: product.id,
         imageUrl: product.images[0]?.url ?? product.imageUrl ?? "",
         model: product.model ?? "",
         name: product.name,
-        productTypeId: product.catalogProductType.id,
-        productTypeName: product.catalogProductType.name,
+        productTypeId: product.catalogProductType?.id ?? "",
+        productTypeName:
+          product.catalogProductType?.name ?? product.productClass.name,
         variants: product.variants.map((variant) => ({
           active: variant.active,
           attributeValues: variant.attributeValues.map((attributeValue) => ({
@@ -111,7 +110,5 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
           stock: variant.stock,
         })),
         visible: product.visible,
-      },
-    ];
-  });
+      }));
 }

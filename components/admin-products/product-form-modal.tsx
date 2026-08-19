@@ -6,6 +6,7 @@ import type {
   CatalogCategory,
   CatalogProductRecord,
 } from "@/lib/catalog-products";
+import { ProductMoneyField } from "@/components/admin-products/form-controls";
 
 type ProductFormModalProps = {
   categories: CatalogCategory[];
@@ -51,32 +52,6 @@ function createForm(product?: CatalogProductRecord): ProductFormState {
     variantName: "",
     visible: product?.visible ?? false,
   };
-}
-
-function MoneyField({
-  label,
-  onChange,
-  value,
-}: {
-  label: string;
-  onChange: (value: number) => void;
-  value: number;
-}) {
-  return (
-    <label>
-      {label}
-      <input
-        inputMode="numeric"
-        onChange={(event) => {
-          const digits = event.target.value.replace(/\D/g, "");
-          onChange(digits ? Number(digits) : 0);
-        }}
-        placeholder="0"
-        type="text"
-        value={value ? value.toLocaleString("es-CO") : ""}
-      />
-    </label>
-  );
 }
 
 export function ProductFormModal({
@@ -354,12 +329,12 @@ export function ProductFormModal({
                   onChange={(event) => updateForm({ reference: event.target.value })}
                 />
               </label>
-              <MoneyField
+              <ProductMoneyField
                 label="Costo"
                 value={form.cost}
                 onChange={(cost) => updateForm({ cost })}
               />
-              <MoneyField
+              <ProductMoneyField
                 label="Precio de venta"
                 value={form.salePrice}
                 onChange={(salePrice) => updateForm({ salePrice })}

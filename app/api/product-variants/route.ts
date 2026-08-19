@@ -184,10 +184,15 @@ export async function POST(request: Request) {
         },
       });
 
-      if (stock > 0) {
+      if (stock > 0 || isDefault) {
         await transaction.product.update({
           where: { id: product.id },
-          data: { stock: { increment: stock } },
+          data: {
+            cost: isDefault ? String(Number(body.cost)) : undefined,
+            reference: isDefault ? reference : undefined,
+            salePrice: isDefault ? String(Number(body.salePrice)) : undefined,
+            stock: stock > 0 ? { increment: stock } : undefined,
+          },
         });
       }
 

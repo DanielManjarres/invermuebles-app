@@ -1,12 +1,25 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Eye, EyeOff, PackagePlus, Pencil, Search, Trash2, X } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Layers3,
+  PackagePlus,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import type {
   CatalogCategory,
   CatalogProductRecord,
+  CatalogProductVariant,
 } from "@/lib/catalog-products";
 import { ProductFormModal } from "@/components/admin-products/product-form-modal";
+import { VariantFormModal } from "@/components/admin-products/variant-form-modal";
+import { TaxonomyManager } from "@/components/admin-products/taxonomy-manager";
 
 type AdminProductsManagerProps = {
   categories: CatalogCategory[];
@@ -26,6 +39,11 @@ export function AdminProductsManager({
   const [editingProduct, setEditingProduct] =
     useState<CatalogProductRecord | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [managingProduct, setManagingProduct] =
+    useState<CatalogProductRecord | null>(null);
+  const [editingVariant, setEditingVariant] =
+    useState<CatalogProductVariant | null>(null);
+  const [isCreatingVariant, setIsCreatingVariant] = useState(false);
   const [productToDelete, setProductToDelete] =
     useState<CatalogProductRecord | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -61,6 +79,14 @@ export function AdminProductsManager({
       ].some((value) => value.toLocaleLowerCase("es").includes(normalizedQuery));
     });
   }, [categoryId, products, query]);
+  const managingProductType = useMemo(() => {
+    if (!managingProduct) return null;
+    return categories
+      .find((category) => category.id === managingProduct.categoryId)
+      ?.productTypes.find(
+        (productType) => productType.id === managingProduct.productTypeId,
+      );
+  }, [categories, managingProduct]);
 
   async function deleteProduct() {
     if (!productToDelete) return;
@@ -82,6 +108,7 @@ export function AdminProductsManager({
 
   return (
     <>
+      <TaxonomyManager categories={categories} />
       <section className="statsGrid catalogProductStats">
         <div className="stat">
           <span>Total productos</span>
@@ -184,6 +211,9 @@ export function AdminProductsManager({
                           {product.visible ? "Publicado" : "Oculto"}
                         </span>
                         <span>{product.categoryName} / {product.productTypeName}</span>
+                        {!product.productTypeId ? (
+                          <span className="unavailable">Pendiente de migración</span>
+                        ) : null}
                       </div>
                       <h3>{product.name}</h3>
                       <p>
@@ -211,6 +241,17 @@ export function AdminProductsManager({
                   </div>
 
                   <div className="catalogProductActions">
+                    <button
+                      className="secondaryButton"
+                      type="button"
+                      onClick={() => {
+                        setEditingVariant(null);
+                        setManagingProduct(product);
+                      }}
+                    >
+                      <Layers3 size={16} />
+                      Variantes
+                    </button>
                     <button
                       className="secondaryButton"
                       type="button"
@@ -242,6 +283,70 @@ export function AdminProductsManager({
             <span>Cambia la búsqueda o registra un producto nuevo.</span>
           </div>
         )}
+
+        {managingProduct ? (
+          <section className="catalogVariantManager">
+            <div className="catalogVariantHeader">
+              <div>
+                <p className="eyebrow">Variantes de {managingProduct.name}</p>
+                <h3>Presentaciones del producto</h3>
+                <p>
+                  Los cambios de stock se realizan desde Inventario para conservar el
+                  historial.
+                </p>
+              </div>
+              <div className="catalogVariantHeaderActions">
+                <button
+                  className="primaryButton"
+                  disabled={!managingProductType}
+                  type="button"
+                  onClick={() => setIsCreatingVariant(true)}
+                >
+                  <Plus size={16} />
+                  Nueva variante
+                </button>
+                <button
+                  className="modalClose"
+                  aria-label="Cerrar variantes"
+                  type="button"
+                  onClick={() => setManagingProduct(null)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="catalogVariantGrid">
+              {managingProduct.variants.map((variant) => (
+                <button
+                  className="catalogVariantCard"
+                  key={variant.id}
+                  type="button"
+                  onClick={() => setEditingVariant(variant)}
+                >
+                  <span className="catalogVariantCardHeader">
+                    <strong>{variant.name}</strong>
+                    <span className={variant.active ? "available" : "unavailable"}>
+                      {variant.active ? "Activa" : "Inactiva"}
+                    </span>
+                  </span>
+                  <span>{variant.reference}</span>
+                  <span>
+                    {formatCurrency(variant.salePrice)} · Stock {variant.stock}
+                  </span>
+                  <small>
+                    {variant.isDefault ? "Predeterminada" : "Variante"}
+                    {variant.attributeValues.length
+                      ? ` · ${variant.attributeValues
+                          .map((value) => `${value.attributeName}: ${value.value}`)
+                          .join(" · ")}`
+                      : ""}
+                  </small>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </section>
 
       {isCreating ? (
@@ -252,6 +357,21 @@ export function AdminProductsManager({
           categories={categories}
           product={editingProduct}
           onClose={() => setEditingProduct(null)}
+        />
+      ) : null}
+      {managingProduct && managingProductType && isCreatingVariant ? (
+        <VariantFormModal
+          product={managingProduct}
+          productType={managingProductType}
+          onClose={() => setIsCreatingVariant(false)}
+        />
+      ) : null}
+      {managingProduct && managingProductType && editingVariant ? (
+        <VariantFormModal
+          product={managingProduct}
+          productType={managingProductType}
+          variant={editingVariant}
+          onClose={() => setEditingVariant(null)}
         />
       ) : null}
 

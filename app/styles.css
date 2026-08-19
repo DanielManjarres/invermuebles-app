@@ -1287,6 +1287,256 @@ th {
   font-weight: 700;
 }
 
+.catalogVariantManager {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 20px;
+}
+
+.catalogVariantHeader,
+.catalogVariantHeaderActions,
+.catalogVariantCardHeader {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.catalogVariantHeader h3 {
+  font-size: 1.35rem;
+  margin: 2px 0;
+}
+
+.catalogVariantHeader p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.catalogVariantGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.catalogVariantCard {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  display: grid;
+  gap: 6px;
+  padding: 13px;
+  text-align: left;
+}
+
+.catalogVariantCard:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 22px rgba(7, 85, 42, 0.08);
+}
+
+.catalogVariantCard > span:not(.catalogVariantCardHeader),
+.catalogVariantCard small {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.catalogVariantCardHeader .available,
+.catalogVariantCardHeader .unavailable {
+  font-size: 0.72rem;
+}
+
+.variantModalActions {
+  justify-content: flex-end;
+}
+
+.variantModalActions .dangerButton:first-child {
+  margin-right: auto;
+}
+
+.catalogTaxonomySection {
+  padding-bottom: 16px;
+}
+
+.catalogTaxonomyToggle {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.catalogTaxonomyToggle h2 {
+  font-size: 1.45rem;
+  margin: 2px 0;
+}
+
+.catalogTaxonomyToggle p {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.catalogTaxonomyWorkspace {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 16px;
+  margin-top: 10px;
+  padding: 16px;
+}
+
+.catalogTaxonomyForms,
+.catalogTaxonomySelector,
+.catalogAttributeForm,
+.catalogOptionForm {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+}
+
+.catalogTaxonomyForms {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.catalogTaxonomyForms form {
+  align-items: end;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 12px;
+}
+
+.catalogTaxonomyForms form:nth-child(2) {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+}
+
+.catalogTaxonomySelector {
+  border-top: 1px solid var(--line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: 16px;
+}
+
+.catalogTaxonomySelectedActions {
+  align-items: center;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.catalogTaxonomySelectedActions strong {
+  margin-right: auto;
+}
+
+.catalogTaxonomySelectedActions button,
+.catalogAttributeActions button {
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.catalogTaxonomyWorkspace label {
+  color: var(--text);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.catalogTaxonomyWorkspace input,
+.catalogTaxonomyWorkspace select {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 42px;
+  padding: 0 11px;
+}
+
+.catalogAttributeForm {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  grid-template-columns: 1.4fr 1fr 0.7fr auto auto;
+  padding: 12px;
+}
+
+.catalogAttributeList {
+  display: grid;
+  gap: 8px;
+}
+
+.catalogAttributeList article {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.catalogAttributeList article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.catalogAttributeList article span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.catalogAttributeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.catalogAttributeOptions button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 8px;
+}
+
+.catalogAttributeOptions button.active {
+  background: #e4f3df;
+  border-color: #cfe5c9;
+  color: var(--primary);
+}
+
+.catalogAttributeOption {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.catalogAttributeActions {
+  display: flex;
+  gap: 6px;
+}
+
+.catalogOptionForm {
+  border-top: 1px solid var(--line);
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  padding-top: 16px;
+}
+
 @media (max-width: 980px) {
   .catalogProductStats,
   .catalogProductRow {
@@ -1296,17 +1546,48 @@ th {
   .catalogProductIdentity {
     grid-column: 1 / -1;
   }
+
+  .catalogVariantGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalogTaxonomyForms,
+  .catalogTaxonomyForms form:nth-child(2),
+  .catalogAttributeForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
   .catalogProductStats,
   .catalogProductRow,
-  .catalogProductSummary {
+  .catalogProductSummary,
+  .catalogVariantGrid {
     grid-template-columns: 1fr;
   }
 
   .catalogProductIdentity {
     align-items: flex-start;
+  }
+
+  .catalogVariantHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .catalogTaxonomyToggle,
+  .catalogAttributeList article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalogTaxonomyForms,
+  .catalogTaxonomyForms form,
+  .catalogTaxonomyForms form:nth-child(2),
+  .catalogTaxonomySelector,
+  .catalogAttributeForm,
+  .catalogOptionForm {
+    grid-template-columns: 1fr;
   }
 }
 

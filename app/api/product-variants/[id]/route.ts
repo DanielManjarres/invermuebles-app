@@ -159,7 +159,7 @@ export async function PUT(request: Request, context: RouteContext) {
         });
       }
 
-      return transaction.productVariant.update({
+      const savedVariant = await transaction.productVariant.update({
         where: { id: variant.id },
         data: {
           active,
@@ -180,6 +180,19 @@ export async function PUT(request: Request, context: RouteContext) {
           salePrice: String(salePrice),
         },
       });
+
+      if (isDefault) {
+        await transaction.product.update({
+          where: { id: variant.productId },
+          data: {
+            cost: String(cost),
+            reference,
+            salePrice: String(salePrice),
+          },
+        });
+      }
+
+      return savedVariant;
     });
 
     return NextResponse.json({ variant: updatedVariant });
@@ -209,7 +222,13 @@ export async function DELETE(_request: Request, context: RouteContext) {
         select: {
           variants: {
             orderBy: { createdAt: "asc" },
-            select: { active: true, id: true },
+            select: {
+              active: true,
+              cost: true,
+              id: true,
+              reference: true,
+              salePrice: true,
+            },
           },
         },
       },
@@ -252,10 +271,15 @@ export async function DELETE(_request: Request, context: RouteContext) {
     }
     await transaction.stockMovement.deleteMany({ where: { variantId: variant.id } });
     await transaction.productVariant.delete({ where: { id: variant.id } });
-    if (variant.stock > 0) {
+    if (variant.stock > 0 || replacement) {
       await transaction.product.update({
         where: { id: variant.productId },
-        data: { stock: { decrement: variant.stock } },
+        data: {
+          cost: replacement ? replacement.cost : undefined,
+          reference: replacement ? replacement.reference : undefined,
+          salePrice: replacement ? replacement.salePrice : undefined,
+          stock: variant.stock > 0 ? { decrement: variant.stock } : undefined,
+        },
       });
     }
   });
