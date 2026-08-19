@@ -7,6 +7,7 @@ import type {
   CatalogProductRecord,
 } from "@/lib/catalog-products";
 import { ProductMoneyField } from "@/components/admin-products/form-controls";
+import { SelectMenu } from "@/components/select-menu";
 
 type ProductFormModalProps = {
   categories: CatalogCategory[];
@@ -22,13 +23,13 @@ type ProductFormState = {
   details: string;
   imageUrl: string;
   location: string;
-  minimumStock: number;
+  minimumStock: number | "";
   model: string;
   name: string;
   productTypeId: string;
   reference: string;
   salePrice: number;
-  stock: number;
+  stock: number | "";
   variantName: string;
   visible: boolean;
 };
@@ -42,16 +43,23 @@ function createForm(product?: CatalogProductRecord): ProductFormState {
     details: product?.details ?? "",
     imageUrl: product?.imageUrl ?? "",
     location: "",
-    minimumStock: 0,
+    minimumStock: "",
     model: product?.model ?? "",
     name: product?.name ?? "",
     productTypeId: product?.productTypeId ?? "",
     reference: "",
     salePrice: 0,
-    stock: 0,
+    stock: "",
     variantName: "",
     visible: product?.visible ?? false,
   };
+}
+
+function formatAttributeLabel(name: string, unit?: string | null) {
+  if (!unit || name.toLocaleLowerCase("es").includes(unit.toLocaleLowerCase("es"))) {
+    return name;
+  }
+  return `${name} (${unit})`;
 }
 
 export function ProductFormModal({
@@ -117,6 +125,35 @@ export function ProductFormModal({
       setError("Selecciona la categoría y el tipo de producto.");
       return;
     }
+    if (
+      !isEditing &&
+      (form.cost <= 0 || form.salePrice <= 0)
+    ) {
+      setError("El costo y el precio de venta deben ser mayores que cero.");
+      return;
+    }
+    if (
+      !isEditing &&
+      (form.stock === "" ||
+        form.minimumStock === "" ||
+        !Number.isInteger(form.stock) ||
+        !Number.isInteger(form.minimumStock) ||
+        form.stock < 0 ||
+        form.minimumStock < 0)
+    ) {
+      setError("El stock inicial y el stock mínimo deben ser números enteros no negativos.");
+      return;
+    }
+    const missingAttribute = selectedType?.attributes.find(
+      (attribute) =>
+        attribute.active &&
+        attribute.required &&
+        !form.attributeValues[attribute.id]?.trim(),
+    );
+    if (!isEditing && missingAttribute) {
+      setError(`Completa el atributo obligatorio: ${missingAttribute.name}.`);
+      return;
+    }
 
     setError("");
     setIsSaving(true);
@@ -154,11 +191,11 @@ export function ProductFormModal({
                     ),
                   cost: form.cost,
                   location: form.location,
-                  minimumStock: form.minimumStock,
+                  minimumStock: Number(form.minimumStock),
                   name: form.variantName,
                   reference: form.reference,
                   salePrice: form.salePrice,
-                  stock: form.stock,
+                  stock: Number(form.stock),
                 },
                 details: form.details,
                 model: form.model,
@@ -195,9 +232,10 @@ export function ProductFormModal({
           </button>
         </div>
 
-        <div className="adminFormGrid">
+        <div className="catalogProductModalBody">
+          <div className="adminFormGrid">
           <label>
-            Nombre
+            Nombre *
             <input
               maxLength={120}
               required
@@ -224,49 +262,48 @@ export function ProductFormModal({
           {!isEditing ? (
             <>
               <label>
-                Categoría
-                <select
-                  required
+                Categoría *
+                <SelectMenu
+                  options={categories
+                    .filter((category) => category.active)
+                    .map((category) => ({
+                      label: category.name,
+                      value: category.id,
+                    }))}
+                  placeholder="Selecciona una categoría"
                   value={form.categoryId}
-                  onChange={(event) =>
+                  onChange={(value) =>
                     updateForm({
                       attributeValues: {},
-                      categoryId: event.target.value,
+                      categoryId: value,
                       productTypeId: "",
                     })
                   }
-                >
-                  <option value="">Selecciona una categoría</option>
-                  {categories
-                    .filter((category) => category.active)
-                    .map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                </select>
+                />
               </label>
               <label>
-                Tipo de producto
-                <select
-                  required
+                Tipo de producto *
+                <SelectMenu
+                  disabled={!selectedCategory}
+                  options={(selectedCategory?.productTypes ?? [])
+                    .filter((productType) => productType.active)
+                    .map((productType) => ({
+                      label: productType.name,
+                      value: productType.id,
+                    }))}
+                  placeholder={
+                    selectedCategory
+                      ? "Selecciona un tipo"
+                      : "Primero selecciona una categoría"
+                  }
                   value={form.productTypeId}
-                  onChange={(event) =>
+                  onChange={(value) =>
                     updateForm({
                       attributeValues: {},
-                      productTypeId: event.target.value,
+                      productTypeId: value,
                     })
                   }
-                >
-                  <option value="">Selecciona un tipo</option>
-                  {(selectedCategory?.productTypes ?? [])
-                    .filter((productType) => productType.active)
-                    .map((productType) => (
-                      <option key={productType.id} value={productType.id}>
-                        {productType.name}
-                      </option>
-                    ))}
-                </select>
+                />
               </label>
             </>
           ) : (
@@ -276,7 +313,7 @@ export function ProductFormModal({
             </div>
           )}
           <label className="adminFormWide">
-            Descripción
+            Descripción *
             <textarea
               maxLength={2000}
               required
@@ -303,6 +340,18 @@ export function ProductFormModal({
               />
             </span>
           </label>
+          {form.imageUrl ? (
+            <div className="adminFormPreview adminFormWide">
+              <div className="adminFormImagePreview">
+                <img src={form.imageUrl} alt={`Vista previa de ${form.name || "producto"}`} />
+              </div>
+              <div>
+                <span className="previewLabel">Vista previa</span>
+                <strong>{form.name || "Producto sin nombre"}</strong>
+                <p>Esta será la imagen principal mostrada en el catálogo.</p>
+              </div>
+            </div>
+          ) : null}
 
           {!isEditing ? (
             <>
@@ -311,7 +360,7 @@ export function ProductFormModal({
                 <span>Define la primera presentación y su inventario inicial.</span>
               </div>
               <label>
-                Nombre de la variante
+                Nombre de la variante *
                 <input
                   maxLength={100}
                   required
@@ -321,7 +370,7 @@ export function ProductFormModal({
                 />
               </label>
               <label>
-                Referencia
+                Referencia *
                 <input
                   maxLength={50}
                   required
@@ -331,33 +380,46 @@ export function ProductFormModal({
               </label>
               <ProductMoneyField
                 label="Costo"
+                required
                 value={form.cost}
                 onChange={(cost) => updateForm({ cost })}
               />
               <ProductMoneyField
                 label="Precio de venta"
+                required
                 value={form.salePrice}
                 onChange={(salePrice) => updateForm({ salePrice })}
               />
               <label>
-                Stock inicial
+                Stock inicial *
                 <input
+                  inputMode="numeric"
                   min={0}
                   required
+                  step={1}
                   type="number"
                   value={form.stock}
-                  onChange={(event) => updateForm({ stock: Number(event.target.value) })}
+                  onChange={(event) =>
+                    updateForm({
+                      stock: event.target.value === "" ? "" : Number(event.target.value),
+                    })
+                  }
                 />
               </label>
               <label>
-                Stock mínimo
+                Stock mínimo *
                 <input
+                  inputMode="numeric"
                   min={0}
                   required
+                  step={1}
                   type="number"
                   value={form.minimumStock}
                   onChange={(event) =>
-                    updateForm({ minimumStock: Number(event.target.value) })
+                    updateForm({
+                      minimumStock:
+                        event.target.value === "" ? "" : Number(event.target.value),
+                    })
                   }
                 />
               </label>
@@ -372,47 +434,45 @@ export function ProductFormModal({
                 .filter((attribute) => attribute.active)
                 .map((attribute) => (
                   <label key={attribute.id}>
-                    {attribute.name}
-                    {attribute.unit ? ` (${attribute.unit})` : ""}
+                    {`${formatAttributeLabel(attribute.name, attribute.unit)}${
+                      attribute.required ? " *" : ""
+                    }`}
                     {attribute.dataType === "OPTION" ? (
-                      <select
-                        required={attribute.required}
-                        value={form.attributeValues[attribute.id] ?? ""}
-                        onChange={(event) =>
-                          updateForm({
-                            attributeValues: {
-                              ...form.attributeValues,
-                              [attribute.id]: event.target.value,
-                            },
-                          })
-                        }
-                      >
-                        <option value="">Selecciona una opción</option>
-                        {attribute.options
+                      <SelectMenu
+                        options={attribute.options
                           .filter((option) => option.active)
-                          .map((option) => (
-                            <option key={option.id} value={option.id}>
-                              {option.value}
-                            </option>
-                          ))}
-                      </select>
-                    ) : attribute.dataType === "BOOLEAN" ? (
-                      <select
-                        required={attribute.required}
+                          .map((option) => ({
+                            label: option.value,
+                            value: option.id,
+                          }))}
+                        placeholder="Selecciona una opción"
                         value={form.attributeValues[attribute.id] ?? ""}
-                        onChange={(event) =>
+                        onChange={(value) =>
                           updateForm({
                             attributeValues: {
                               ...form.attributeValues,
-                              [attribute.id]: event.target.value,
+                              [attribute.id]: value,
                             },
                           })
                         }
-                      >
-                        <option value="">Selecciona</option>
-                        <option value="true">Sí</option>
-                        <option value="false">No</option>
-                      </select>
+                      />
+                    ) : attribute.dataType === "BOOLEAN" ? (
+                      <SelectMenu
+                        options={[
+                          { label: "Sí", value: "true" },
+                          { label: "No", value: "false" },
+                        ]}
+                        placeholder="Selecciona"
+                        value={form.attributeValues[attribute.id] ?? ""}
+                        onChange={(value) =>
+                          updateForm({
+                            attributeValues: {
+                              ...form.attributeValues,
+                              [attribute.id]: value,
+                            },
+                          })
+                        }
+                      />
                     ) : (
                       <input
                         inputMode={attribute.dataType === "NUMBER" ? "decimal" : undefined}
@@ -444,7 +504,8 @@ export function ProductFormModal({
         </div>
 
         {error ? <p className="formError">{error}</p> : null}
-        <div className="modalActions">
+        </div>
+        <div className="modalActions catalogProductModalActions">
           <button className="secondaryButton" type="button" onClick={onClose}>
             Cancelar
           </button>

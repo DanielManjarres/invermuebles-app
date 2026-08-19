@@ -1293,8 +1293,25 @@ th {
 }
 
 .catalogProductModal {
+  grid-template-rows: auto minmax(0, 1fr) auto;
   max-width: 860px;
+  overflow: hidden;
   width: min(100%, 860px);
+}
+
+.catalogProductModalBody {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.catalogProductModalActions {
+  background: #fff;
+  border-top: 1px solid var(--line);
+  margin-top: 0;
+  padding-top: 14px;
 }
 
 .catalogFormSectionTitle {
@@ -2191,6 +2208,22 @@ th {
 
 .adminFormWide {
   grid-column: 1 / -1;
+}
+
+.adminFormGrid .checkRow {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-self: start;
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.adminFormGrid .checkRow input {
+  flex: 0 0 18px;
+  margin: 0;
+  min-height: auto;
+  width: 18px;
 }
 
 .adminFormPreview {
