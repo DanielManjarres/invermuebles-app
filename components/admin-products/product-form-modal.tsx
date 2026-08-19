@@ -30,7 +30,6 @@ type ProductFormState = {
   reference: string;
   salePrice: number;
   stock: number | "";
-  variantName: string;
   visible: boolean;
 };
 
@@ -50,7 +49,6 @@ function createForm(product?: CatalogProductRecord): ProductFormState {
     reference: "",
     salePrice: 0,
     stock: "",
-    variantName: "",
     visible: product?.visible ?? false,
   };
 }
@@ -192,7 +190,6 @@ export function ProductFormModal({
                   cost: form.cost,
                   location: form.location,
                   minimumStock: Number(form.minimumStock),
-                  name: form.variantName,
                   reference: form.reference,
                   salePrice: form.salePrice,
                   stock: Number(form.stock),
@@ -360,16 +357,6 @@ export function ProductFormModal({
                 <span>Define la primera presentación y su inventario inicial.</span>
               </div>
               <label>
-                Nombre de la variante *
-                <input
-                  maxLength={100}
-                  required
-                  placeholder="Ej: 55 pulgadas"
-                  value={form.variantName}
-                  onChange={(event) => updateForm({ variantName: event.target.value })}
-                />
-              </label>
-              <label>
                 Referencia *
                 <input
                   maxLength={50}
@@ -378,6 +365,9 @@ export function ProductFormModal({
                   onChange={(event) => updateForm({ reference: event.target.value })}
                 />
               </label>
+              <div className="formHint">
+                El nombre se genera automáticamente con los atributos de la variante.
+              </div>
               <ProductMoneyField
                 label="Costo"
                 required

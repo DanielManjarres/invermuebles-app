@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildVariantName,
   canDeleteProductVariant,
   normalizeVariantAttributes,
   normalizeVariantReference,
@@ -73,6 +74,79 @@ test("normalizes option, number and boolean attribute values", () => {
     { attributeId: "width", optionId: null, value: "180.5" },
     { attributeId: "reclining", optionId: null, value: "true" },
   ]);
+});
+
+test("builds the variant name from its configured attributes", () => {
+  const result = normalizeVariantAttributes(
+    [
+      {
+        active: true,
+        dataType: "NUMBER",
+        id: "size",
+        name: "Tamaño",
+        options: [],
+        required: true,
+        unit: "Pulgadas",
+      },
+      {
+        active: true,
+        dataType: "OPTION",
+        id: "resolution",
+        name: "Resolución",
+        options: [{ active: true, id: "uhd", value: "4K UHD" }],
+        required: true,
+      },
+      {
+        active: true,
+        dataType: "OPTION",
+        id: "technology",
+        name: "Tecnología",
+        options: [{ active: true, id: "qled", value: "QLED" }],
+        required: true,
+      },
+    ],
+    [
+      { attributeId: "size", value: "55" },
+      { attributeId: "resolution", optionId: "uhd" },
+      { attributeId: "technology", optionId: "qled" },
+    ],
+  );
+
+  assert.equal(result.error, "");
+  assert.equal(
+    buildVariantName(
+      [
+        {
+          active: true,
+          dataType: "NUMBER",
+          id: "size",
+          name: "Tamaño",
+          options: [],
+          required: true,
+          unit: "Pulgadas",
+        },
+        {
+          active: true,
+          dataType: "OPTION",
+          id: "resolution",
+          name: "Resolución",
+          options: [],
+          required: true,
+        },
+        {
+          active: true,
+          dataType: "OPTION",
+          id: "technology",
+          name: "Tecnología",
+          options: [],
+          required: true,
+        },
+      ],
+      result.values,
+      "QN55Q7FAAKXZL",
+    ),
+    "55 pulgadas · 4K UHD · QLED",
+  );
 });
 
 test("rejects missing required and duplicated attributes", () => {

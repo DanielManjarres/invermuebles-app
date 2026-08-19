@@ -8,6 +8,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import {
   CATALOG_PRODUCT_INITIAL_NOTE,
+  buildVariantName,
   INITIAL_STOCK_REASON,
   normalizeVariantAttributes,
   normalizeVariantReference,
@@ -108,11 +109,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const variantError = validateVariantInput(body.defaultVariant);
-  if (variantError) {
-    return NextResponse.json({ message: variantError }, { status: 400 });
-  }
-
   const catalogProductType = await prisma.catalogProductType.findUnique({
     where: { id: body.catalogProductTypeId },
     include: {
@@ -148,7 +144,19 @@ export async function POST(request: Request) {
   }
 
   const reference = normalizeVariantReference(body.defaultVariant.reference);
-  const variantName = cleanText(body.defaultVariant.name);
+  const variantName = buildVariantName(
+    catalogProductType.attributes,
+    normalizedAttributes.values,
+    reference,
+  );
+  const variantError = validateVariantInput({
+    ...body.defaultVariant,
+    name: variantName,
+    reference,
+  });
+  if (variantError) {
+    return NextResponse.json({ message: variantError }, { status: 400 });
+  }
   const stock = Number(body.defaultVariant.stock);
   const adminUserId = stock > 0 ? await getAdminUserId() : null;
 

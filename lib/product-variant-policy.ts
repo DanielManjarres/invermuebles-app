@@ -15,6 +15,7 @@ type VariantAttributeDefinition = {
     value: string;
   }>;
   required: boolean;
+  unit?: string | null;
 };
 
 export type NormalizedVariantAttribute = {
@@ -41,6 +42,33 @@ function cleanText(value?: string) {
 
 export function normalizeVariantReference(value?: string) {
   return cleanText(value).toUpperCase();
+}
+
+export function buildVariantName(
+  definitions: VariantAttributeDefinition[],
+  values: NormalizedVariantAttribute[],
+  reference: string,
+) {
+  const valueByAttribute = new Map(
+    values.map((value) => [value.attributeId, value.value]),
+  );
+  const parts = definitions.flatMap((definition) => {
+    if (!definition.active) return [];
+    const value = valueByAttribute.get(definition.id);
+    if (!value) return [];
+
+    if (definition.dataType === "NUMBER" && definition.unit) {
+      return [`${value} ${cleanText(definition.unit).toLocaleLowerCase("es")}`];
+    }
+    if (definition.dataType === "BOOLEAN") {
+      return [`${definition.name}: ${value === "true" ? "Sí" : "No"}`];
+    }
+    return [value];
+  });
+
+  return (parts.join(" · ") || normalizeVariantReference(reference))
+    .slice(0, 100)
+    .trim();
 }
 
 export function validateVariantInput(input: {

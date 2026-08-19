@@ -23,7 +23,6 @@ type VariantFormState = {
   isDefault: boolean;
   location: string;
   minimumStock: number;
-  name: string;
   reference: string;
   salePrice: number;
   stock: number;
@@ -42,7 +41,6 @@ function createForm(variant?: CatalogProductVariant): VariantFormState {
     isDefault: variant?.isDefault ?? false,
     location: variant?.location ?? "",
     minimumStock: variant?.minimumStock ?? 0,
-    name: variant?.name ?? "",
     reference: variant?.reference ?? "",
     salePrice: variant?.salePrice ?? 0,
     stock: 0,
@@ -102,7 +100,6 @@ export function VariantFormModal({
           isDefault: form.isDefault,
           location: form.location,
           minimumStock: form.minimumStock,
-          name: form.name,
           productId: product.id,
           reference: form.reference,
           salePrice: form.salePrice,
@@ -155,15 +152,6 @@ export function VariantFormModal({
 
         <div className="adminFormGrid">
           <label>
-            Nombre de la variante
-            <input
-              maxLength={100}
-              required
-              value={form.name}
-              onChange={(event) => updateForm({ name: event.target.value })}
-            />
-          </label>
-          <label>
             Referencia
             <input
               maxLength={50}
@@ -172,6 +160,9 @@ export function VariantFormModal({
               onChange={(event) => updateForm({ reference: event.target.value })}
             />
           </label>
+          <div className="formHint">
+            El nombre se genera automáticamente con los atributos de la variante.
+          </div>
           <ProductMoneyField
             label="Costo"
             value={form.cost}

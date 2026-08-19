@@ -4,6 +4,7 @@ import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
 import {
   canDeleteProductVariant,
+  buildVariantName,
   normalizeVariantAttributes,
   normalizeVariantReference,
   validateVariantInput,
@@ -39,6 +40,9 @@ export async function PUT(request: Request, context: RouteContext) {
   const variant = await prisma.productVariant.findUnique({
     where: { id },
     include: {
+      attributeValues: {
+        select: { attributeId: true, optionId: true, value: true },
+      },
       product: {
         include: {
           catalogProductType: {
@@ -66,7 +70,6 @@ export async function PUT(request: Request, context: RouteContext) {
     );
   }
 
-  const name = body.name === undefined ? variant.name : cleanText(body.name);
   const reference =
     body.reference === undefined
       ? variant.reference
@@ -80,18 +83,6 @@ export async function PUT(request: Request, context: RouteContext) {
     body.minimumStock === undefined
       ? variant.minimumStock
       : Number(body.minimumStock);
-  const validationError = validateVariantInput({
-    cost,
-    minimumStock,
-    name,
-    reference,
-    salePrice,
-    stock: variant.stock,
-  });
-  if (validationError) {
-    return NextResponse.json({ message: validationError }, { status: 400 });
-  }
-
   const active = body.active ?? variant.active;
   const isDefault = body.isDefault ?? variant.isDefault;
   if (variant.isDefault && body.isDefault === false) {
@@ -117,6 +108,36 @@ export async function PUT(request: Request, context: RouteContext) {
     );
   }
 
+  const normalizedAttributes = body.attributeValues
+    ? normalizeVariantAttributes(
+        variant.product.catalogProductType.attributes,
+        body.attributeValues,
+      )
+    : { error: "", values: variant.attributeValues };
+  if (normalizedAttributes.error) {
+    return NextResponse.json(
+      { message: normalizedAttributes.error },
+      { status: 400 },
+    );
+  }
+
+  const name = buildVariantName(
+    variant.product.catalogProductType.attributes,
+    normalizedAttributes.values,
+    reference,
+  );
+  const validationError = validateVariantInput({
+    cost,
+    minimumStock,
+    name,
+    reference,
+    salePrice,
+    stock: variant.stock,
+  });
+  if (validationError) {
+    return NextResponse.json({ message: validationError }, { status: 400 });
+  }
+
   const nameOwner = await prisma.productVariant.findFirst({
     where: {
       id: { not: variant.id },
@@ -131,19 +152,6 @@ export async function PUT(request: Request, context: RouteContext) {
     );
   }
 
-  const normalizedAttributes = body.attributeValues
-    ? normalizeVariantAttributes(
-        variant.product.catalogProductType.attributes,
-        body.attributeValues,
-      )
-    : null;
-  if (normalizedAttributes?.error) {
-    return NextResponse.json(
-      { message: normalizedAttributes.error },
-      { status: 400 },
-    );
-  }
-
   try {
     const updatedVariant = await prisma.$transaction(async (transaction) => {
       if (body.isDefault === true && !variant.isDefault) {
@@ -153,7 +161,7 @@ export async function PUT(request: Request, context: RouteContext) {
         });
       }
 
-      if (normalizedAttributes) {
+      if (body.attributeValues) {
         await transaction.variantAttributeValue.deleteMany({
           where: { variantId: variant.id },
         });
@@ -163,7 +171,7 @@ export async function PUT(request: Request, context: RouteContext) {
         where: { id: variant.id },
         data: {
           active,
-          attributeValues: normalizedAttributes
+          attributeValues: body.attributeValues
             ? {
                 create: normalizedAttributes.values,
               }

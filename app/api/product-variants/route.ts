@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import {
   INITIAL_STOCK_REASON,
   PRODUCT_VARIANT_INITIAL_NOTE,
+  buildVariantName,
   normalizeVariantAttributes,
   normalizeVariantReference,
   validateVariantInput,
@@ -80,10 +81,9 @@ export async function POST(request: Request) {
   if (unauthorized) return unauthorized;
 
   const body = (await request.json()) as VariantRequest;
-  const validationError = validateVariantInput(body);
-  if (validationError || !body.productId) {
+  if (!body.productId) {
     return NextResponse.json(
-      { message: validationError || "Selecciona el producto de la variante." },
+      { message: "Selecciona el producto de la variante." },
       { status: 400 },
     );
   }
@@ -135,6 +135,15 @@ export async function POST(request: Request) {
   }
 
   const reference = normalizeVariantReference(body.reference);
+  const name = buildVariantName(
+    product.catalogProductType.attributes,
+    normalizedAttributes.values,
+    reference,
+  );
+  const validationError = validateVariantInput({ ...body, name, reference });
+  if (validationError) {
+    return NextResponse.json({ message: validationError }, { status: 400 });
+  }
   if (await prisma.productVariant.findUnique({ where: { reference } })) {
     return NextResponse.json(
       { message: "Ya existe una variante con esa referencia." },
@@ -142,7 +151,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const name = cleanText(body.name);
   const duplicateName = await prisma.productVariant.findUnique({
     where: { productId_name: { name, productId: product.id } },
   });
