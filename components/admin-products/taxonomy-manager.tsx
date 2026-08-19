@@ -27,6 +27,13 @@ const ATTRIBUTE_TYPE_LABELS: Record<CatalogAttributeDataType, string> = {
   TEXT: "Texto",
 };
 
+const ATTRIBUTE_TYPE_OPTIONS = [
+  { label: "Texto", value: "TEXT" },
+  { label: "Número", value: "NUMBER" },
+  { label: "Lista de opciones", value: "OPTION" },
+  { label: "Sí / No", value: "BOOLEAN" },
+];
+
 async function mutateTaxonomy(
   endpoint: string,
   method: "POST" | "PUT" | "DELETE",
@@ -49,6 +56,9 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [productTypeCategoryId, setProductTypeCategoryId] = useState(
+    categories[0]?.id ?? "",
+  );
   const [productTypeId, setProductTypeId] = useState(
     categories[0]?.productTypes[0]?.id ?? "",
   );
@@ -56,7 +66,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
   const [productTypeName, setProductTypeName] = useState("");
   const [attributeName, setAttributeName] = useState("");
   const [attributeType, setAttributeType] =
-    useState<CatalogAttributeDataType>("TEXT");
+    useState<CatalogAttributeDataType | "">("");
   const [attributeUnit, setAttributeUnit] = useState("");
   const [attributeRequired, setAttributeRequired] = useState(false);
   const [optionAttributeId, setOptionAttributeId] = useState("");
@@ -75,7 +85,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
     () =>
       selectedCategory?.productTypes.find(
         (productType) => productType.id === productTypeId,
-      ) ?? selectedCategory?.productTypes[0],
+      ),
     [productTypeId, selectedCategory],
   );
   const optionAttributes = (selectedType?.attributes ?? []).filter(
@@ -111,42 +121,54 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
 
   function addCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    void runMutation(() =>
-      mutateTaxonomy("/api/product-categories", "POST", { name: categoryName }),
-    );
+    void runMutation(async () => {
+      await mutateTaxonomy("/api/product-categories", "POST", {
+        name: categoryName,
+      });
+      setCategoryName("");
+    });
   }
 
   function addProductType(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    void runMutation(() =>
-      mutateTaxonomy("/api/catalog-product-types", "POST", {
-        categoryId,
+    if (!productTypeCategoryId) return;
+    void runMutation(async () => {
+      await mutateTaxonomy("/api/catalog-product-types", "POST", {
+        categoryId: productTypeCategoryId,
         name: productTypeName,
-      }),
-    );
+      });
+      setProductTypeName("");
+    });
   }
 
   function addAttribute(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    void runMutation(() =>
-      mutateTaxonomy("/api/product-attributes", "POST", {
+    if (!attributeType || !selectedType) return;
+    void runMutation(async () => {
+      await mutateTaxonomy("/api/product-attributes", "POST", {
         dataType: attributeType,
         name: attributeName,
         productTypeId: selectedType?.id,
         required: attributeRequired,
         unit: attributeType === "NUMBER" ? attributeUnit : "",
-      }),
-    );
+      });
+      setAttributeName("");
+      setAttributeRequired(false);
+      setAttributeType("");
+      setAttributeUnit("");
+    });
   }
 
   function addOption(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    void runMutation(() =>
-      mutateTaxonomy("/api/product-attribute-options", "POST", {
+    if (!optionAttributeId) return;
+    void runMutation(async () => {
+      await mutateTaxonomy("/api/product-attribute-options", "POST", {
         attributeId: optionAttributeId,
         value: optionValue,
-      }),
-    );
+      });
+      setOptionValue("");
+    });
   }
 
   function openEdit(target: TaxonomyTarget) {
@@ -217,14 +239,8 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                   placeholder={
                     categories.length ? "Selecciona una categoría" : "Primero crea una categoría"
                   }
-                  value={categoryId}
-                  onChange={(value) => {
-                    const nextCategory = categories.find(
-                      (category) => category.id === value,
-                    );
-                    setCategoryId(value);
-                    setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
-                  }}
+                  value={productTypeCategoryId}
+                  onChange={setProductTypeCategoryId}
                 />
               </label>
               <label>
@@ -236,7 +252,10 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                   onChange={(event) => setProductTypeName(event.target.value)}
                 />
               </label>
-              <button className="primaryButton" disabled={isSaving || !categoryId}>
+              <button
+                className="primaryButton"
+                disabled={isSaving || !productTypeCategoryId}
+              >
                 <Plus size={15} /> Agregar
               </button>
             </form>
@@ -392,17 +411,14 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                 </label>
                 <label>
                   Tipo de dato
-                  <select
+                  <SelectMenu
+                    options={ATTRIBUTE_TYPE_OPTIONS}
+                    placeholder="Selecciona un tipo de dato"
                     value={attributeType}
-                    onChange={(event) =>
-                      setAttributeType(event.target.value as CatalogAttributeDataType)
+                    onChange={(value) =>
+                      setAttributeType(value as CatalogAttributeDataType | "")
                     }
-                  >
-                    <option value="TEXT">Texto</option>
-                    <option value="NUMBER">Número</option>
-                    <option value="OPTION">Lista de opciones</option>
-                    <option value="BOOLEAN">Sí / No</option>
-                  </select>
+                  />
                 </label>
                 {attributeType === "NUMBER" ? (
                   <label>
@@ -422,7 +438,10 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                   />
                   Obligatorio
                 </label>
-                <button className="primaryButton" disabled={isSaving}>
+                <button
+                  className="primaryButton"
+                  disabled={isSaving || !attributeType}
+                >
                   <Plus size={15} /> Agregar atributo
                 </button>
               </form>
@@ -543,18 +562,15 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
                 <form className="catalogOptionForm" onSubmit={addOption}>
                   <label>
                     Atributo con opciones
-                    <select
-                      required
+                    <SelectMenu
+                      options={optionAttributes.map((attribute) => ({
+                        label: attribute.name,
+                        value: attribute.id,
+                      }))}
+                      placeholder="Selecciona un atributo"
                       value={optionAttributeId}
-                      onChange={(event) => setOptionAttributeId(event.target.value)}
-                    >
-                      <option value="">Selecciona</option>
-                      {optionAttributes.map((attribute) => (
-                        <option key={attribute.id} value={attribute.id}>
-                          {attribute.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setOptionAttributeId}
+                    />
                   </label>
                   <label>
                     Nueva opción
