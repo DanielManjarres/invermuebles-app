@@ -1,9 +1,15 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { SelectMenu } from "@/components/select-menu";
+import {
+  TaxonomyDialogs,
+  type TaxonomyTarget,
+} from "@/components/admin-products/taxonomy-dialogs";
+import { TaxonomyCreateForms } from "@/components/admin-products/taxonomy-create-forms";
+import { TaxonomySelection } from "@/components/admin-products/taxonomy-selection";
+import { TaxonomyAttributes } from "@/components/admin-products/taxonomy-attributes";
 import type {
   CatalogAttributeDataType,
   CatalogCategory,
@@ -12,27 +18,6 @@ import type {
 type TaxonomyManagerProps = {
   categories: CatalogCategory[];
 };
-
-type TaxonomyTarget = {
-  endpoint: string;
-  field: "name" | "value";
-  id: string;
-  label: string;
-};
-
-const ATTRIBUTE_TYPE_LABELS: Record<CatalogAttributeDataType, string> = {
-  BOOLEAN: "Sí / No",
-  NUMBER: "Número",
-  OPTION: "Lista de opciones",
-  TEXT: "Texto",
-};
-
-const ATTRIBUTE_TYPE_OPTIONS = [
-  { label: "Texto", value: "TEXT" },
-  { label: "Número", value: "NUMBER" },
-  { label: "Lista de opciones", value: "OPTION" },
-  { label: "Sí / No", value: "BOOLEAN" },
-];
 
 async function mutateTaxonomy(
   endpoint: string,
@@ -87,9 +72,6 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
         (productType) => productType.id === productTypeId,
       ),
     [productTypeId, selectedCategory],
-  );
-  const optionAttributes = (selectedType?.attributes ?? []).filter(
-    (attribute) => attribute.dataType === "OPTION",
   );
   const categoryOptions = categories.map((category) => ({
     label: `${category.name}${category.active ? "" : " (inactiva)"}`,
@@ -215,454 +197,112 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
 
       {isOpen ? (
         <div className="catalogTaxonomyWorkspace">
-          <div className="catalogTaxonomyForms">
-            <form onSubmit={addCategory}>
-              <label>
-                Nueva categoría
-                <input
-                  required
-                  value={categoryName}
-                  onChange={(event) => setCategoryName(event.target.value)}
-                />
-              </label>
-              <button className="primaryButton" disabled={isSaving}>
-                <Plus size={15} /> Agregar
-              </button>
-            </form>
+          <TaxonomyCreateForms
+            categoriesAvailable={categories.length > 0}
+            categoryName={categoryName}
+            categoryOptions={categoryOptions}
+            isSaving={isSaving}
+            onAddCategory={addCategory}
+            onAddProductType={addProductType}
+            onCategoryNameChange={setCategoryName}
+            onProductTypeCategoryChange={setProductTypeCategoryId}
+            onProductTypeNameChange={setProductTypeName}
+            productTypeCategoryId={productTypeCategoryId}
+            productTypeName={productTypeName}
+          />
 
-            <form onSubmit={addProductType}>
-              <label>
-                Categoría
-                <SelectMenu
-                  disabled={!categories.length}
-                  options={categoryOptions}
-                  placeholder={
-                    categories.length ? "Selecciona una categoría" : "Primero crea una categoría"
-                  }
-                  value={productTypeCategoryId}
-                  onChange={setProductTypeCategoryId}
-                />
-              </label>
-              <label>
-                Nuevo tipo de producto
-                <input
-                  disabled={!categories.length}
-                  required
-                  value={productTypeName}
-                  onChange={(event) => setProductTypeName(event.target.value)}
-                />
-              </label>
-              <button
-                className="primaryButton"
-                disabled={isSaving || !productTypeCategoryId}
-              >
-                <Plus size={15} /> Agregar
-              </button>
-            </form>
-          </div>
+          <TaxonomySelection
+            categoriesAvailable={categories.length > 0}
+            categoryId={categoryId}
+            categoryOptions={categoryOptions}
+            isSaving={isSaving}
+            onCategoryChange={(value) => {
+              const nextCategory = categories.find(
+                (category) => category.id === value,
+              );
+              setCategoryId(value);
+              setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
+            }}
+            onDelete={setDeleteTarget}
+            onEdit={openEdit}
+            onProductTypeChange={(value) => {
+              setProductTypeId(value);
+              setOptionAttributeId("");
+            }}
+            onToggleCategory={() =>
+              void runMutation(() =>
+                mutateTaxonomy("/api/product-categories", "PUT", {
+                  active: !selectedCategory?.active,
+                  id: selectedCategory?.id,
+                }),
+              )
+            }
+            onToggleProductType={() =>
+              void runMutation(() =>
+                mutateTaxonomy("/api/catalog-product-types", "PUT", {
+                  active: !selectedType?.active,
+                  id: selectedType?.id,
+                }),
+              )
+            }
+            productTypeOptions={productTypeOptions}
+            selectedCategory={selectedCategory}
+            selectedType={selectedType}
+          />
 
-          <div className="catalogTaxonomySelector">
-            <label>
-              Categoría a configurar
-              <SelectMenu
-                disabled={!categories.length}
-                options={categoryOptions}
-                placeholder={
-                  categories.length ? "Selecciona una categoría" : "Sin categorías registradas"
-                }
-                value={categoryId}
-                onChange={(value) => {
-                  const nextCategory = categories.find(
-                    (category) => category.id === value,
-                  );
-                  setCategoryId(value);
-                  setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
-                }}
-              />
-            </label>
-            <label>
-              Tipo de producto
-              <SelectMenu
-                disabled={!selectedCategory?.productTypes.length}
-                options={productTypeOptions}
-                placeholder={
-                  selectedCategory?.productTypes.length
-                    ? "Selecciona un tipo"
-                    : "Sin tipos registrados"
-                }
-                value={selectedType?.id ?? ""}
-                onChange={(value) => {
-                  setProductTypeId(value);
-                  setOptionAttributeId("");
-                }}
-              />
-            </label>
-          </div>
-
-          {selectedCategory ? (
-            <div className="catalogTaxonomySelectedActions">
-              <strong>{selectedCategory.name}</strong>
-              <button
-                className="secondaryButton"
-                disabled={isSaving}
-                type="button"
-                onClick={() =>
-                  void runMutation(() =>
-                    mutateTaxonomy("/api/product-categories", "PUT", {
-                      active: !selectedCategory.active,
-                      id: selectedCategory.id,
-                    }),
-                  )
-                }
-              >
-                {selectedCategory.active ? "Desactivar categoría" : "Activar categoría"}
-              </button>
-              <button
-                className="secondaryButton"
-                type="button"
-                onClick={() =>
-                  openEdit({
-                    endpoint: "/api/product-categories",
-                    field: "name",
-                    id: selectedCategory.id,
-                    label: selectedCategory.name,
-                  })
-                }
-              >
-                <Pencil size={14} /> Editar
-              </button>
-              <button
-                className="dangerButton"
-                type="button"
-                onClick={() =>
-                  setDeleteTarget({
-                    endpoint: "/api/product-categories",
-                    field: "name",
-                    id: selectedCategory.id,
-                    label: selectedCategory.name,
-                  })
-                }
-              >
-                <Trash2 size={14} /> Eliminar
-              </button>
-            </div>
-          ) : null}
-
-          {selectedType ? (
-            <div className="catalogTaxonomySelectedActions">
-              <strong>{selectedType.name}</strong>
-              <button
-                className="secondaryButton"
-                disabled={isSaving}
-                type="button"
-                onClick={() =>
-                  void runMutation(() =>
-                    mutateTaxonomy("/api/catalog-product-types", "PUT", {
-                      active: !selectedType.active,
-                      id: selectedType.id,
-                    }),
-                  )
-                }
-              >
-                {selectedType.active ? "Desactivar tipo" : "Activar tipo"}
-              </button>
-              <button
-                className="secondaryButton"
-                type="button"
-                onClick={() =>
-                  openEdit({
-                    endpoint: "/api/catalog-product-types",
-                    field: "name",
-                    id: selectedType.id,
-                    label: selectedType.name,
-                  })
-                }
-              >
-                <Pencil size={14} /> Editar
-              </button>
-              <button
-                className="dangerButton"
-                type="button"
-                onClick={() =>
-                  setDeleteTarget({
-                    endpoint: "/api/catalog-product-types",
-                    field: "name",
-                    id: selectedType.id,
-                    label: selectedType.name,
-                  })
-                }
-              >
-                <Trash2 size={14} /> Eliminar
-              </button>
-            </div>
-          ) : null}
-
-          {selectedType ? (
-            <>
-              <form className="catalogAttributeForm" onSubmit={addAttribute}>
-                <label>
-                  Nombre del atributo
-                  <input
-                    required
-                    placeholder="Ej: Color, pulgadas o material"
-                    value={attributeName}
-                    onChange={(event) => setAttributeName(event.target.value)}
-                  />
-                </label>
-                <label>
-                  Tipo de dato
-                  <SelectMenu
-                    options={ATTRIBUTE_TYPE_OPTIONS}
-                    placeholder="Selecciona un tipo de dato"
-                    value={attributeType}
-                    onChange={(value) =>
-                      setAttributeType(value as CatalogAttributeDataType | "")
-                    }
-                  />
-                </label>
-                {attributeType === "NUMBER" ? (
-                  <label>
-                    Unidad
-                    <input
-                      placeholder="cm, kg, pulgadas..."
-                      value={attributeUnit}
-                      onChange={(event) => setAttributeUnit(event.target.value)}
-                    />
-                  </label>
-                ) : null}
-                <label className="checkRow">
-                  <input
-                    checked={attributeRequired}
-                    type="checkbox"
-                    onChange={(event) => setAttributeRequired(event.target.checked)}
-                  />
-                  Obligatorio
-                </label>
-                <button
-                  className="primaryButton"
-                  disabled={isSaving || !attributeType}
-                >
-                  <Plus size={15} /> Agregar atributo
-                </button>
-              </form>
-
-              <div className="catalogAttributeList">
-                {selectedType.attributes.map((attribute) => (
-                  <article key={attribute.id}>
-                    <div>
-                      <strong>{attribute.name}</strong>
-                      <span>
-                        {ATTRIBUTE_TYPE_LABELS[attribute.dataType]}
-                        {attribute.unit ? ` · ${attribute.unit}` : ""}
-                        {attribute.required ? " · Obligatorio" : " · Opcional"}
-                      </span>
-                      {attribute.dataType === "OPTION" && attribute.options.length ? (
-                        <span className="catalogAttributeOptions">
-                          {attribute.options.map((option) => (
-                            <span className="catalogAttributeOption" key={option.id}>
-                              <button
-                                className={option.active ? "active" : ""}
-                                disabled={isSaving}
-                                type="button"
-                                onClick={() =>
-                                  void runMutation(() =>
-                                    mutateTaxonomy(
-                                      "/api/product-attribute-options",
-                                      "PUT",
-                                      { active: !option.active, id: option.id },
-                                    ),
-                                  )
-                                }
-                              >
-                                {option.value}
-                              </button>
-                              <button
-                                aria-label={`Editar ${option.value}`}
-                                type="button"
-                                onClick={() =>
-                                  openEdit({
-                                    endpoint: "/api/product-attribute-options",
-                                    field: "value",
-                                    id: option.id,
-                                    label: option.value,
-                                  })
-                                }
-                              >
-                                <Pencil size={11} />
-                              </button>
-                              <button
-                                aria-label={`Eliminar ${option.value}`}
-                                type="button"
-                                onClick={() =>
-                                  setDeleteTarget({
-                                    endpoint: "/api/product-attribute-options",
-                                    field: "value",
-                                    id: option.id,
-                                    label: option.value,
-                                  })
-                                }
-                              >
-                                <Trash2 size={11} />
-                              </button>
-                            </span>
-                          ))}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="catalogAttributeActions">
-                      <button
-                        className="secondaryButton"
-                        disabled={isSaving}
-                        type="button"
-                        onClick={() =>
-                          void runMutation(() =>
-                            mutateTaxonomy("/api/product-attributes", "PUT", {
-                              active: !attribute.active,
-                              id: attribute.id,
-                            }),
-                          )
-                        }
-                      >
-                        {attribute.active ? "Desactivar" : "Activar"}
-                      </button>
-                      <button
-                        className="secondaryButton"
-                        type="button"
-                        onClick={() =>
-                          openEdit({
-                            endpoint: "/api/product-attributes",
-                            field: "name",
-                            id: attribute.id,
-                            label: attribute.name,
-                          })
-                        }
-                      >
-                        <Pencil size={14} /> Editar
-                      </button>
-                      <button
-                        className="dangerButton"
-                        type="button"
-                        onClick={() =>
-                          setDeleteTarget({
-                            endpoint: "/api/product-attributes",
-                            field: "name",
-                            id: attribute.id,
-                            label: attribute.name,
-                          })
-                        }
-                      >
-                        <Trash2 size={14} /> Eliminar
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-
-              {optionAttributes.length ? (
-                <form className="catalogOptionForm" onSubmit={addOption}>
-                  <label>
-                    Atributo con opciones
-                    <SelectMenu
-                      options={optionAttributes.map((attribute) => ({
-                        label: attribute.name,
-                        value: attribute.id,
-                      }))}
-                      placeholder="Selecciona un atributo"
-                      value={optionAttributeId}
-                      onChange={setOptionAttributeId}
-                    />
-                  </label>
-                  <label>
-                    Nueva opción
-                    <input
-                      required
-                      placeholder="Ej: Nogal, gris, 55 pulgadas"
-                      value={optionValue}
-                      onChange={(event) => setOptionValue(event.target.value)}
-                    />
-                  </label>
-                  <button
-                    className="primaryButton"
-                    disabled={isSaving || !optionAttributeId}
-                  >
-                    <Plus size={15} /> Agregar opción
-                  </button>
-                </form>
-              ) : null}
-            </>
-          ) : (
-            <p className="emptyNote">Agrega un tipo de producto para configurar atributos.</p>
-          )}
+          <TaxonomyAttributes
+            attributeName={attributeName}
+            attributeRequired={attributeRequired}
+            attributeType={attributeType}
+            attributeUnit={attributeUnit}
+            isSaving={isSaving}
+            onAddAttribute={addAttribute}
+            onAddOption={addOption}
+            onAttributeNameChange={setAttributeName}
+            onAttributeRequiredChange={setAttributeRequired}
+            onAttributeTypeChange={setAttributeType}
+            onAttributeUnitChange={setAttributeUnit}
+            onDelete={setDeleteTarget}
+            onEdit={openEdit}
+            onOptionAttributeChange={setOptionAttributeId}
+            onOptionValueChange={setOptionValue}
+            onToggleAttribute={(id, active) =>
+              void runMutation(() =>
+                mutateTaxonomy("/api/product-attributes", "PUT", {
+                  active: !active,
+                  id,
+                }),
+              )
+            }
+            onToggleOption={(id, active) =>
+              void runMutation(() =>
+                mutateTaxonomy("/api/product-attribute-options", "PUT", {
+                  active: !active,
+                  id,
+                }),
+              )
+            }
+            optionAttributeId={optionAttributeId}
+            optionValue={optionValue}
+            selectedType={selectedType}
+          />
 
           {error ? <p className="formError">{error}</p> : null}
         </div>
       ) : null}
 
-      {editTarget ? (
-        <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <form className="adminModal smallModal" onSubmit={saveEdit}>
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Editar configuración</p>
-                <h2>{editTarget.label}</h2>
-              </div>
-              <button className="modalClose" type="button" onClick={() => setEditTarget(null)}>
-                <X size={18} />
-              </button>
-            </div>
-            <label className="adminFormSingle">
-              Nuevo nombre
-              <input
-                autoFocus
-                required
-                value={editValue}
-                onChange={(event) => setEditValue(event.target.value)}
-              />
-            </label>
-            {error ? <p className="formError">{error}</p> : null}
-            <div className="modalActions">
-              <button className="secondaryButton" type="button" onClick={() => setEditTarget(null)}>
-                Cancelar
-              </button>
-              <button className="primaryButton" disabled={isSaving}>
-                {isSaving ? "Guardando..." : "Guardar"}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
-
-      {deleteTarget ? (
-        <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <div className="adminModal smallModal">
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Eliminar configuración</p>
-                <h2>{deleteTarget.label}</h2>
-              </div>
-              <button className="modalClose" type="button" onClick={() => setDeleteTarget(null)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="recordDeleteWarning">
-              <p>
-                Solo se eliminará si no está siendo utilizada por productos, variantes
-                u otros elementos de la estructura.
-              </p>
-            </div>
-            {error ? <p className="formError">{error}</p> : null}
-            <div className="modalActions">
-              <button className="secondaryButton" type="button" onClick={() => setDeleteTarget(null)}>
-                Cancelar
-              </button>
-              <button className="dangerButton" disabled={isSaving} type="button" onClick={deleteSelected}>
-                <Trash2 size={15} />
-                {isSaving ? "Eliminando..." : "Eliminar permanentemente"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <TaxonomyDialogs
+        deleteTarget={deleteTarget}
+        editTarget={editTarget}
+        editValue={editValue}
+        error={error}
+        isSaving={isSaving}
+        onCloseDelete={() => setDeleteTarget(null)}
+        onCloseEdit={() => setEditTarget(null)}
+        onDelete={deleteSelected}
+        onEditSubmit={saveEdit}
+        onEditValueChange={setEditValue}
+      />
     </section>
   );
 }
