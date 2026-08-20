@@ -8,6 +8,7 @@ import type {
   CatalogProductVariant,
 } from "@/lib/catalog-products";
 import { ProductMoneyField } from "@/components/admin-products/form-controls";
+import { SelectMenu } from "@/components/select-menu";
 
 type VariantFormModalProps = {
   onClose: () => void;
@@ -214,44 +215,41 @@ export function VariantFormModal({
             <label key={attribute.id}>
               {attribute.name}{attribute.unit ? ` (${attribute.unit})` : ""}
               {attribute.dataType === "OPTION" ? (
-                <select
-                  required={attribute.required}
-                  value={form.attributeValues[attribute.id] ?? ""}
-                  onChange={(event) =>
-                    updateForm({
-                      attributeValues: {
-                        ...form.attributeValues,
-                        [attribute.id]: event.target.value,
-                      },
-                    })
-                  }
-                >
-                  <option value="">Selecciona una opción</option>
-                  {attribute.options
+                <SelectMenu
+                  options={attribute.options
                     .filter((option) => option.active)
-                    .map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.value}
-                      </option>
-                    ))}
-                </select>
-              ) : attribute.dataType === "BOOLEAN" ? (
-                <select
-                  required={attribute.required}
+                    .map((option) => ({
+                      label: option.value,
+                      value: option.id,
+                    }))}
+                  placeholder="Selecciona una opción"
                   value={form.attributeValues[attribute.id] ?? ""}
-                  onChange={(event) =>
+                  onChange={(value) =>
                     updateForm({
                       attributeValues: {
                         ...form.attributeValues,
-                        [attribute.id]: event.target.value,
+                        [attribute.id]: value,
                       },
                     })
                   }
-                >
-                  <option value="">Selecciona</option>
-                  <option value="true">Sí</option>
-                  <option value="false">No</option>
-                </select>
+                />
+              ) : attribute.dataType === "BOOLEAN" ? (
+                <SelectMenu
+                  options={[
+                    { label: "Sí", value: "true" },
+                    { label: "No", value: "false" },
+                  ]}
+                  placeholder="Selecciona"
+                  value={form.attributeValues[attribute.id] ?? ""}
+                  onChange={(value) =>
+                    updateForm({
+                      attributeValues: {
+                        ...form.attributeValues,
+                        [attribute.id]: value,
+                      },
+                    })
+                  }
+                />
               ) : (
                 <input
                   inputMode={attribute.dataType === "NUMBER" ? "decimal" : undefined}
