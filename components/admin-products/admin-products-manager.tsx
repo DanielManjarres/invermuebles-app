@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Eye,
   EyeOff,
@@ -9,6 +10,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Star,
   Trash2,
   X,
 } from "lucide-react";
@@ -20,6 +22,7 @@ import type {
 import { ProductFormModal } from "@/components/admin-products/product-form-modal";
 import { VariantFormModal } from "@/components/admin-products/variant-form-modal";
 import { TaxonomyManager } from "@/components/admin-products/taxonomy-manager";
+import { MAX_FEATURED_PRODUCTS } from "@/lib/featured-product-policy";
 
 type AdminProductsManagerProps = {
   categories: CatalogCategory[];
@@ -34,6 +37,7 @@ export function AdminProductsManager({
   categories,
   products,
 }: AdminProductsManagerProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [editingProduct, setEditingProduct] =
@@ -48,6 +52,8 @@ export function AdminProductsManager({
     useState<CatalogProductRecord | null>(null);
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [featuredProductId, setFeaturedProductId] = useState<string | null>(null);
+  const [featuredError, setFeaturedError] = useState("");
 
   const stats = useMemo(() => {
     const variants = products.flatMap((product) => product.variants);
@@ -59,6 +65,7 @@ export function AdminProductsManager({
       outOfStock: variants.filter((variant) => variant.stock === 0).length,
       variants: variants.length,
       visible: products.filter((product) => product.visible).length,
+      featured: products.filter((product) => product.featured).length,
     };
   }, [products]);
 
@@ -106,6 +113,25 @@ export function AdminProductsManager({
     window.location.reload();
   }
 
+  async function toggleFeatured(product: CatalogProductRecord) {
+    setFeaturedError("");
+    setFeaturedProductId(product.id);
+    const response = await fetch(`/api/products/${product.id}/featured`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ featured: !product.featured }),
+    }).catch(() => null);
+    const result = response
+      ? ((await response.json().catch(() => ({}))) as { message?: string })
+      : {};
+    setFeaturedProductId(null);
+    if (!response?.ok) {
+      setFeaturedError(result.message ?? "No se pudo actualizar el producto destacado.");
+      return;
+    }
+    router.refresh();
+  }
+
   return (
     <>
       <TaxonomyManager categories={categories} />
@@ -135,7 +161,10 @@ export function AdminProductsManager({
           <div>
             <p className="eyebrow">Catálogo interno</p>
             <h2>Productos registrados</h2>
-            <p>Administra productos y consulta sus variantes comerciales.</p>
+            <p>
+              Administra productos y consulta sus variantes comerciales. Destacados en
+              inicio: {stats.featured} de {MAX_FEATURED_PRODUCTS}.
+            </p>
           </div>
           <button
             className="primaryButton"
@@ -180,6 +209,8 @@ export function AdminProductsManager({
           </div>
         </div>
 
+        {featuredError ? <p className="formMessage error">{featuredError}</p> : null}
+
         {filteredProducts.length ? (
           <div className="catalogProductList">
             {filteredProducts.map((product) => {
@@ -211,6 +242,12 @@ export function AdminProductsManager({
                           {product.visible ? "Publicado" : "Oculto"}
                         </span>
                         <span>{product.categoryName} / {product.productTypeName}</span>
+                        {product.featured ? (
+                          <span className="available">
+                            <Star size={13} />
+                            En inicio
+                          </span>
+                        ) : null}
                         {!product.productTypeId ? (
                           <span className="unavailable">Pendiente de migración</span>
                         ) : null}
@@ -241,6 +278,24 @@ export function AdminProductsManager({
                   </div>
 
                   <div className="catalogProductActions">
+                    <button
+                      className="secondaryButton"
+                      disabled={!product.visible || featuredProductId === product.id}
+                      title={
+                        product.visible
+                          ? undefined
+                          : "Publica el producto antes de destacarlo en el inicio."
+                      }
+                      type="button"
+                      onClick={() => void toggleFeatured(product)}
+                    >
+                      <Star size={16} />
+                      {featuredProductId === product.id
+                        ? "Guardando"
+                        : product.featured
+                          ? "Quitar de inicio"
+                          : "Destacar en inicio"}
+                    </button>
                     <button
                       className="secondaryButton"
                       type="button"

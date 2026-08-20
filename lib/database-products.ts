@@ -9,6 +9,7 @@ const fallbackImage =
 
 type ProductFilters = {
   availableOnly?: boolean;
+  featuredOnly?: boolean;
   visibleOnly?: boolean;
 };
 
@@ -34,6 +35,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     where: {
       ...(filters.visibleOnly ? { visible: true } : {}),
       ...(filters.availableOnly ? { stock: { gt: 0 } } : {}),
+      ...(filters.featuredOnly ? { featured: true } : {}),
     },
     include: {
       catalogProductType: {
@@ -51,7 +53,9 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
         orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       },
     },
-    orderBy: [{ productType: { name: "asc" } }, { name: "asc" }],
+    orderBy: filters.featuredOnly
+      ? [{ featuredOrder: "asc" }, { name: "asc" }]
+      : [{ productType: { name: "asc" } }, { name: "asc" }],
   });
 
   return products.map((product) => ({
@@ -65,6 +69,8 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     salePrice: Number(product.salePrice),
     stock: product.stock,
     visible: product.visible,
+    featured: product.featured,
+    featuredOrder: product.featuredOrder ?? undefined,
     image: product.imageUrl ?? fallbackImage,
     catalogCategory: product.catalogProductType?.category.name,
     catalogProductType: product.catalogProductType?.name,

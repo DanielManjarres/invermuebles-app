@@ -82,6 +82,8 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
         categoryName:
           product.catalogProductType?.category.name ?? product.productType.name,
         details: product.details,
+        featured: product.featured,
+        featuredOrder: product.featuredOrder,
         id: product.id,
         imageUrl: product.images[0]?.url ?? product.imageUrl ?? "",
         model: product.model ?? "",

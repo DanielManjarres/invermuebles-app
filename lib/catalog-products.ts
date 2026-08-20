@@ -65,6 +65,8 @@ export type CatalogProductRecord = {
   categoryId: string;
   categoryName: string;
   details: string;
+  featured: boolean;
+  featuredOrder: number | null;
   id: string;
   imageUrl: string;
   model: string;

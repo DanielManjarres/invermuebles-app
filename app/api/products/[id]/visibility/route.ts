@@ -30,7 +30,11 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   await prisma.product.update({
     where: { id },
-    data: { visible: body.visible },
+    data: {
+      featured: body.visible ? undefined : false,
+      featuredOrder: body.visible ? undefined : null,
+      visible: body.visible,
+    },
   });
 
   return NextResponse.json({ id, visible: body.visible });

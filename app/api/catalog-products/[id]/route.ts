@@ -102,6 +102,8 @@ export async function PUT(request: Request, context: RouteContext) {
           : undefined,
         model: productInput.model || null,
         name: productInput.name,
+        featured: body.visible === false ? false : undefined,
+        featuredOrder: body.visible === false ? null : undefined,
         visible: body.visible,
       },
     });

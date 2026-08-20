@@ -296,6 +296,7 @@ function formToProduct(
     salePrice: Number(form.salePrice),
     stock: Number(form.stock),
     visible: form.visible,
+    featured: false,
     image: form.image.trim() || fallbackImage,
   };
 }

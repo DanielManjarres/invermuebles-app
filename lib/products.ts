@@ -9,6 +9,8 @@ export type Product = {
   salePrice: number;
   stock: number;
   visible: boolean;
+  featured: boolean;
+  featuredOrder?: number;
   image: string;
   catalogCategory?: string;
   catalogProductType?: string;
@@ -45,6 +47,7 @@ export const products: Product[] = [
     salePrice: 2100000,
     stock: 2,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80",
   },
@@ -59,6 +62,7 @@ export const products: Product[] = [
     salePrice: 2450000,
     stock: 1,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?auto=format&fit=crop&w=900&q=80",
   },
@@ -73,6 +77,7 @@ export const products: Product[] = [
     salePrice: 1750000,
     stock: 3,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=900&q=80",
   },
@@ -87,6 +92,7 @@ export const products: Product[] = [
     salePrice: 1880000,
     stock: 0,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1626806819282-2c1dc01a5e0c?auto=format&fit=crop&w=900&q=80",
   },
@@ -101,6 +107,7 @@ export const products: Product[] = [
     salePrice: 690000,
     stock: 5,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
   },
@@ -115,6 +122,7 @@ export const products: Product[] = [
     salePrice: 520000,
     stock: 4,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1616627561839-074385245ff6?auto=format&fit=crop&w=900&q=80",
   },
@@ -129,6 +137,7 @@ export const products: Product[] = [
     salePrice: 2150000,
     stock: 2,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=900&q=80",
   },
@@ -143,6 +152,7 @@ export const products: Product[] = [
     salePrice: 2750000,
     stock: 1,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80",
   },
@@ -157,6 +167,7 @@ export const products: Product[] = [
     salePrice: 430000,
     stock: 6,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=900&q=80",
   },
@@ -171,6 +182,7 @@ export const products: Product[] = [
     salePrice: 890000,
     stock: 3,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1558089687-f282ffcbc126?auto=format&fit=crop&w=900&q=80",
   },
@@ -185,6 +197,7 @@ export const products: Product[] = [
     salePrice: 1120000,
     stock: 2,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80",
   },
@@ -199,6 +212,7 @@ export const products: Product[] = [
     salePrice: 820000,
     stock: 4,
     visible: true,
+    featured: false,
     image:
       "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&w=900&q=80",
   },

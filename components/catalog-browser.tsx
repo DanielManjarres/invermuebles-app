@@ -16,6 +16,10 @@ type CatalogBrowserProps = {
 const allCategories = "Todos";
 const productsPerPage = 20;
 
+function getCatalogCategory(product: Product) {
+  return product.catalogCategory || product.category;
+}
+
 export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProps) {
   const isAdmin = mode === "admin";
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
@@ -39,15 +43,23 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
   const categories = useMemo(
     () => [
       allCategories,
-      ...Array.from(new Set(availableProducts.map((product) => product.category))),
+      ...Array.from(new Set(availableProducts.map(getCatalogCategory))),
     ],
     [availableProducts]
   );
 
+  useEffect(() => {
+    if (!categories.includes(activeCategory)) {
+      setActiveCategory(allCategories);
+    }
+  }, [activeCategory, categories]);
+
   const filteredProducts =
     activeCategory === allCategories
       ? availableProducts
-      : availableProducts.filter((product) => product.category === activeCategory);
+      : availableProducts.filter(
+          (product) => getCatalogCategory(product) === activeCategory,
+        );
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * productsPerPage,

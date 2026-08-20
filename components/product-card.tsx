@@ -64,6 +64,11 @@ export function ProductCard({
     return () => window.clearTimeout(timeout);
   }, [cartFeedback]);
 
+  useEffect(() => {
+    setSelectedVariantId(initialVariant?.id ?? "");
+    setCartFeedback("");
+  }, [initialVariant?.id, product.id]);
+
   function handleAddToCart() {
     if (showAdminSaleAction && onAdminSaleAdd) {
       const result = onAdminSaleAdd(product, selectedVariant?.id);
@@ -114,7 +119,7 @@ export function ProductCard({
         </div>
         <div className="productInfo">
           <div>
-            <span className="tag">{product.category}</span>
+            <span className="tag">{product.catalogCategory || product.category}</span>
             <h2>{product.name}</h2>
             <span className="reference">
               {usesVariantSelection
@@ -171,7 +176,7 @@ export function ProductCard({
               <img src={product.image} alt={product.name} />
             </div>
             <div className="productDetailInfo">
-              <span className="tag">{product.category}</span>
+              <span className="tag">{product.catalogCategory || product.category}</span>
               <h2>{product.name}</h2>
               <span className="reference">
                 {usesVariantSelection

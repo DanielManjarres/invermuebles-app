@@ -18,7 +18,9 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
   const featured = useMemo(
     () =>
       catalogProducts
-        .filter((product) => product.visible && product.stock > 0)
+        .filter(
+          (product) => product.featured && product.visible && product.stock > 0,
+        )
         .slice(0, 6),
     [catalogProducts]
   );
