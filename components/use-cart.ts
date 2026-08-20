@@ -8,8 +8,11 @@ export type CartItem = {
   id: string;
   image?: string;
   name: string;
+  productId: string;
   quantity: number;
   reference: string;
+  variantId?: string;
+  variantName?: string;
 };
 
 export type AddCartResult = {
@@ -33,6 +36,7 @@ function readCart(): CartItem[] {
     const parsedItems = JSON.parse(storedCart) as CartItem[];
     return parsedItems.map((item) => ({
       ...item,
+      productId: item.productId || item.id,
       quantity: item.quantity && item.quantity > 0 ? item.quantity : 1,
     }));
   } catch {

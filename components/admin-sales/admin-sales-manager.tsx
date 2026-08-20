@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { AdminCustomer } from "@/lib/customers";
 import type { AdminOrder } from "@/lib/orders";
-import type { Product } from "@/lib/products";
+import type { Product, ProductInventoryVariant } from "@/lib/products";
 import {
   AdminLocalSaleForm,
   type SaleCartItem,
@@ -22,6 +22,12 @@ type AdminSalesManagerProps = {
   orders: AdminOrder[];
   products: Product[];
   sales: AdminSale[];
+};
+
+type SaleChoice = {
+  lineId: string;
+  product: Product;
+  variant: ProductInventoryVariant | undefined;
 };
 
 function formatMoney(value: number) {
@@ -47,7 +53,9 @@ function getSaleSearchText(sale: AdminSale) {
     sale.notes,
     ...sale.items.flatMap((item) => [
       item.productName,
+      item.variantName,
       item.productReference,
+      ...item.variantAttributes.map((attribute) => attribute.value),
       item.productCategory,
       item.productClass,
     ]),
@@ -106,8 +114,19 @@ export function AdminSalesManager({
     [orderIdFromUrl, orders]
   );
 
-  const availableProducts = useMemo(
-    () => products.filter((product) => product.stock > 0),
+  const saleChoices = useMemo<SaleChoice[]>(
+    () =>
+      products.flatMap<SaleChoice>((product) => {
+        if (product.variants?.length) {
+          return product.variants
+            .filter((variant) => variant.active && variant.stock > 0)
+            .map((variant) => ({ lineId: variant.id, product, variant }));
+        }
+
+        return product.stock > 0
+          ? [{ lineId: product.id, product, variant: undefined }]
+          : [];
+      }),
     [products]
   );
 
@@ -131,21 +150,28 @@ export function AdminSalesManager({
 
   const productOptions = useMemo(() => {
     const search = normalizeText(productQuery);
-    const selectedIds = new Set(cartItems.map((item) => item.product.id));
+    const selectedIds = new Set(cartItems.map((item) => item.lineId));
 
-    return availableProducts
-      .filter((product) => !selectedIds.has(product.id))
-      .filter((product) =>
-        [product.name, product.reference, product.category, product.productClass]
+    return saleChoices
+      .filter((choice) => !selectedIds.has(choice.lineId))
+      .filter(({ product, variant }) =>
+        [
+          product.name,
+          variant?.name,
+          variant?.reference ?? product.reference,
+          product.category,
+          product.productClass,
+          ...(variant?.attributes.map((attribute) => attribute.value) ?? []),
+        ]
           .join(" ")
           .toLowerCase()
           .includes(search)
       )
-      .map((product) => ({
-        label: `${product.name} - ${product.reference} (${product.stock})`,
-        value: product.id,
+      .map(({ lineId, product, variant }) => ({
+        label: `${product.name}${variant ? ` - ${variant.name}` : ""} - ${variant?.reference ?? product.reference} (${variant?.stock ?? product.stock})`,
+        value: lineId,
       }));
-  }, [availableProducts, cartItems, productQuery]);
+  }, [cartItems, productQuery, saleChoices]);
 
   const cartTotal = cartItems.reduce(
     (total, item) => total + item.unitPrice * item.quantity,
@@ -197,8 +223,17 @@ export function AdminSalesManager({
         setCartItems(
           preparedOrder.items.flatMap((item) => {
             const product = products.find((currentProduct) => currentProduct.id === item.productId);
+            const variant = item.variantId
+              ? product?.variants?.find((currentVariant) => currentVariant.id === item.variantId)
+              : undefined;
             return product
-              ? [{ product, quantity: item.quantity, unitPrice: product.salePrice }]
+              ? [{
+                  lineId: variant?.id ?? product.id,
+                  product,
+                  variant,
+                  quantity: item.quantity,
+                  unitPrice: variant?.salePrice ?? product.salePrice,
+                }]
               : [];
           })
         );
@@ -210,9 +245,11 @@ export function AdminSalesManager({
     } else {
       setCartItems(
         adminSaleCart.detailedItems.map((item) => ({
+          lineId: item.lineId,
           product: item.product,
+          variant: item.variant,
           quantity: item.quantity,
-          unitPrice: item.product.salePrice,
+          unitPrice: item.variant?.salePrice ?? item.product.salePrice,
         }))
       );
     }
@@ -282,39 +319,48 @@ export function AdminSalesManager({
   }
 
   function addSelectedProduct() {
-    const product = products.find((currentProduct) => currentProduct.id === selectedProductId);
+    const choice = saleChoices.find((item) => item.lineId === selectedProductId);
 
-    if (!product || product.stock < 1) {
+    if (!choice) {
       return;
     }
 
     setCartItems((currentItems) => [
       ...currentItems,
-      { product, quantity: 1, unitPrice: product.salePrice },
+      {
+        lineId: choice.lineId,
+        product: choice.product,
+        variant: choice.variant,
+        quantity: 1,
+        unitPrice: choice.variant?.salePrice ?? choice.product.salePrice,
+      },
     ]);
     setSelectedProductId("");
     setProductQuery("");
   }
 
-  function updateQuantity(productId: string, nextQuantity: number) {
+  function updateQuantity(lineId: string, nextQuantity: number) {
     setCartItems((currentItems) =>
       currentItems.map((item) =>
-        item.product.id === productId
+        item.lineId === lineId
           ? {
               ...item,
-              quantity: Math.min(Math.max(1, nextQuantity), item.product.stock),
+              quantity: Math.min(
+                Math.max(1, nextQuantity),
+                item.variant?.stock ?? item.product.stock,
+              ),
             }
           : item
       )
     );
   }
 
-  function updateUnitPrice(productId: string, nextValue: string) {
+  function updateUnitPrice(lineId: string, nextValue: string) {
     const nextPrice = Number(nextValue);
 
     setCartItems((currentItems) =>
       currentItems.map((item) =>
-        item.product.id === productId
+        item.lineId === lineId
           ? {
               ...item,
               unitPrice: Number.isFinite(nextPrice) && nextPrice >= 0 ? nextPrice : 0,
@@ -324,9 +370,9 @@ export function AdminSalesManager({
     );
   }
 
-  function removeItem(productId: string) {
+  function removeItem(lineId: string) {
     setCartItems((currentItems) =>
-      currentItems.filter((item) => item.product.id !== productId)
+      currentItems.filter((item) => item.lineId !== lineId)
     );
   }
 
@@ -382,6 +428,7 @@ export function AdminSalesManager({
           initialPayment: amountPaid,
           items: cartItems.map((item) => ({
             productId: item.product.id,
+            variantId: item.variant?.id,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
           })),

@@ -5,6 +5,11 @@ const initialInventoryNotes = [
   "Producto creado desde gestion de productos",
 ];
 
+const variantInitialInventoryNotes = [
+  "Variante creada desde gestión de productos",
+  "Variante creada junto con el producto",
+];
+
 type ProductDeleteMovement = {
   note: string | null;
   reason: string;
@@ -40,9 +45,11 @@ export function canDeleteProduct({
 
   const hasOnlyInitialMovements = stockMovements.every(
     (movement) =>
-      movement.type === "ADJUSTMENT" &&
       movement.reason === "Inventario inicial" &&
-      initialInventoryNotes.includes(movement.note ?? ""),
+      ((movement.type === "ADJUSTMENT" &&
+        initialInventoryNotes.includes(movement.note ?? "")) ||
+        (movement.type === "ENTRY" &&
+          variantInitialInventoryNotes.includes(movement.note ?? ""))),
   );
 
   if (!hasOnlyInitialMovements) {

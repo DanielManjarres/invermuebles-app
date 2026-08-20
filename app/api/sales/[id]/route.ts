@@ -101,7 +101,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
             },
           },
           id: true,
-          items: { select: { productId: true, quantity: true } },
+          items: { select: { productId: true, quantity: true, variantId: true } },
           orderId: true,
           payments: { select: { isInitial: true } },
           status: true,
@@ -120,6 +120,41 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
       if (sale.stockApplied) {
         for (const item of sale.items) {
+          if (item.variantId) {
+            const variant = await tx.productVariant.findUnique({
+              where: { id: item.variantId },
+              select: { id: true, productId: true, stock: true },
+            });
+
+            if (!variant || variant.productId !== item.productId) {
+              throw new Error("VARIANT_NOT_FOUND");
+            }
+
+            const nextStock = variant.stock + item.quantity;
+            await tx.productVariant.update({
+              where: { id: variant.id },
+              data: { stock: nextStock },
+            });
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stock: { increment: item.quantity } },
+            });
+            await tx.stockMovement.create({
+              data: {
+                nextStock,
+                previousStock: variant.stock,
+                productId: item.productId,
+                variantId: variant.id,
+                quantity: item.quantity,
+                reason: "Devolución por eliminación de venta",
+                note: `Venta ${sale.id} eliminada permanentemente por corrección administrativa.`,
+                type: StockMovementType.ENTRY,
+                userId: adminUserId,
+              },
+            });
+            continue;
+          }
+
           const product = await tx.product.findUnique({
             where: { id: item.productId },
             select: { id: true, stock: true },
@@ -191,6 +226,13 @@ export async function DELETE(_request: Request, context: RouteContext) {
     if (message === "PRODUCT_NOT_FOUND") {
       return NextResponse.json(
         { message: "No se encontró uno de los productos de la venta." },
+        { status: 404 },
+      );
+    }
+
+    if (message === "VARIANT_NOT_FOUND") {
+      return NextResponse.json(
+        { message: "No se encontró una de las variantes de la venta." },
         { status: 404 },
       );
     }

@@ -5,6 +5,13 @@ export type PaymentMethod = PrismaPaymentMethod;
 export type AdminSaleItem = {
   id: string;
   productId: string;
+  variantId: string;
+  variantName: string;
+  variantAttributes: Array<{
+    name: string;
+    unit: string;
+    value: string;
+  }>;
   productName: string;
   productReference: string;
   productCategory: string;

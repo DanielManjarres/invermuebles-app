@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 type OrderItemRequest = {
   productId?: string;
   quantity?: number;
+  variantId?: string;
 };
 
 type OrderRequest = {
@@ -16,6 +17,7 @@ function normalizeItems(items: OrderItemRequest[] = []) {
     .map((item) => ({
       productId: item.productId?.trim() ?? "",
       quantity: Number(item.quantity),
+      variantId: item.variantId?.trim() ?? "",
     }))
     .filter((item) => item.productId && Number.isInteger(item.quantity));
 }
@@ -41,40 +43,55 @@ export async function POST(request: Request) {
   const products = await prisma.product.findMany({
     where: {
       id: { in: items.map((item) => item.productId) },
-      stock: { gt: 0 },
       visible: true,
+    },
+    select: {
+      catalogProductType: {
+        select: { category: { select: { name: true } }, name: true },
+      },
+      id: true,
+      name: true,
+      productClass: { select: { name: true } },
+      productType: { select: { name: true } },
+      reference: true,
+      stock: true,
+    },
+  });
+  const variants = await prisma.productVariant.findMany({
+    where: {
+      active: true,
+      id: {
+        in: items.map((item) => item.variantId).filter(Boolean),
+      },
     },
     select: {
       id: true,
       name: true,
+      productId: true,
+      reference: true,
       stock: true,
     },
   });
 
-  if (products.length !== items.length) {
-    return NextResponse.json(
-      {
-        message:
-          "Uno de los productos ya no esta disponible en el catalogo. Actualiza el carrito e intenta de nuevo.",
-      },
-      { status: 400 }
-    );
-  }
-
-  const productStock = new Map(
-    products.map((product) => [product.id, { name: product.name, stock: product.stock }])
-  );
+  const productById = new Map(products.map((product) => [product.id, product]));
+  const variantById = new Map(variants.map((variant) => [variant.id, variant]));
   const unavailableItem = items.find((item) => {
-    const product = productStock.get(item.productId);
-    return product ? item.quantity > product.stock : true;
+    const product = productById.get(item.productId);
+    const variant = item.variantId ? variantById.get(item.variantId) : null;
+    if (!product || (item.variantId && variant?.productId !== product.id)) return true;
+    return item.quantity > (variant?.stock ?? product.stock);
   });
 
   if (unavailableItem) {
-    const product = productStock.get(unavailableItem.productId);
+    const product = productById.get(unavailableItem.productId);
+    const variant = unavailableItem.variantId
+      ? variantById.get(unavailableItem.variantId)
+      : null;
+    const availableStock = variant?.stock ?? product?.stock ?? 0;
     return NextResponse.json(
       {
         message: product
-          ? `Solo hay ${product.stock} unidad(es) disponibles de ${product.name}.`
+          ? `Solo hay ${availableStock} unidad(es) disponibles de ${product.name}${variant ? ` · ${variant.name}` : ""}.`
           : "Uno de los productos ya no esta disponible.",
       },
       { status: 400 }
@@ -86,10 +103,24 @@ export async function POST(request: Request) {
       channel: OrderChannel.WHATSAPP,
       notes: "Solicitud generada desde el carrito web.",
       items: {
-        create: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
+        create: items.map((item) => {
+          const product = productById.get(item.productId)!;
+          const variant = item.variantId
+            ? variantById.get(item.variantId)
+            : null;
+          return {
+            productCategory:
+              product.catalogProductType?.category.name ?? product.productType.name,
+            productId: item.productId,
+            productName: product.name,
+            productReference: variant?.reference ?? product.reference,
+            productTypeName:
+              product.catalogProductType?.name ?? product.productClass.name,
+            quantity: item.quantity,
+            variantId: variant?.id ?? null,
+            variantName: variant?.name ?? null,
+          };
+        }),
       },
     },
   });

@@ -1,4 +1,4 @@
-import { AdminInventoryManager } from "@/components/admin-inventory-manager";
+import { AdminInventoryManager } from "@/components/admin-inventory/admin-inventory-manager";
 import { SiteHeader } from "@/components/site-header";
 import { LogoutButton } from "@/components/logout-button";
 import { getProducts } from "@/lib/database-products";

@@ -110,7 +110,12 @@ export function AdminCreditsManager({
           customerCredits.map((credit) => credit.saleShortId).join(" "),
           customerCredits
             .flatMap((credit) =>
-              credit.items.flatMap((item) => [item.productName, item.productReference]),
+              credit.items.flatMap((item) => [
+                item.productName,
+                item.variantName,
+                item.productReference,
+                ...item.variantAttributes.map((attribute) => attribute.value),
+              ]),
             )
             .join(" "),
           customerAccounts.map((account) => account.title).join(" "),
@@ -118,7 +123,12 @@ export function AdminCreditsManager({
           customerAccounts.map((account) => account.saleShortId).join(" "),
           customerAccounts
             .flatMap((account) =>
-              account.items.flatMap((item) => [item.productName, item.productReference]),
+              account.items.flatMap((item) => [
+                item.productName,
+                item.variantName,
+                item.productReference,
+                ...item.variantAttributes.map((attribute) => attribute.value),
+              ]),
             )
             .join(" "),
         ].join(" "),

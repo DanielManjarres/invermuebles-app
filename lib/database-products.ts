@@ -36,8 +36,20 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
       ...(filters.availableOnly ? { stock: { gt: 0 } } : {}),
     },
     include: {
+      catalogProductType: {
+        include: { category: true },
+      },
       productClass: true,
       productType: true,
+      variants: {
+        include: {
+          attributeValues: {
+            include: { attribute: true },
+            orderBy: { attribute: { position: "asc" } },
+          },
+        },
+        orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+      },
     },
     orderBy: [{ productType: { name: "asc" } }, { name: "asc" }],
   });
@@ -54,6 +66,25 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     stock: product.stock,
     visible: product.visible,
     image: product.imageUrl ?? fallbackImage,
+    catalogCategory: product.catalogProductType?.category.name,
+    catalogProductType: product.catalogProductType?.name,
+    variants: product.variants.map((variant) => ({
+      active: variant.active,
+      attributes: variant.attributeValues.map((value) => ({
+        name: value.attribute.name,
+        unit: value.attribute.unit ?? "",
+        value: value.value,
+      })),
+      cost: Number(variant.cost),
+      id: variant.id,
+      isDefault: variant.isDefault,
+      location: variant.location ?? "",
+      minimumStock: variant.minimumStock,
+      name: variant.name,
+      reference: variant.reference,
+      salePrice: Number(variant.salePrice),
+      stock: variant.stock,
+    })),
   }));
 }
 
@@ -67,6 +98,7 @@ export async function getStockMovements(): Promise<StockMovement[]> {
           productType: true,
         },
       },
+      variant: true,
       user: true,
     },
     orderBy: { createdAt: "desc" },
@@ -75,10 +107,15 @@ export async function getStockMovements(): Promise<StockMovement[]> {
   return movements.map((movement) => ({
     id: movement.id,
     productId: movement.productId,
-    productName: movement.product.name,
-    productReference: movement.product.reference,
+    productName: movement.variant
+      ? `${movement.product.name} · ${movement.variant.name}`
+      : movement.product.name,
+    productReference: movement.variant?.reference ?? movement.product.reference,
     productCategory: movement.product.productType.name,
     productClass: movement.product.productClass.name,
+    variantId: movement.variantId ?? undefined,
+    variantName: movement.variant?.name ?? undefined,
+    variantReference: movement.variant?.reference ?? undefined,
     type: mapMovementType(movement.type),
     quantity: movement.quantity,
     previousStock: movement.previousStock,
@@ -138,11 +175,13 @@ export async function getOrders(): Promise<AdminOrder[]> {
     const items = order.items.map((item) => ({
       id: item.id,
       productId: item.productId,
-      productName: item.product.name,
-      productReference: item.product.reference,
-      productCategory: item.product.productType.name,
-      productClass: item.product.productClass.name,
+      productName: item.productName ?? item.product.name,
+      productReference: item.productReference ?? item.product.reference,
+      productCategory: item.productCategory ?? item.product.productType.name,
+      productClass: item.productTypeName ?? item.product.productClass.name,
       quantity: item.quantity,
+      variantId: item.variantId ?? "",
+      variantName: item.variantName ?? "",
     }));
 
     return {

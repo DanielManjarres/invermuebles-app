@@ -44,32 +44,154 @@ model ProductClass {
   @@unique([name, productTypeId])
 }
 
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productTypes CatalogProductType[]
+}
+
+model CatalogProductType {
+  id         String   @id @default(cuid())
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryId String
+  name       String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  attributes AttributeDefinition[]
+  products   Product[]
+
+  @@unique([name, categoryId])
+}
+
 model Product {
-  id             String       @id @default(cuid())
-  name           String
-  reference      String       @unique
-  details        String
-  cost           Decimal      @db.Decimal(12, 2)
-  salePrice      Decimal      @db.Decimal(12, 2)
-  stock          Int          @default(0)
-  visible        Boolean      @default(false)
-  imageUrl       String?
-  productType    ProductType  @relation(fields: [productTypeId], references: [id], onDelete: Restrict)
-  productTypeId  String
-  productClass   ProductClass @relation(fields: [productClassId], references: [id], onDelete: Restrict)
-  productClassId String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                   String              @id @default(cuid())
+  name                 String
+  reference            String              @unique
+  details              String
+  cost                 Decimal             @db.Decimal(12, 2)
+  salePrice            Decimal             @db.Decimal(12, 2)
+  stock                Int                 @default(0)
+  visible              Boolean             @default(false)
+  imageUrl             String?
+  brand                String?
+  model                String?
+  catalogProductType   CatalogProductType? @relation(fields: [catalogProductTypeId], references: [id], onDelete: Restrict)
+  catalogProductTypeId String?
+  productType          ProductType         @relation(fields: [productTypeId], references: [id], onDelete: Restrict)
+  productTypeId        String
+  productClass         ProductClass        @relation(fields: [productClassId], references: [id], onDelete: Restrict)
+  productClassId       String
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
   stockMovements StockMovement[]
   orderItems     OrderItem[]
   saleItems      SaleItem[]
+  variants       ProductVariant[]
+  images         ProductImage[]
+}
+
+model ProductVariant {
+  id           String   @id @default(cuid())
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId    String
+  name         String
+  reference    String   @unique
+  cost         Decimal  @db.Decimal(12, 2)
+  salePrice    Decimal  @db.Decimal(12, 2)
+  stock        Int      @default(0)
+  minimumStock Int      @default(0)
+  location     String?
+  isDefault    Boolean  @default(false)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attributeValues VariantAttributeValue[]
+  images          ProductImage[]
+  stockMovements  StockMovement[]
+  orderItems      OrderItem[]
+  saleItems       SaleItem[]
+
+  @@unique([productId, name])
+}
+
+model AttributeDefinition {
+  id            String                   @id @default(cuid())
+  productType   CatalogProductType       @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
+  productTypeId String
+  name          String
+  key           String
+  dataType      ProductAttributeDataType
+  unit          String?
+  required      Boolean                  @default(false)
+  position      Int                      @default(0)
+  active        Boolean                  @default(true)
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  options AttributeOption[]
+  values  VariantAttributeValue[]
+
+  @@unique([productTypeId, key])
+}
+
+model AttributeOption {
+  id          String              @id @default(cuid())
+  attribute   AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeId String
+  value       String
+  position    Int                 @default(0)
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  selectedValues VariantAttributeValue[]
+
+  @@unique([attributeId, value])
+}
+
+model VariantAttributeValue {
+  id          String              @id @default(cuid())
+  variant     ProductVariant      @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantId   String
+  attribute   AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Restrict)
+  attributeId String
+  option      AttributeOption?    @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  optionId    String?
+  value       String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([variantId, attributeId])
+}
+
+model ProductImage {
+  id        String          @id @default(cuid())
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  variantId String?
+  url       String
+  alt       String?
+  position  Int             @default(0)
+  isPrimary Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 model StockMovement {
   id            String            @id @default(cuid())
   product       Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
   productId     String
+  variant       ProductVariant?   @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  variantId     String?
   type          StockMovementType
   quantity      Int
   previousStock Int
@@ -119,74 +241,85 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId   String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
-  productId String
-  quantity  Int
-  createdAt DateTime @default(now())
+  id               String          @id @default(cuid())
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId          String
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productId        String
+  variant          ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  variantId        String?
+  productName      String?
+  variantName      String?
+  productReference String?
+  productCategory  String?
+  productTypeName  String?
+  quantity         Int
+  createdAt        DateTime        @default(now())
 }
 
 model Sale {
-  id         String     @id @default(cuid())
-  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  customerId String?
-  order      Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  orderId    String?    @unique
-  source     SaleSource @default(LOCAL)
-  type       SaleType   @default(CASH)
-  status     SaleStatus @default(COMPLETED)
-  paymentMethod String  @default("CASH")
-  amountPaid Decimal    @default(0) @db.Decimal(12, 2)
-  balance    Decimal    @default(0) @db.Decimal(12, 2)
+  id                   String     @id @default(cuid())
+  customer             Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerId           String?
+  order                Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId              String?    @unique
+  source               SaleSource @default(LOCAL)
+  type                 SaleType   @default(CASH)
+  status               SaleStatus @default(COMPLETED)
+  paymentMethod        String     @default("CASH")
+  amountPaid           Decimal    @default(0) @db.Decimal(12, 2)
+  balance              Decimal    @default(0) @db.Decimal(12, 2)
   sistecreditoApproval String?
-  reservedUntil DateTime?
-  stockApplied Boolean @default(true)
-  notes      String?
-  total      Decimal    @default(0) @db.Decimal(12, 2)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  reservedUntil        DateTime?
+  stockApplied         Boolean    @default(true)
+  notes                String?
+  total                Decimal    @default(0) @db.Decimal(12, 2)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
-  items SaleItem[]
+  items    SaleItem[]
   payments SalePayment[]
-  credit Credit?
+  credit   Credit?
 }
 
 model SaleItem {
-  id               String   @id @default(cuid())
-  sale             Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  saleId           String
-  product          Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
-  productId        String
-  productName      String
-  productReference String
-  productCategory  String
-  productClass     String
-  quantity         Int
-  unitPrice        Decimal  @db.Decimal(12, 2)
-  cost             Decimal  @db.Decimal(12, 2)
-  lineTotal        Decimal  @db.Decimal(12, 2)
-  createdAt        DateTime @default(now())
+  id                String          @id @default(cuid())
+  sale              Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId            String
+  product           Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productId         String
+  variant           ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  variantId         String?
+  variantName       String?
+  variantAttributes Json?
+  productName       String
+  productReference  String
+  productCategory   String
+  productClass      String
+  quantity          Int
+  unitPrice         Decimal         @db.Decimal(12, 2)
+  cost              Decimal         @db.Decimal(12, 2)
+  lineTotal         Decimal         @db.Decimal(12, 2)
+  createdAt         DateTime        @default(now())
 }
 
 model Credit {
-  id         String       @id @default(cuid())
-  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  customerId String
-  sale       Sale?        @relation(fields: [saleId], references: [id], onDelete: Restrict)
-  saleId     String?      @unique
-  total      Decimal      @db.Decimal(12, 2)
-  principal  Decimal      @db.Decimal(12, 2)
-  interestRate Decimal    @db.Decimal(5, 2)
-  outstandingPrincipal Decimal @db.Decimal(12, 2)
-  interestBalance Decimal @db.Decimal(12, 2)
-  months     Int
-  status     CreditStatus @default(ACTIVE)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id                   String       @id @default(cuid())
+  customer             Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customerId           String
+  sale                 Sale?        @relation(fields: [saleId], references: [id], onDelete: Restrict)
+  saleId               String?      @unique
+  total                Decimal      @db.Decimal(12, 2)
+  principal            Decimal      @db.Decimal(12, 2)
+  interestRate         Decimal      @db.Decimal(5, 2)
+  outstandingPrincipal Decimal      @db.Decimal(12, 2)
+  interestBalance      Decimal      @db.Decimal(12, 2)
+  months               Int
+  status               CreditStatus @default(ACTIVE)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
-  payments CreditPayment[]
+  payments     CreditPayment[]
   salePayments SalePayment[]
 }
 
@@ -228,6 +361,13 @@ enum StockMovementType {
   ENTRY
   EXIT
   ADJUSTMENT
+}
+
+enum ProductAttributeDataType {
+  TEXT
+  NUMBER
+  OPTION
+  BOOLEAN
 }
 
 enum OrderStatus {

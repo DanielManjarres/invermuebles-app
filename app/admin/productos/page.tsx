@@ -1,14 +1,17 @@
-import { AdminProductsManager } from "@/components/admin-products-manager";
+import { AdminProductsManager } from "@/components/admin-products/admin-products-manager";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
-import { getProducts, getProductTypes } from "@/lib/database-products";
+import {
+  getCatalogProductConfiguration,
+  getCatalogProducts,
+} from "@/lib/database-catalog-products";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
-  const [products, productTypes] = await Promise.all([
-    getProducts(),
-    getProductTypes(),
+  const [products, categories] = await Promise.all([
+    getCatalogProducts(),
+    getCatalogProductConfiguration(),
   ]);
 
   return (
@@ -21,15 +24,15 @@ export default async function AdminProductsPage() {
             <p className="eyebrow">Panel administrativo</p>
             <h1>Gestión de productos</h1>
             <p>
-              Administra la información del catálogo: tipo, clase, referencia,
-              precios, detalles y visibilidad en la web.
+              Define categorías, tipos, productos y variantes antes de gestionar
+              sus existencias desde Inventario.
             </p>
           </div>
           <LogoutButton />
         </div>
       </section>
 
-      <AdminProductsManager productTypes={productTypes} products={products} />
+      <AdminProductsManager categories={categories} products={products} />
     </main>
   );
 }

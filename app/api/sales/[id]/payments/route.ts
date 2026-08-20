@@ -68,6 +68,46 @@ export async function POST(request: Request, context: RouteContext) {
         );
 
         for (const item of stockItems) {
+          if (item.variantId) {
+            const variant = await tx.productVariant.findUnique({
+              where: { id: item.variantId },
+              select: { id: true, productId: true, stock: true },
+            });
+            if (!variant || variant.productId !== item.productId) {
+              throw new Error("VARIANT_NOT_FOUND");
+            }
+
+            const variantUpdate = await tx.productVariant.updateMany({
+              where: { id: variant.id, active: true, stock: { gte: item.quantity } },
+              data: { stock: { decrement: item.quantity } },
+            });
+            if (!variantUpdate.count) throw new Error("OUT_OF_STOCK");
+
+            const productUpdate = await tx.product.updateMany({
+              where: { id: item.productId, stock: { gte: item.quantity } },
+              data: { stock: { decrement: item.quantity } },
+            });
+            if (!productUpdate.count) throw new Error("OUT_OF_STOCK");
+            const updatedVariant = await tx.productVariant.findUniqueOrThrow({
+              where: { id: variant.id },
+              select: { stock: true },
+            });
+            await tx.stockMovement.create({
+              data: {
+                nextStock: updatedVariant.stock,
+                previousStock: updatedVariant.stock + item.quantity,
+                productId: item.productId,
+                variantId: variant.id,
+                quantity: item.quantity,
+                reason: "Inventario reservado por separado",
+                note: `Venta ${sale.id}`,
+                type: StockMovementType.EXIT,
+                userId: adminUserId,
+              },
+            });
+            continue;
+          }
+
           const product = await tx.product.findUnique({ where: { id: item.productId } });
           if (!product) throw new Error("PRODUCT_NOT_FOUND");
 
@@ -156,6 +196,7 @@ export async function POST(request: Request, context: RouteContext) {
       SALE_NOT_PENDING_PAYMENT: ["Esta venta ya no admite abonos pendientes.", 409],
       PAYMENT_OVER_BALANCE: ["El abono no puede superar el saldo pendiente.", 400],
       PRODUCT_NOT_FOUND: ["No se encontró uno de los productos del separado.", 404],
+      VARIANT_NOT_FOUND: ["No se encontró una de las variantes del separado.", 404],
       OUT_OF_STOCK: ["No hay existencias suficientes para conservar este separado.", 409],
     };
     const [message, status] = errors[code] ?? ["No se pudo registrar el abono.", 500];
