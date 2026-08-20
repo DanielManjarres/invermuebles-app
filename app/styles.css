@@ -856,6 +856,29 @@ p {
   margin-bottom: 22px;
 }
 
+.catalogFilterControls {
+  display: grid;
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
+}
+
+.catalogSearchBox {
+  max-width: 640px;
+  width: 100%;
+}
+
+.catalogEmptyState {
+  display: grid;
+  justify-items: center;
+  margin-top: 6px;
+}
+
+.catalogEmptyState svg {
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
 .filterGroup {
   display: flex;
   flex-wrap: wrap;
