@@ -76,6 +76,11 @@ export function ProductCard({
 
     if (showAdminSaleAction && onAdminSaleAdd) {
       const result = onAdminSaleAdd(product, selectedVariant?.id);
+      if (result.status === "requires-variant") {
+        setCartFeedback("Selecciona una presentación");
+        setIsDetailOpen(true);
+        return;
+      }
       setCartFeedback(
         result.status === "added"
           ? "Producto agregado a venta local"

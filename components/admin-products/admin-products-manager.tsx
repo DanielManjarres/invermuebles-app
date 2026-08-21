@@ -218,9 +218,17 @@ export function AdminProductsManager({
                 (total, variant) => total + variant.stock,
                 0,
               );
-              const defaultVariant =
-                product.variants.find((variant) => variant.isDefault) ??
-                product.variants[0];
+              const prices = product.variants
+                .filter((variant) => variant.active && variant.salePrice > 0)
+                .map((variant) => variant.salePrice);
+              const minimumPrice = prices.length ? Math.min(...prices) : null;
+              const maximumPrice = prices.length ? Math.max(...prices) : null;
+              const priceSummary =
+                minimumPrice === null || maximumPrice === null
+                  ? "Sin precio"
+                  : minimumPrice === maximumPrice
+                    ? formatCurrency(minimumPrice)
+                    : `${formatCurrency(minimumPrice)} – ${formatCurrency(maximumPrice)}`;
               return (
                 <article className="catalogProductRow" key={product.id}>
                   <div className="catalogProductIdentity">
@@ -270,10 +278,8 @@ export function AdminProductsManager({
                       <strong>{totalStock}</strong>
                     </div>
                     <div>
-                      <span>Precio base</span>
-                      <strong>
-                        {defaultVariant ? formatCurrency(defaultVariant.salePrice) : "Sin variante"}
-                      </strong>
+                      <span>Precios</span>
+                      <strong>{priceSummary}</strong>
                     </div>
                   </div>
 
@@ -393,9 +399,6 @@ export function AdminProductsManager({
                     <strong>{variant.stock}</strong>
                   </span>
                   <span className="catalogVariantBadges">
-                    {variant.isDefault ? (
-                      <span className="catalogVariantDefault">Predeterminada</span>
-                    ) : null}
                     <span className={variant.active ? "available" : "unavailable"}>
                       {variant.active ? "Activa" : "Inactiva"}
                     </span>

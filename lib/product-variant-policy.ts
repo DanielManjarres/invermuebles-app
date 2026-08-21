@@ -209,8 +209,6 @@ export function normalizeVariantAttributes(
 }
 
 export function canDeleteProductVariant(input: {
-  activeAlternativeCount: number;
-  isDefault: boolean;
   orderItemsCount: number;
   saleItemsCount: number;
   stockMovements: VariantDeleteMovement[];
@@ -243,14 +241,6 @@ export function canDeleteProductVariant(input: {
       allowed: false,
       reason:
         "Esta variante tiene movimientos de inventario posteriores a su creación y no puede eliminarse.",
-    };
-  }
-
-  if (input.isDefault && input.activeAlternativeCount === 0) {
-    return {
-      allowed: false,
-      reason:
-        "Activa otra variante antes de eliminar la variante predeterminada.",
     };
   }
 

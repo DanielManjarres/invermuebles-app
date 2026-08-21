@@ -246,8 +246,6 @@ test("rejects attributes from another product type and invalid options", () => {
 
 test("allows deleting an unused non-unique variant with only its initial entry", () => {
   const result = canDeleteProductVariant({
-    activeAlternativeCount: 1,
-    isDefault: false,
     orderItemsCount: 0,
     saleItemsCount: 0,
     stockMovements: [
@@ -265,8 +263,6 @@ test("allows deleting an unused non-unique variant with only its initial entry",
 
 test("recognizes the initial entry created together with a product", () => {
   const result = canDeleteProductVariant({
-    activeAlternativeCount: 1,
-    isDefault: false,
     orderItemsCount: 0,
     saleItemsCount: 0,
     stockMovements: [
@@ -285,8 +281,6 @@ test("recognizes the initial entry created together with a product", () => {
 test("protects the only variant and variants with commercial history", () => {
   assert.equal(
     canDeleteProductVariant({
-      activeAlternativeCount: 0,
-      isDefault: true,
       orderItemsCount: 0,
       saleItemsCount: 0,
       stockMovements: [],
@@ -296,8 +290,6 @@ test("protects the only variant and variants with commercial history", () => {
   );
   assert.equal(
     canDeleteProductVariant({
-      activeAlternativeCount: 1,
-      isDefault: false,
       orderItemsCount: 1,
       saleItemsCount: 0,
       stockMovements: [],
@@ -307,27 +299,14 @@ test("protects the only variant and variants with commercial history", () => {
   );
 });
 
-test("protects variants with later movements and defaults without replacement", () => {
+test("protects variants with later inventory movements", () => {
   assert.equal(
     canDeleteProductVariant({
-      activeAlternativeCount: 1,
-      isDefault: false,
       orderItemsCount: 0,
       saleItemsCount: 0,
       stockMovements: [
         { note: null, reason: "Reposición", type: "ENTRY" },
       ],
-      variantCount: 2,
-    }).allowed,
-    false,
-  );
-  assert.equal(
-    canDeleteProductVariant({
-      activeAlternativeCount: 0,
-      isDefault: true,
-      orderItemsCount: 0,
-      saleItemsCount: 0,
-      stockMovements: [],
       variantCount: 2,
     }).allowed,
     false,

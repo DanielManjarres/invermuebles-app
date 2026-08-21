@@ -27,7 +27,6 @@ const products = [
         attributes: [{ name: "Resolución", unit: "", value: "4K UHD" }],
         cost: 0,
         id: "tv-55",
-        isDefault: true,
         location: "",
         minimumStock: 0,
         name: "55 pulgadas · QLED",

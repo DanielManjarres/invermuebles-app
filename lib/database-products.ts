@@ -50,7 +50,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
             orderBy: { attribute: { position: "asc" } },
           },
         },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+        orderBy: { createdAt: "asc" },
       },
     },
     orderBy: filters.featuredOnly
@@ -83,7 +83,6 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
       })),
       cost: Number(variant.cost),
       id: variant.id,
-      isDefault: variant.isDefault,
       location: variant.location ?? "",
       minimumStock: variant.minimumStock,
       name: variant.name,

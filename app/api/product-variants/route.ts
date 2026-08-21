@@ -16,7 +16,6 @@ type VariantRequest = {
   active?: boolean;
   attributeValues?: VariantAttributeInput[];
   cost?: number;
-  isDefault?: boolean;
   location?: string;
   minimumStock?: number;
   name?: string;
@@ -70,7 +69,7 @@ export async function GET(request: Request) {
       },
       images: { orderBy: { position: "asc" } },
     },
-    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+    orderBy: { createdAt: "asc" },
   });
 
   return NextResponse.json({ variants });
@@ -99,7 +98,6 @@ export async function POST(request: Request) {
           },
         },
       },
-      _count: { select: { variants: true } },
     },
   });
   if (!product) {
@@ -112,14 +110,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { message: "Asigna primero la nueva categoría y tipo al producto." },
       { status: 409 },
-    );
-  }
-
-  const willBeDefault = product._count.variants === 0 || Boolean(body.isDefault);
-  if (willBeDefault && body.active === false) {
-    return NextResponse.json(
-      { message: "La variante predeterminada debe permanecer activa." },
-      { status: 400 },
     );
   }
 
@@ -162,18 +152,10 @@ export async function POST(request: Request) {
   }
 
   const stock = Number(body.stock);
-  const isDefault = willBeDefault;
   const adminUserId = stock > 0 ? await getAdminUserId() : null;
 
   try {
     const variant = await prisma.$transaction(async (transaction) => {
-      if (isDefault) {
-        await transaction.productVariant.updateMany({
-          where: { productId: product.id, isDefault: true },
-          data: { isDefault: false },
-        });
-      }
-
       const createdVariant = await transaction.productVariant.create({
         data: {
           active: body.active ?? true,
@@ -181,7 +163,6 @@ export async function POST(request: Request) {
             create: normalizedAttributes.values,
           },
           cost: String(Number(body.cost)),
-          isDefault,
           location: cleanText(body.location) || null,
           minimumStock: Number(body.minimumStock),
           name,
@@ -192,14 +173,11 @@ export async function POST(request: Request) {
         },
       });
 
-      if (stock > 0 || isDefault) {
+      if (stock > 0) {
         await transaction.product.update({
           where: { id: product.id },
           data: {
-            cost: isDefault ? String(Number(body.cost)) : undefined,
-            reference: isDefault ? reference : undefined,
-            salePrice: isDefault ? String(Number(body.salePrice)) : undefined,
-            stock: stock > 0 ? { increment: stock } : undefined,
+            stock: { increment: stock },
           },
         });
       }

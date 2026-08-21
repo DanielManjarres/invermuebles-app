@@ -26,7 +26,6 @@ export type ProductInventoryVariant = {
   }>;
   cost: number;
   id: string;
-  isDefault: boolean;
   location: string;
   minimumStock: number;
   name: string;

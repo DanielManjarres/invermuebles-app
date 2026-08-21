@@ -1427,17 +1427,8 @@ th {
 }
 
 .catalogVariantBadges .available,
-.catalogVariantBadges .unavailable,
-.catalogVariantDefault {
+.catalogVariantBadges .unavailable {
   font-size: 0.72rem;
-}
-
-.catalogVariantDefault {
-  background: var(--surface-soft);
-  border-radius: 999px;
-  color: var(--muted);
-  font-weight: 800;
-  padding: 6px 10px;
 }
 
 .catalogVariantEdit {

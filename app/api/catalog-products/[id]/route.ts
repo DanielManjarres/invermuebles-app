@@ -37,7 +37,7 @@ const productInclude = {
       },
       images: { orderBy: { position: "asc" as const } },
     },
-    orderBy: [{ isDefault: "desc" as const }, { createdAt: "asc" as const }],
+    orderBy: { createdAt: "asc" as const },
   },
 };
 
