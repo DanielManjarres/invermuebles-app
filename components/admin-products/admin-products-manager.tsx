@@ -285,7 +285,7 @@ export function AdminProductsManager({
 
                   <div className="catalogProductActions">
                     <button
-                      className="secondaryButton"
+                      className="secondaryButton catalogProductFeaturedAction"
                       disabled={!product.visible || featuredProductId === product.id}
                       title={
                         product.visible
@@ -322,7 +322,7 @@ export function AdminProductsManager({
                       Editar datos
                     </button>
                     <button
-                      className="dangerButton"
+                      className="dangerButton catalogProductDeleteAction"
                       type="button"
                       onClick={() => {
                         setDeleteError("");

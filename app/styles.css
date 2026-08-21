@@ -1229,7 +1229,7 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(300px, 1.25fr) minmax(300px, 0.9fr) auto;
+  grid-template-columns: minmax(330px, 1fr) minmax(390px, 0.9fr) minmax(250px, 280px);
   padding: 14px;
 }
 
@@ -1285,7 +1285,8 @@ th {
 .catalogProductSummary {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(88px, 0.65fr) minmax(100px, 0.7fr) minmax(180px, 1.3fr);
+  min-width: 0;
 }
 
 .catalogProductSummary div {
@@ -1307,14 +1308,24 @@ th {
   font-size: 0.9rem;
 }
 
+.catalogProductSummary div:last-child strong {
+  white-space: nowrap;
+}
+
 .catalogProductActions {
   display: grid;
   gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .catalogProductActions button {
   min-height: 38px;
   white-space: nowrap;
+}
+
+.catalogProductFeaturedAction,
+.catalogProductDeleteAction {
+  grid-column: 1 / -1;
 }
 
 .catalogProductModal {
@@ -1701,6 +1712,15 @@ th {
 
   .catalogProductIdentity {
     align-items: flex-start;
+  }
+
+  .catalogProductActions {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogProductFeaturedAction,
+  .catalogProductDeleteAction {
+    grid-column: auto;
   }
 
   .catalogVariantHeader {
