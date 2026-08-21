@@ -19,7 +19,7 @@ import {
 type CatalogProductRequest = {
   brand?: string;
   catalogProductTypeId?: string;
-  defaultVariant?: {
+  initialVariant?: {
     attributeValues?: VariantAttributeInput[];
     cost?: number;
     location?: string;
@@ -77,7 +77,7 @@ export async function GET() {
           },
           images: { orderBy: { position: "asc" } },
         },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+        orderBy: { createdAt: "asc" },
       },
     },
     orderBy: { name: "asc" },
@@ -102,9 +102,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  if (!body.defaultVariant) {
+  if (!body.initialVariant) {
     return NextResponse.json(
-      { message: "Registra la variante predeterminada del producto." },
+      { message: "Registra la primera presentación del producto." },
       { status: 400 },
     );
   }
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 
   const normalizedAttributes = normalizeVariantAttributes(
     catalogProductType.attributes,
-    body.defaultVariant.attributeValues ?? [],
+    body.initialVariant.attributeValues ?? [],
   );
   if (normalizedAttributes.error) {
     return NextResponse.json(
@@ -143,21 +143,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const reference = normalizeVariantReference(body.defaultVariant.reference);
+  const reference = normalizeVariantReference(body.initialVariant.reference);
   const variantName = buildVariantName(
     catalogProductType.attributes,
     normalizedAttributes.values,
     reference,
   );
   const variantError = validateVariantInput({
-    ...body.defaultVariant,
+    ...body.initialVariant,
     name: variantName,
     reference,
   });
   if (variantError) {
     return NextResponse.json({ message: variantError }, { status: 400 });
   }
-  const stock = Number(body.defaultVariant.stock);
+  const stock = Number(body.initialVariant.stock);
   const adminUserId = stock > 0 ? await getAdminUserId() : null;
 
   try {
@@ -185,7 +185,7 @@ export async function POST(request: Request) {
         data: {
           brand: productInput.brand || null,
           catalogProductTypeId: catalogProductType.id,
-          cost: String(Number(body.defaultVariant?.cost)),
+          cost: String(Number(body.initialVariant?.cost)),
           details: productInput.details,
           imageUrl: productInput.primaryImageUrl || null,
           model: productInput.model || null,
@@ -193,7 +193,7 @@ export async function POST(request: Request) {
           productClassId: legacyClass.id,
           productTypeId: legacyType.id,
           reference,
-          salePrice: String(Number(body.defaultVariant?.salePrice)),
+          salePrice: String(Number(body.initialVariant?.salePrice)),
           stock,
           visible: body.visible ?? false,
         },
@@ -203,14 +203,13 @@ export async function POST(request: Request) {
         data: {
           active: true,
           attributeValues: { create: normalizedAttributes.values },
-          cost: String(Number(body.defaultVariant?.cost)),
-          isDefault: true,
-          location: cleanText(body.defaultVariant?.location) || null,
-          minimumStock: Number(body.defaultVariant?.minimumStock),
+          cost: String(Number(body.initialVariant?.cost)),
+          location: cleanText(body.initialVariant?.location) || null,
+          minimumStock: Number(body.initialVariant?.minimumStock),
           name: variantName,
           productId: createdProduct.id,
           reference,
-          salePrice: String(Number(body.defaultVariant?.salePrice)),
+          salePrice: String(Number(body.initialVariant?.salePrice)),
           stock,
         },
       });

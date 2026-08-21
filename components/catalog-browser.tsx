@@ -2,9 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { MessageCircle, ShoppingCart } from "lucide-react";
+import {
+  MessageCircle,
+  PackageSearch,
+  Search,
+  ShoppingCart,
+  Trash2,
+} from "lucide-react";
 import type { Product } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
+import {
+  ALL_CATALOG_CATEGORIES,
+  filterCatalogProducts,
+  getCatalogCategory,
+} from "@/lib/catalog-filter";
 import { whatsappUrl } from "@/lib/company";
 import { useAdminSaleCart } from "@/components/use-admin-sale-cart";
 
@@ -13,13 +24,13 @@ type CatalogBrowserProps = {
   products: Product[];
 };
 
-const allCategories = "Todos";
 const productsPerPage = 20;
 
 export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProps) {
   const isAdmin = mode === "admin";
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
-  const [activeCategory, setActiveCategory] = useState(allCategories);
+  const [activeCategory, setActiveCategory] = useState(ALL_CATALOG_CATEGORIES);
+  const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const adminSaleCart = useAdminSaleCart(catalogProducts);
 
@@ -29,7 +40,7 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, catalogProducts]);
+  }, [activeCategory, catalogProducts, query]);
 
   const availableProducts = useMemo(
     () => catalogProducts.filter((product) => product.visible && product.stock > 0),
@@ -38,16 +49,22 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
 
   const categories = useMemo(
     () => [
-      allCategories,
-      ...Array.from(new Set(availableProducts.map((product) => product.category))),
+      ALL_CATALOG_CATEGORIES,
+      ...Array.from(new Set(availableProducts.map(getCatalogCategory))),
     ],
     [availableProducts]
   );
 
-  const filteredProducts =
-    activeCategory === allCategories
-      ? availableProducts
-      : availableProducts.filter((product) => product.category === activeCategory);
+  useEffect(() => {
+    if (!categories.includes(activeCategory)) {
+      setActiveCategory(ALL_CATALOG_CATEGORIES);
+    }
+  }, [activeCategory, categories]);
+
+  const filteredProducts = useMemo(
+    () => filterCatalogProducts(availableProducts, activeCategory, query),
+    [activeCategory, availableProducts, query],
+  );
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * productsPerPage,
@@ -57,31 +74,56 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
   return (
     <section className="catalogSection">
       <div className="catalogTools">
-        <div className="filterGroup" aria-label="Filtrar por categoría">
-          {categories.map((category) => (
-            <button
-              className={
-                category === activeCategory ? "filterButton active" : "filterButton"
-              }
-              key={category}
-              type="button"
-              onClick={() => {
-                setActiveCategory(category);
-                setCurrentPage(1);
-              }}
-            >
-              {category}
-            </button>
-          ))}
+        <div className="catalogFilterControls">
+          <label className="searchBox catalogSearchBox">
+            <Search size={18} />
+            <input
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar por producto, tipo, referencia o característica"
+              type="search"
+              value={query}
+            />
+          </label>
+          <div className="filterGroup" aria-label="Filtrar por categoría">
+            {categories.map((category) => (
+              <button
+                className={
+                  category === activeCategory ? "filterButton active" : "filterButton"
+                }
+                key={category}
+                type="button"
+                onClick={() => {
+                  setActiveCategory(category);
+                  setCurrentPage(1);
+                }}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
         {isAdmin ? (
-          <Link className="adminSaleCartHint" href="/admin/ventas">
-            <ShoppingCart size={18} />
-            Venta local
+          <div className="adminSaleCartActions">
+            <Link className="adminSaleCartHint" href="/admin/ventas">
+              <ShoppingCart size={18} />
+              Venta local
+              {adminSaleCart.totalQuantity > 0 ? (
+                <span>{adminSaleCart.totalQuantity}</span>
+              ) : null}
+            </Link>
             {adminSaleCart.totalQuantity > 0 ? (
-              <span>{adminSaleCart.totalQuantity}</span>
+              <button
+                aria-label="Vaciar selección de venta local"
+                className="secondaryButton adminSaleCartClear"
+                title="Vaciar selección"
+                type="button"
+                onClick={adminSaleCart.clearCart}
+              >
+                <Trash2 size={17} />
+                Vaciar
+              </button>
             ) : null}
-          </Link>
+          </div>
         ) : (
           <a
             className="whatsappHint"
@@ -95,19 +137,27 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
         )}
       </div>
 
-      <div className="productGrid">
-        {paginatedProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            actionLabel="Agregar a venta"
-            detailActionLabel="Agregar a venta local"
-            onAdminSaleAdd={adminSaleCart.addProduct}
-            product={product}
-            showAdminSaleAction={isAdmin}
-            showCartAction={!isAdmin}
-          />
-        ))}
-      </div>
+      {paginatedProducts.length ? (
+        <div className="productGrid">
+          {paginatedProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              actionLabel="Agregar a venta"
+              detailActionLabel="Agregar a venta local"
+              onAdminSaleAdd={adminSaleCart.addProduct}
+              product={product}
+              showAdminSaleAction={isAdmin}
+              showCartAction={!isAdmin}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="emptyState catalogEmptyState">
+          <PackageSearch size={34} />
+          <h2>No se encontraron productos</h2>
+          <p>Cambia la búsqueda o selecciona otra categoría.</p>
+        </div>
+      )}
 
       {filteredProducts.length > productsPerPage ? (
         <div className="catalogPagination">

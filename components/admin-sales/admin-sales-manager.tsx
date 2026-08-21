@@ -374,6 +374,9 @@ export function AdminSalesManager({
     setCartItems((currentItems) =>
       currentItems.filter((item) => item.lineId !== lineId)
     );
+    if (!orderIdFromUrl) {
+      adminSaleCart.removeProduct(lineId);
+    }
   }
 
   async function createLocalSale() {

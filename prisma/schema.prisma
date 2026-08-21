@@ -78,6 +78,8 @@ model Product {
   salePrice            Decimal             @db.Decimal(12, 2)
   stock                Int                 @default(0)
   visible              Boolean             @default(false)
+  featured             Boolean             @default(false)
+  featuredOrder        Int?
   imageUrl             String?
   brand                String?
   model                String?
@@ -95,6 +97,8 @@ model Product {
   saleItems      SaleItem[]
   variants       ProductVariant[]
   images         ProductImage[]
+
+  @@index([featured, featuredOrder])
 }
 
 model ProductVariant {
@@ -108,7 +112,6 @@ model ProductVariant {
   stock        Int      @default(0)
   minimumStock Int      @default(0)
   location     String?
-  isDefault    Boolean  @default(false)
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

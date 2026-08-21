@@ -1,8 +1,9 @@
 "use client";
 
-import { Check, ShoppingCart, X } from "lucide-react";
+import { Check, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/products";
+import { ProductDetailModal } from "@/components/product-card/product-detail-modal";
 import { useCart } from "@/components/use-cart";
 import type { AdminSaleCartResult } from "@/components/use-admin-sale-cart";
 
@@ -36,17 +37,15 @@ export function ProductCard({
   const selectableVariants = (product.variants ?? []).filter(
     (variant) => variant.active,
   );
-  const initialVariant =
-    selectableVariants.find((variant) => variant.isDefault && variant.stock > 0) ??
-    selectableVariants.find((variant) => variant.stock > 0) ??
-    selectableVariants.find((variant) => variant.isDefault) ??
-    selectableVariants[0];
-  const [selectedVariantId, setSelectedVariantId] = useState(initialVariant?.id ?? "");
-  const selectedVariant =
-    selectableVariants.find((variant) => variant.id === selectedVariantId) ??
-    initialVariant;
+  const [selectedVariantId, setSelectedVariantId] = useState("");
+  const selectedVariant = selectableVariants.find(
+    (variant) => variant.id === selectedVariantId,
+  );
   const usesVariantSelection = selectableVariants.length > 0;
   const isAvailable = usesVariantSelection
+    ? selectableVariants.some((variant) => variant.stock > 0)
+    : product.stock > 0;
+  const isSelectedVariantAvailable = usesVariantSelection
     ? Boolean(selectedVariant && selectedVariant.stock > 0)
     : product.stock > 0;
   const productSummary = createSummary(product.details);
@@ -64,9 +63,24 @@ export function ProductCard({
     return () => window.clearTimeout(timeout);
   }, [cartFeedback]);
 
+  useEffect(() => {
+    setSelectedVariantId("");
+    setCartFeedback("");
+  }, [product.id]);
+
   function handleAddToCart() {
+    if (usesVariantSelection && !selectedVariant) {
+      setIsDetailOpen(true);
+      return;
+    }
+
     if (showAdminSaleAction && onAdminSaleAdd) {
       const result = onAdminSaleAdd(product, selectedVariant?.id);
+      if (result.status === "requires-variant") {
+        setCartFeedback("Selecciona una presentación");
+        setIsDetailOpen(true);
+        return;
+      }
       setCartFeedback(
         result.status === "added"
           ? "Producto agregado a venta local"
@@ -114,7 +128,7 @@ export function ProductCard({
         </div>
         <div className="productInfo">
           <div>
-            <span className="tag">{product.category}</span>
+            <span className="tag">{product.catalogCategory || product.category}</span>
             <h2>{product.name}</h2>
             <span className="reference">
               {usesVariantSelection
@@ -134,7 +148,11 @@ export function ProductCard({
                 disabled={!isAvailable}
                 onClick={(event) => {
                   event.stopPropagation();
-                  handleAddToCart();
+                  if (usesVariantSelection) {
+                    setIsDetailOpen(true);
+                  } else {
+                    handleAddToCart();
+                  }
                 }}
               >
                 {cartFeedback ? <Check size={17} /> : <ShoppingCart size={17} />}
@@ -142,7 +160,11 @@ export function ProductCard({
                   ? isAddedFeedback
                     ? "Agregado"
                     : "Actualizado"
-                  : actionLabel}
+                  : usesVariantSelection
+                    ? showAdminSaleAction
+                      ? "Elegir presentación"
+                      : "Ver producto"
+                    : actionLabel}
               </button>
             ) : (
               <span className="detailsHint">Ver detalle</span>
@@ -157,93 +179,21 @@ export function ProductCard({
       </article>
 
       {isDetailOpen ? (
-        <div className="modalOverlay" role="dialog" aria-modal="true">
-          <article className="productDetailModal">
-            <button
-              className="modalClose productDetailClose"
-              type="button"
-              aria-label="Cerrar"
-              onClick={() => setIsDetailOpen(false)}
-            >
-              <X size={20} />
-            </button>
-            <div className="productDetailImage">
-              <img src={product.image} alt={product.name} />
-            </div>
-            <div className="productDetailInfo">
-              <span className="tag">{product.category}</span>
-              <h2>{product.name}</h2>
-              <span className="reference">
-                {usesVariantSelection
-                  ? selectedVariant?.reference ?? product.reference
-                  : product.reference}
-              </span>
-              <p>{product.details}</p>
-              {usesVariantSelection ? (
-                <label className="productVariantSelector">
-                  Presentación
-                  <select
-                    value={selectedVariant?.id ?? ""}
-                    onChange={(event) => {
-                      setSelectedVariantId(event.target.value);
-                      setCartFeedback("");
-                    }}
-                  >
-                    {selectableVariants.map((variant) => (
-                      <option
-                        disabled={variant.stock <= 0}
-                        key={variant.id}
-                        value={variant.id}
-                      >
-                        {variant.name} · {variant.reference} · {variant.stock} disponible(s)
-                      </option>
-                    ))}
-                  </select>
-                  {selectedVariant?.attributes.length ? (
-                    <span>
-                      {selectedVariant.attributes
-                        .map(
-                          (attribute) =>
-                            `${attribute.name}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`,
-                        )
-                        .join(" · ")}
-                    </span>
-                  ) : null}
-                </label>
-              ) : null}
-              <dl className="productDetailList">
-                <div>
-                  <dt>Clase</dt>
-                  <dd>{product.productClass}</dd>
-                </div>
-                <div>
-                  <dt>Estado</dt>
-                  <dd>{isAvailable ? "Disponible" : "Agotado"}</dd>
-                </div>
-              </dl>
-              {showCartAction || showAdminSaleAction ? (
-                <button
-                  className={`primaryButton ${cartFeedback ? "cartButtonFeedback" : ""}`}
-                  type="button"
-                  disabled={!isAvailable}
-                  onClick={handleAddToCart}
-                >
-                  {cartFeedback ? <Check size={17} /> : <ShoppingCart size={17} />}
-                  {cartFeedback
-                    ? isAddedFeedback
-                      ? "Agregado al carrito"
-                      : "Cantidad actualizada"
-                    : detailActionLabel}
-                </button>
-              ) : null}
-              {(showCartAction || showAdminSaleAction) && cartFeedback ? (
-                <span className="cartFeedback productDetailFeedback" aria-live="polite">
-                  {cartFeedback}
-                </span>
-              ) : null}
-            </div>
-          </article>
-        </div>
+        <ProductDetailModal
+          cartFeedback={cartFeedback}
+          detailActionLabel={detailActionLabel}
+          isAvailable={isSelectedVariantAvailable}
+          onAdd={handleAddToCart}
+          onClose={() => setIsDetailOpen(false)}
+          onVariantChange={(variantId) => {
+            setSelectedVariantId(variantId);
+            setCartFeedback("");
+          }}
+          product={product}
+          selectableVariants={selectableVariants}
+          selectedVariant={selectedVariant}
+          showAction={showCartAction || showAdminSaleAction}
+        />
       ) : null}
     </>
   );

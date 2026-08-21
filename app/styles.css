@@ -581,6 +581,7 @@ p {
   align-content: start;
   display: grid;
   gap: 12px;
+  min-width: 0;
   overflow: auto;
   padding: 30px 34px 30px 26px;
 }
@@ -854,6 +855,29 @@ p {
   gap: 16px;
   justify-content: space-between;
   margin-bottom: 22px;
+}
+
+.catalogFilterControls {
+  display: grid;
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
+}
+
+.catalogSearchBox {
+  max-width: 640px;
+  width: 100%;
+}
+
+.catalogEmptyState {
+  display: grid;
+  justify-items: center;
+  margin-top: 6px;
+}
+
+.catalogEmptyState svg {
+  color: var(--primary);
+  margin-bottom: 8px;
 }
 
 .filterGroup {
@@ -1168,16 +1192,17 @@ th {
   margin: 12px 0;
 }
 
-.productVariantSelector select {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--text);
-  min-height: 42px;
-  padding: 0 10px;
+.adminSaleCartActions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
 }
 
-.productVariantSelector span,
+.adminSaleCartClear {
+  min-height: 42px;
+}
+
+.productVariantAttributes,
 .cartVariantName {
   color: var(--muted);
   font-size: 0.78rem;
@@ -1204,12 +1229,12 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(300px, 1.25fr) minmax(300px, 0.9fr) auto;
+  grid-template-columns: minmax(310px, 1fr) minmax(420px, 0.95fr) minmax(250px, 280px);
   padding: 14px;
 }
 
 .catalogProductIdentity {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
   gap: 14px;
   min-width: 0;
@@ -1260,7 +1285,8 @@ th {
 .catalogProductSummary {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(82px, 0.6fr) minmax(94px, 0.65fr) minmax(205px, 1.45fr);
+  min-width: 0;
 }
 
 .catalogProductSummary div {
@@ -1282,14 +1308,25 @@ th {
   font-size: 0.9rem;
 }
 
+.catalogProductSummary div:last-child strong {
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
 .catalogProductActions {
   display: grid;
   gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .catalogProductActions button {
   min-height: 38px;
   white-space: nowrap;
+}
+
+.catalogProductFeaturedAction,
+.catalogProductDeleteAction {
+  grid-column: 1 / -1;
 }
 
 .catalogProductModal {
@@ -1402,17 +1439,8 @@ th {
 }
 
 .catalogVariantBadges .available,
-.catalogVariantBadges .unavailable,
-.catalogVariantDefault {
+.catalogVariantBadges .unavailable {
   font-size: 0.72rem;
-}
-
-.catalogVariantDefault {
-  background: var(--surface-soft);
-  border-radius: 999px;
-  color: var(--muted);
-  font-weight: 800;
-  padding: 6px 10px;
 }
 
 .catalogVariantEdit {
@@ -1685,6 +1713,15 @@ th {
 
   .catalogProductIdentity {
     align-items: flex-start;
+  }
+
+  .catalogProductActions {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogProductFeaturedAction,
+  .catalogProductDeleteAction {
+    grid-column: auto;
   }
 
   .catalogVariantHeader {

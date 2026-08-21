@@ -51,7 +51,6 @@ export type CatalogProductVariant = {
   attributeValues: CatalogVariantAttributeValue[];
   cost: number;
   id: string;
-  isDefault: boolean;
   location: string;
   minimumStock: number;
   name: string;
@@ -65,6 +64,8 @@ export type CatalogProductRecord = {
   categoryId: string;
   categoryName: string;
   details: string;
+  featured: boolean;
+  featuredOrder: number | null;
   id: string;
   imageUrl: string;
   model: string;

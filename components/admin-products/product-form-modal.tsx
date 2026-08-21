@@ -173,7 +173,7 @@ export function ProductFormModal({
             : {
                 brand: form.brand,
                 catalogProductTypeId: form.productTypeId,
-                defaultVariant: {
+                initialVariant: {
                   attributeValues: (selectedType?.attributes ?? [])
                     .filter((attribute) => form.attributeValues[attribute.id])
                     .map((attribute) =>
@@ -353,7 +353,7 @@ export function ProductFormModal({
           {!isEditing ? (
             <>
               <div className="adminFormWide catalogFormSectionTitle">
-                <strong>Variante predeterminada</strong>
+                <strong>Primera presentación</strong>
                 <span>Define la primera presentación y su inventario inicial.</span>
               </div>
               <label>

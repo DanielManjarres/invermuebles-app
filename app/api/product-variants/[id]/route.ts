@@ -19,7 +19,6 @@ type VariantUpdateRequest = {
   active?: boolean;
   attributeValues?: VariantAttributeInput[];
   cost?: number;
-  isDefault?: boolean;
   location?: string;
   minimumStock?: number;
   name?: string;
@@ -84,20 +83,6 @@ export async function PUT(request: Request, context: RouteContext) {
       ? variant.minimumStock
       : Number(body.minimumStock);
   const active = body.active ?? variant.active;
-  const isDefault = body.isDefault ?? variant.isDefault;
-  if (variant.isDefault && body.isDefault === false) {
-    return NextResponse.json(
-      { message: "Selecciona otra variante como predeterminada antes de quitar esta." },
-      { status: 409 },
-    );
-  }
-  if (isDefault && !active) {
-    return NextResponse.json(
-      { message: "La variante predeterminada debe permanecer activa." },
-      { status: 409 },
-    );
-  }
-
   const referenceOwner = await prisma.productVariant.findUnique({
     where: { reference },
   });
@@ -154,13 +139,6 @@ export async function PUT(request: Request, context: RouteContext) {
 
   try {
     const updatedVariant = await prisma.$transaction(async (transaction) => {
-      if (body.isDefault === true && !variant.isDefault) {
-        await transaction.productVariant.updateMany({
-          where: { isDefault: true, productId: variant.productId },
-          data: { isDefault: false },
-        });
-      }
-
       if (body.attributeValues) {
         await transaction.variantAttributeValue.deleteMany({
           where: { variantId: variant.id },
@@ -177,7 +155,6 @@ export async function PUT(request: Request, context: RouteContext) {
               }
             : undefined,
           cost: String(cost),
-          isDefault,
           location:
             body.location === undefined
               ? variant.location
@@ -188,17 +165,6 @@ export async function PUT(request: Request, context: RouteContext) {
           salePrice: String(salePrice),
         },
       });
-
-      if (isDefault) {
-        await transaction.product.update({
-          where: { id: variant.productId },
-          data: {
-            cost: String(cost),
-            reference,
-            salePrice: String(salePrice),
-          },
-        });
-      }
 
       return savedVariant;
     });
@@ -230,13 +196,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
         select: {
           variants: {
             orderBy: { createdAt: "asc" },
-            select: {
-              active: true,
-              cost: true,
-              id: true,
-              reference: true,
-              salePrice: true,
-            },
+            select: { id: true },
           },
         },
       },
@@ -253,13 +213,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   }
 
-  const alternatives = variant.product.variants.filter(
-    (item) => item.id !== variant.id,
-  );
-  const activeAlternatives = alternatives.filter((item) => item.active);
   const policy = canDeleteProductVariant({
-    activeAlternativeCount: activeAlternatives.length,
-    isDefault: variant.isDefault,
     orderItemsCount: variant._count.orderItems,
     saleItemsCount: variant._count.saleItems,
     stockMovements: variant.stockMovements,
@@ -269,24 +223,14 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ message: policy.reason }, { status: 409 });
   }
 
-  const replacement = variant.isDefault ? activeAlternatives[0] : null;
   await prisma.$transaction(async (transaction) => {
-    if (replacement) {
-      await transaction.productVariant.update({
-        where: { id: replacement.id },
-        data: { isDefault: true },
-      });
-    }
     await transaction.stockMovement.deleteMany({ where: { variantId: variant.id } });
     await transaction.productVariant.delete({ where: { id: variant.id } });
-    if (variant.stock > 0 || replacement) {
+    if (variant.stock > 0) {
       await transaction.product.update({
         where: { id: variant.productId },
         data: {
-          cost: replacement ? replacement.cost : undefined,
-          reference: replacement ? replacement.reference : undefined,
-          salePrice: replacement ? replacement.salePrice : undefined,
-          stock: variant.stock > 0 ? { decrement: variant.stock } : undefined,
+          stock: { decrement: variant.stock },
         },
       });
     }
@@ -296,6 +240,5 @@ export async function DELETE(_request: Request, context: RouteContext) {
     deletedInitialMovements: variant.stockMovements.length,
     id: variant.id,
     name: variant.name,
-    replacementDefaultId: replacement?.id ?? null,
   });
 }

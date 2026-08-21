@@ -21,7 +21,6 @@ type VariantFormState = {
   active: boolean;
   attributeValues: Record<string, string>;
   cost: number;
-  isDefault: boolean;
   location: string;
   minimumStock: number;
   reference: string;
@@ -39,7 +38,6 @@ function createForm(variant?: CatalogProductVariant): VariantFormState {
       ]),
     ),
     cost: variant?.cost ?? 0,
-    isDefault: variant?.isDefault ?? false,
     location: variant?.location ?? "",
     minimumStock: variant?.minimumStock ?? 0,
     reference: variant?.reference ?? "",
@@ -98,7 +96,6 @@ export function VariantFormModal({
           active: form.active,
           attributeValues: buildAttributeValues(),
           cost: form.cost,
-          isDefault: form.isDefault,
           location: form.location,
           minimumStock: form.minimumStock,
           productId: product.id,
@@ -271,20 +268,10 @@ export function VariantFormModal({
           <label className="checkRow">
             <input
               checked={form.active}
-              disabled={variant?.isDefault}
               type="checkbox"
               onChange={(event) => updateForm({ active: event.target.checked })}
             />
             Variante activa
-          </label>
-          <label className="checkRow">
-            <input
-              checked={form.isDefault}
-              disabled={variant?.isDefault}
-              type="checkbox"
-              onChange={(event) => updateForm({ isDefault: event.target.checked })}
-            />
-            Variante predeterminada
           </label>
         </div>
 

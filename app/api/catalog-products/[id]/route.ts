@@ -37,7 +37,7 @@ const productInclude = {
       },
       images: { orderBy: { position: "asc" as const } },
     },
-    orderBy: [{ isDefault: "desc" as const }, { createdAt: "asc" as const }],
+    orderBy: { createdAt: "asc" as const },
   },
 };
 
@@ -102,6 +102,8 @@ export async function PUT(request: Request, context: RouteContext) {
           : undefined,
         model: productInput.model || null,
         name: productInput.name,
+        featured: body.visible === false ? false : undefined,
+        featuredOrder: body.visible === false ? null : undefined,
         visible: body.visible,
       },
     });

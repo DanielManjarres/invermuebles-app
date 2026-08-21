@@ -11,7 +11,7 @@ export type AdminSaleCartItem = {
 
 export type AdminSaleCartResult = {
   quantity: number;
-  status: "added" | "updated";
+  status: "added" | "requires-variant" | "updated";
 };
 
 const adminSaleCartKey = "invermuebles-admin-sale-cart";
@@ -78,12 +78,16 @@ export function useAdminSaleCart(products: Product[] = []) {
   }
 
   function addProduct(product: Product, requestedVariantId?: string): AdminSaleCartResult {
-    const availableVariants = (product.variants ?? []).filter(
+    const productVariants = product.variants ?? [];
+    const availableVariants = productVariants.filter(
       (variant) => variant.active && variant.stock > 0,
     );
     const variant = requestedVariantId
       ? availableVariants.find((item) => item.id === requestedVariantId)
-      : availableVariants.find((item) => item.isDefault) ?? availableVariants[0];
+      : undefined;
+    if (productVariants.length > 0 && !variant) {
+      return { quantity: 0, status: "requires-variant" };
+    }
     const variantId = variant?.id;
     const lineId = variantId ?? product.id;
     const availableStock = variant?.stock ?? product.stock;
@@ -116,6 +120,14 @@ export function useAdminSaleCart(products: Product[] = []) {
 
   function clearCart() {
     saveCart([]);
+  }
+
+  function removeProduct(lineId: string) {
+    saveCart(
+      readAdminSaleCart().filter(
+        (item) => (item.variantId ?? item.productId) !== lineId,
+      ),
+    );
   }
 
   const detailedItems = items
@@ -154,5 +166,6 @@ export function useAdminSaleCart(products: Product[] = []) {
     totalQuantity,
     addProduct,
     clearCart,
+    removeProduct,
   };
 }

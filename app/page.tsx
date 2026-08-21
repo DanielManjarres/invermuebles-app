@@ -9,7 +9,11 @@ import { getProducts } from "@/lib/database-products";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const products = await getProducts({ availableOnly: true, visibleOnly: true });
+  const products = await getProducts({
+    availableOnly: true,
+    featuredOnly: true,
+    visibleOnly: true,
+  });
 
   return (
     <main>
