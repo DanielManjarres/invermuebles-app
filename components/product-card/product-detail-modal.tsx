@@ -61,6 +61,9 @@ export function ProductDetailModal({
                 value={selectedVariant?.id ?? ""}
                 onChange={(event) => onVariantChange(event.target.value)}
               >
+                <option disabled value="">
+                  Selecciona una variante
+                </option>
                 {selectableVariants.map((variant) => (
                   <option
                     disabled={variant.stock <= 0}
@@ -90,7 +93,13 @@ export function ProductDetailModal({
             </div>
             <div>
               <dt>Estado</dt>
-              <dd>{isAvailable ? "Disponible" : "Agotado"}</dd>
+              <dd>
+                {usesVariantSelection && !selectedVariant
+                  ? "Selecciona una variante"
+                  : isAvailable
+                    ? "Disponible"
+                    : "Agotado"}
+              </dd>
             </div>
           </dl>
           {showAction ? (

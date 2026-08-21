@@ -37,17 +37,15 @@ export function ProductCard({
   const selectableVariants = (product.variants ?? []).filter(
     (variant) => variant.active,
   );
-  const initialVariant =
-    selectableVariants.find((variant) => variant.isDefault && variant.stock > 0) ??
-    selectableVariants.find((variant) => variant.stock > 0) ??
-    selectableVariants.find((variant) => variant.isDefault) ??
-    selectableVariants[0];
-  const [selectedVariantId, setSelectedVariantId] = useState(initialVariant?.id ?? "");
-  const selectedVariant =
-    selectableVariants.find((variant) => variant.id === selectedVariantId) ??
-    initialVariant;
+  const [selectedVariantId, setSelectedVariantId] = useState("");
+  const selectedVariant = selectableVariants.find(
+    (variant) => variant.id === selectedVariantId,
+  );
   const usesVariantSelection = selectableVariants.length > 0;
   const isAvailable = usesVariantSelection
+    ? selectableVariants.some((variant) => variant.stock > 0)
+    : product.stock > 0;
+  const isSelectedVariantAvailable = usesVariantSelection
     ? Boolean(selectedVariant && selectedVariant.stock > 0)
     : product.stock > 0;
   const productSummary = createSummary(product.details);
@@ -66,11 +64,16 @@ export function ProductCard({
   }, [cartFeedback]);
 
   useEffect(() => {
-    setSelectedVariantId(initialVariant?.id ?? "");
+    setSelectedVariantId("");
     setCartFeedback("");
-  }, [initialVariant?.id, product.id]);
+  }, [product.id]);
 
   function handleAddToCart() {
+    if (usesVariantSelection && !selectedVariant) {
+      setIsDetailOpen(true);
+      return;
+    }
+
     if (showAdminSaleAction && onAdminSaleAdd) {
       const result = onAdminSaleAdd(product, selectedVariant?.id);
       setCartFeedback(
@@ -140,7 +143,11 @@ export function ProductCard({
                 disabled={!isAvailable}
                 onClick={(event) => {
                   event.stopPropagation();
-                  handleAddToCart();
+                  if (usesVariantSelection) {
+                    setIsDetailOpen(true);
+                  } else {
+                    handleAddToCart();
+                  }
                 }}
               >
                 {cartFeedback ? <Check size={17} /> : <ShoppingCart size={17} />}
@@ -148,7 +155,9 @@ export function ProductCard({
                   ? isAddedFeedback
                     ? "Agregado"
                     : "Actualizado"
-                  : actionLabel}
+                  : usesVariantSelection
+                    ? "Elegir variante"
+                    : actionLabel}
               </button>
             ) : (
               <span className="detailsHint">Ver detalle</span>
@@ -166,7 +175,7 @@ export function ProductCard({
         <ProductDetailModal
           cartFeedback={cartFeedback}
           detailActionLabel={detailActionLabel}
-          isAvailable={isAvailable}
+          isAvailable={isSelectedVariantAvailable}
           onAdd={handleAddToCart}
           onClose={() => setIsDetailOpen(false)}
           onVariantChange={(variantId) => {

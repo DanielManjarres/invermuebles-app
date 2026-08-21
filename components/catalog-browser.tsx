@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { MessageCircle, PackageSearch, Search, ShoppingCart } from "lucide-react";
+import {
+  MessageCircle,
+  PackageSearch,
+  Search,
+  ShoppingCart,
+  Trash2,
+} from "lucide-react";
 import type { Product } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 import {
@@ -97,13 +103,27 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
           </div>
         </div>
         {isAdmin ? (
-          <Link className="adminSaleCartHint" href="/admin/ventas">
-            <ShoppingCart size={18} />
-            Venta local
+          <div className="adminSaleCartActions">
+            <Link className="adminSaleCartHint" href="/admin/ventas">
+              <ShoppingCart size={18} />
+              Venta local
+              {adminSaleCart.totalQuantity > 0 ? (
+                <span>{adminSaleCart.totalQuantity}</span>
+              ) : null}
+            </Link>
             {adminSaleCart.totalQuantity > 0 ? (
-              <span>{adminSaleCart.totalQuantity}</span>
+              <button
+                aria-label="Vaciar selección de venta local"
+                className="secondaryButton adminSaleCartClear"
+                title="Vaciar selección"
+                type="button"
+                onClick={adminSaleCart.clearCart}
+              >
+                <Trash2 size={17} />
+                Vaciar
+              </button>
             ) : null}
-          </Link>
+          </div>
         ) : (
           <a
             className="whatsappHint"

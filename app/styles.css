@@ -1204,6 +1204,16 @@ th {
   width: 100%;
 }
 
+.adminSaleCartActions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.adminSaleCartClear {
+  min-height: 42px;
+}
+
 .productVariantSelector span,
 .cartVariantName {
   color: var(--muted);

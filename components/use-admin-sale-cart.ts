@@ -118,6 +118,14 @@ export function useAdminSaleCart(products: Product[] = []) {
     saveCart([]);
   }
 
+  function removeProduct(lineId: string) {
+    saveCart(
+      readAdminSaleCart().filter(
+        (item) => (item.variantId ?? item.productId) !== lineId,
+      ),
+    );
+  }
+
   const detailedItems = items
     .map((item) => {
       const product = products.find((currentProduct) => currentProduct.id === item.productId);
@@ -154,5 +162,6 @@ export function useAdminSaleCart(products: Product[] = []) {
     totalQuantity,
     addProduct,
     clearCart,
+    removeProduct,
   };
 }
