@@ -1229,12 +1229,12 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(330px, 1fr) minmax(390px, 0.9fr) minmax(250px, 280px);
+  grid-template-columns: minmax(310px, 1fr) minmax(420px, 0.95fr) minmax(250px, 280px);
   padding: 14px;
 }
 
 .catalogProductIdentity {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
   gap: 14px;
   min-width: 0;
@@ -1285,7 +1285,7 @@ th {
 .catalogProductSummary {
   display: grid;
   gap: 8px;
-  grid-template-columns: minmax(88px, 0.65fr) minmax(100px, 0.7fr) minmax(180px, 1.3fr);
+  grid-template-columns: minmax(82px, 0.6fr) minmax(94px, 0.65fr) minmax(205px, 1.45fr);
   min-width: 0;
 }
 
@@ -1309,6 +1309,7 @@ th {
 }
 
 .catalogProductSummary div:last-child strong {
+  font-size: 0.86rem;
   white-space: nowrap;
 }
 
