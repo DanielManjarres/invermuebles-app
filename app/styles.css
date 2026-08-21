@@ -1192,18 +1192,6 @@ th {
   margin: 12px 0;
 }
 
-.productVariantSelector select {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--text);
-  max-width: 100%;
-  min-height: 42px;
-  min-width: 0;
-  padding: 0 10px;
-  width: 100%;
-}
-
 .adminSaleCartActions {
   align-items: center;
   display: flex;
@@ -1214,7 +1202,7 @@ th {
   min-height: 42px;
 }
 
-.productVariantSelector span,
+.productVariantAttributes,
 .cartVariantName {
   color: var(--muted);
   font-size: 0.78rem;

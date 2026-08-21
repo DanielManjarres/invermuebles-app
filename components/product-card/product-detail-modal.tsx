@@ -1,4 +1,5 @@
 import { Check, ShoppingCart, X } from "lucide-react";
+import { SelectMenu } from "@/components/select-menu";
 import type { Product, ProductInventoryVariant } from "@/lib/products";
 
 type ProductDetailModalProps = {
@@ -30,6 +31,12 @@ export function ProductDetailModal({
   const isAddedFeedback =
     cartFeedback === "Producto agregado al carrito" ||
     cartFeedback === "Producto agregado a venta local";
+  const variantOptions = selectableVariants
+    .filter((variant) => variant.stock > 0)
+    .map((variant) => ({
+      label: `${variant.name} · ${variant.stock} disponible(s)`,
+      value: variant.id,
+    }));
 
   return (
     <div className="modalOverlay" role="dialog" aria-modal="true">
@@ -57,25 +64,15 @@ export function ProductDetailModal({
           {usesVariantSelection ? (
             <label className="productVariantSelector">
               Presentación
-              <select
+              <SelectMenu
+                disabled={variantOptions.length === 0}
+                onChange={onVariantChange}
+                options={variantOptions}
+                placeholder="Selecciona una variante"
                 value={selectedVariant?.id ?? ""}
-                onChange={(event) => onVariantChange(event.target.value)}
-              >
-                <option disabled value="">
-                  Selecciona una variante
-                </option>
-                {selectableVariants.map((variant) => (
-                  <option
-                    disabled={variant.stock <= 0}
-                    key={variant.id}
-                    value={variant.id}
-                  >
-                    {variant.name} · {variant.reference} · {variant.stock} disponible(s)
-                  </option>
-                ))}
-              </select>
+              />
               {selectedVariant?.attributes.length ? (
-                <span>
+                <span className="productVariantAttributes">
                   {selectedVariant.attributes
                     .map(
                       (attribute) =>
