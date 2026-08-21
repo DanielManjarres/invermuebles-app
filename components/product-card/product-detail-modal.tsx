@@ -68,7 +68,7 @@ export function ProductDetailModal({
                 disabled={variantOptions.length === 0}
                 onChange={onVariantChange}
                 options={variantOptions}
-                placeholder="Selecciona una variante"
+                placeholder="Selecciona una presentación"
                 value={selectedVariant?.id ?? ""}
               />
               {selectedVariant?.attributes.length ? (
@@ -92,7 +92,7 @@ export function ProductDetailModal({
               <dt>Estado</dt>
               <dd>
                 {usesVariantSelection && !selectedVariant
-                  ? "Selecciona una variante"
+                  ? "Selecciona una presentación"
                   : isAvailable
                     ? "Disponible"
                     : "Agotado"}

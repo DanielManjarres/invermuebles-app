@@ -156,7 +156,9 @@ export function ProductCard({
                     ? "Agregado"
                     : "Actualizado"
                   : usesVariantSelection
-                    ? "Elegir variante"
+                    ? showAdminSaleAction
+                      ? "Elegir presentación"
+                      : "Ver producto"
                     : actionLabel}
               </button>
             ) : (
