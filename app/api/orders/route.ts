@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { OrderChannel } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  getCatalogOrderItemError,
+  normalizeCatalogOrderItems,
+} from "@/lib/catalog-order-policy";
 
 type OrderItemRequest = {
   productId?: string;
@@ -12,19 +16,9 @@ type OrderRequest = {
   items?: OrderItemRequest[];
 };
 
-function normalizeItems(items: OrderItemRequest[] = []) {
-  return items
-    .map((item) => ({
-      productId: item.productId?.trim() ?? "",
-      quantity: Number(item.quantity),
-      variantId: item.variantId?.trim() ?? "",
-    }))
-    .filter((item) => item.productId && Number.isInteger(item.quantity));
-}
-
 export async function POST(request: Request) {
   const body = (await request.json()) as OrderRequest;
-  const items = normalizeItems(body.items);
+  const items = normalizeCatalogOrderItems(body.items);
 
   if (items.length === 0) {
     return NextResponse.json(
@@ -55,6 +49,11 @@ export async function POST(request: Request) {
       productType: { select: { name: true } },
       reference: true,
       stock: true,
+      variants: {
+        select: { id: true },
+        where: { active: true },
+        take: 1,
+      },
     },
   });
   const variants = await prisma.productVariant.findMany({
@@ -75,25 +74,28 @@ export async function POST(request: Request) {
 
   const productById = new Map(products.map((product) => [product.id, product]));
   const variantById = new Map(variants.map((variant) => [variant.id, variant]));
-  const unavailableItem = items.find((item) => {
-    const product = productById.get(item.productId);
-    const variant = item.variantId ? variantById.get(item.variantId) : null;
-    if (!product || (item.variantId && variant?.productId !== product.id)) return true;
-    return item.quantity > (variant?.stock ?? product.stock);
-  });
+  const itemError = items
+    .map((item) => {
+      const product = productById.get(item.productId);
+      const variant = item.variantId ? variantById.get(item.variantId) : null;
+      return getCatalogOrderItemError(
+        item,
+        product
+          ? {
+              hasActiveVariants: product.variants.length > 0,
+              id: product.id,
+              name: product.name,
+              stock: product.stock,
+            }
+          : undefined,
+        variant ?? undefined,
+      );
+    })
+    .find(Boolean);
 
-  if (unavailableItem) {
-    const product = productById.get(unavailableItem.productId);
-    const variant = unavailableItem.variantId
-      ? variantById.get(unavailableItem.variantId)
-      : null;
-    const availableStock = variant?.stock ?? product?.stock ?? 0;
+  if (itemError) {
     return NextResponse.json(
-      {
-        message: product
-          ? `Solo hay ${availableStock} unidad(es) disponibles de ${product.name}${variant ? ` · ${variant.name}` : ""}.`
-          : "Uno de los productos ya no esta disponible.",
-      },
+      { message: itemError },
       { status: 400 }
     );
   }
