@@ -177,11 +177,14 @@ export async function POST(request: Request, context: RouteContext) {
           createdAt: payment.createdAt.toLocaleString("es-CO", {
             dateStyle: "short",
             timeStyle: "short",
+            timeZone: "America/Bogota",
           }),
+          createdAtISO: payment.createdAt.toISOString(),
           isInitial: payment.isInitial,
           method: payment.method,
           note: payment.note ?? "",
           reference: payment.reference ?? "",
+          userName: "Administrador",
         },
         status: nextStatus,
       };

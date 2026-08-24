@@ -1,4 +1,4 @@
-import { UserRound, WalletCards } from "lucide-react";
+import { ReceiptText, UserRound, WalletCards } from "lucide-react";
 
 import type { PortfolioAccount } from "@/lib/portfolio";
 
@@ -6,13 +6,14 @@ type Props = {
   account: PortfolioAccount;
   paymentDisabled: boolean;
   onPayment: () => void;
+  onReceipt: (paymentId: string) => void;
 };
 
 function formatMoney(value: number) {
   return `$ ${new Intl.NumberFormat("es-CO").format(value)}`;
 }
 
-export function AdminSaleAccountDetail({ account, paymentDisabled, onPayment }: Props) {
+export function AdminSaleAccountDetail({ account, paymentDisabled, onPayment, onReceipt }: Props) {
   return (
     <div className="creditSelectedAccount">
       <div className="creditDetailHeader">
@@ -83,6 +84,14 @@ export function AdminSaleAccountDetail({ account, paymentDisabled, onPayment }: 
               </div>
               {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
               {payment.note ? <small>{payment.note}</small> : null}
+              <button
+                className="secondaryButton paymentReceiptButton"
+                type="button"
+                onClick={() => onReceipt(payment.id)}
+              >
+                <ReceiptText size={16} />
+                Ver recibo
+              </button>
             </article>
           ))
         )}

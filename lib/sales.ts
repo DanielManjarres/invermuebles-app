@@ -29,6 +29,8 @@ export type AdminSalePayment = {
   note: string;
   isInitial: boolean;
   createdAt: string;
+  createdAtISO: string;
+  userName: string;
 };
 
 export type AdminSale = {
@@ -37,6 +39,7 @@ export type AdminSale = {
   customerId: string;
   customerName: string;
   customerDocument: string;
+  customerPhone: string;
   orderId: string;
   orderShortId: string;
   source: SaleSource;

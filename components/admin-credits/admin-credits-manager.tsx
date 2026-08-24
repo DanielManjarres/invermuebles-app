@@ -8,6 +8,7 @@ import { AdminCreditsCustomerWorkspace } from "@/components/admin-credits/custom
 import { AdminCreditManagementModals } from "@/components/admin-credits/management-modals";
 import { AdminCreditsOverview, type CreditFilter } from "@/components/admin-credits/overview";
 import { AdminCreditPaymentModal } from "@/components/admin-credits/payment-modal";
+import { AdminPaymentReceiptModal } from "@/components/admin-credits/payment-receipt-modal";
 import { AdminSaleAccountDetail } from "@/components/admin-credits/sale-account-detail";
 import {
   type AdminCredit,
@@ -15,6 +16,7 @@ import {
   type PaymentMethod,
 } from "@/lib/credits";
 import type { AdminCustomer } from "@/lib/customers";
+import { getBalanceAfterPayment } from "@/lib/payment-receipt";
 import { buildPortfolioAccounts, type PortfolioAccountGroup } from "@/lib/portfolio";
 import type { AdminSale } from "@/lib/sales";
 
@@ -69,6 +71,10 @@ export function AdminCreditsManager({
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [receiptSelection, setReceiptSelection] = useState<{
+    accountId: string;
+    paymentId: string;
+  } | null>(null);
   const [creditToEdit, setCreditToEdit] = useState<AdminCredit | null>(null);
   const [creditToDelete, setCreditToDelete] = useState<AdminCredit | null>(null);
   const [editMonths, setEditMonths] = useState(6);
@@ -155,6 +161,15 @@ export function AdminCreditsManager({
       : groupedAccounts.filter((account) => account.status === filter);
   const selectedAccount = filteredAccounts.find((account) => account.id === selectedId) ?? null;
   const selectedCredit = selectedAccount?.credit ?? null;
+  const receiptAccount = receiptSelection
+    ? accounts.find((account) => account.id === receiptSelection.accountId) ?? null
+    : null;
+  const receiptPayment = receiptAccount && receiptSelection
+    ? receiptAccount.payments.find((payment) => payment.id === receiptSelection.paymentId) ?? null
+    : null;
+  const receiptBalanceAfter = receiptAccount && receiptPayment
+    ? getBalanceAfterPayment(receiptAccount.balance, receiptAccount.payments, receiptPayment.id)
+    : 0;
 
   const visibleCustomerId = selectedCustomer?.id ?? "";
   const visibleCreditId = selectedAccount?.id ?? "";
@@ -261,9 +276,16 @@ export function AdminCreditsManager({
       }
 
       if (selectedAccount.source === "CREDIT" && data.credit) {
+        const previousPaymentIds = new Set(selectedAccount.payments.map((payment) => payment.id));
+        const registeredPayment = data.credit.payments.find(
+          (payment: { id: string }) => !previousPaymentIds.has(payment.id),
+        );
         setCredits((current) =>
           current.map((credit) => (credit.id === data.credit.id ? data.credit : credit)),
         );
+        if (registeredPayment) {
+          setReceiptSelection({ accountId: selectedAccount.id, paymentId: registeredPayment.id });
+        }
       } else if (selectedAccount.source === "SALE" && data.payment) {
         setSales((current) =>
           current.map((sale) =>
@@ -279,6 +301,7 @@ export function AdminCreditsManager({
               : sale,
           ),
         );
+        setReceiptSelection({ accountId: selectedAccount.id, paymentId: data.payment.id });
       } else {
         throw new Error("No se pudo actualizar la cuenta después del abono.");
       }
@@ -436,6 +459,10 @@ export function AdminCreditsManager({
             onEdit={() => openCreditEditor(selectedCredit)}
             onLockedAction={showManagementNotice}
             onPayment={openPaymentModal}
+            onReceipt={(paymentId) => setReceiptSelection({
+              accountId: `credit:${selectedCredit.id}`,
+              paymentId,
+            })}
           />
         ) : null}
 
@@ -444,6 +471,10 @@ export function AdminCreditsManager({
             account={selectedAccount}
             paymentDisabled={saving || managingCredit}
             onPayment={openPaymentModal}
+            onReceipt={(paymentId) => setReceiptSelection({
+              accountId: selectedAccount.id,
+              paymentId,
+            })}
           />
         ) : null}
 
@@ -470,6 +501,15 @@ export function AdminCreditsManager({
           onNoteChange={setNote}
           onReferenceChange={setReference}
           onSubmit={handlePayment}
+        />
+      ) : null}
+
+      {receiptAccount && receiptPayment ? (
+        <AdminPaymentReceiptModal
+          account={receiptAccount}
+          balanceAfter={receiptBalanceAfter}
+          payment={receiptPayment}
+          onClose={() => setReceiptSelection(null)}
         />
       ) : null}
 

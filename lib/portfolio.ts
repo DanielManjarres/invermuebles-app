@@ -27,6 +27,8 @@ export type PortfolioPayment = {
   interestAmount: number | null;
   isInitial: boolean;
   createdAt: string;
+  createdAtISO: string;
+  userName: string;
 };
 
 export type PortfolioAccount = {
@@ -40,6 +42,7 @@ export type PortfolioAccount = {
   customerId: string;
   customerName: string;
   customerDocument: string;
+  customerPhone: string;
   saleId: string;
   saleShortId: string;
   shortId: string;
@@ -65,6 +68,8 @@ function mapCreditPayment(payment: AdminCreditPayment): PortfolioPayment {
     interestAmount: payment.interestAmount,
     isInitial: payment.isInitial,
     createdAt: payment.createdAt,
+    createdAtISO: payment.createdAtISO,
+    userName: payment.userName,
   };
 }
 
@@ -79,6 +84,8 @@ function mapSalePayment(payment: AdminSalePayment): PortfolioPayment {
     interestAmount: null,
     isInitial: payment.isInitial,
     createdAt: payment.createdAt,
+    createdAtISO: payment.createdAtISO,
+    userName: payment.userName,
   };
 }
 
@@ -102,6 +109,7 @@ export function buildPortfolioAccounts(
       customerId: credit.customerId,
       customerName: credit.customerName,
       customerDocument: credit.customerDocument,
+      customerPhone: credit.customerPhone,
       saleId: credit.saleId,
       saleShortId: credit.saleShortId,
       shortId: credit.shortId,
@@ -138,6 +146,8 @@ export function buildPortfolioAccounts(
           interestAmount: null,
           isInitial: true,
           createdAt: sale.createdAt,
+          createdAtISO: sale.createdAtISO,
+          userName: "Administrador",
         });
       }
 
@@ -152,6 +162,7 @@ export function buildPortfolioAccounts(
         customerId: sale.customerId,
         customerName: sale.customerName,
         customerDocument: sale.customerDocument,
+        customerPhone: sale.customerPhone,
         saleId: sale.id,
         saleShortId: sale.shortId,
         shortId: sale.shortId,

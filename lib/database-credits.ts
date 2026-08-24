@@ -29,6 +29,7 @@ function formatDate(date: Date) {
   return date.toLocaleString("es-CO", {
     dateStyle: "short",
     timeStyle: "short",
+    timeZone: "America/Bogota",
   });
 }
 

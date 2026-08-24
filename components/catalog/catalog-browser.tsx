@@ -142,8 +142,10 @@ export function CatalogBrowser({ mode = "public", products }: CatalogBrowserProp
           {paginatedProducts.map((product) => (
             <ProductCard
               key={product.id}
-              actionLabel="Agregar a venta"
-              detailActionLabel="Agregar a venta local"
+              actionLabel={isAdmin ? "Agregar a venta" : "Agregar al carrito"}
+              detailActionLabel={
+                isAdmin ? "Agregar a venta local" : "Agregar al carrito"
+              }
               onAdminSaleAdd={adminSaleCart.addProduct}
               product={product}
               showAdminSaleAction={isAdmin}
