@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
 import {
   type MovementType,
   type StockMovement,
@@ -15,6 +14,7 @@ import {
   type MovementDateFilter,
 } from "@/components/admin-movements/movement-filters";
 import { MovementList } from "@/components/admin-movements/movement-list";
+import { MovementCorrectionModal } from "@/components/admin-movements/movement-correction-modal";
 
 const allTypes = "all";
 const allProductTypes = "all";
@@ -263,63 +263,12 @@ export function AdminMovementsBrowser({
         onPageChange={setCurrentPage}
       />
 
-      {movementToCorrect ? (
-        <div className="modalOverlay" role="presentation">
-          <div className="adminModal recordDeleteModal">
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Correccion de registros</p>
-                <h2>Corregir movimiento</h2>
-              </div>
-              <button
-                aria-label="Cerrar confirmacion"
-                className="modalClose"
-                type="button"
-                onClick={() => setMovementToCorrect(null)}
-              >
-                x
-              </button>
-            </div>
-
-            <div className="recordDeleteWarning">
-              <Trash2 size={20} />
-              <p>
-                El registro original se conservara. El sistema creara un
-                movimiento inverso para devolver el stock al estado anterior.
-              </p>
-            </div>
-
-            <div className="recordDeleteTarget">
-              <span>Movimiento seleccionado</span>
-              <strong>{movementToCorrect.productName}</strong>
-              <small>
-                Stock {movementToCorrect.previousStock} -&gt; {movementToCorrect.nextStock}
-              </small>
-            </div>
-
-            <div className="modalActions">
-              <button
-                className="secondaryButton"
-                type="button"
-                onClick={() => setMovementToCorrect(null)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="dangerButton"
-                disabled={correctingMovementId === movementToCorrect.id}
-                type="button"
-                onClick={() => correctMovement(movementToCorrect)}
-              >
-                <Trash2 size={18} />
-                {correctingMovementId === movementToCorrect.id
-                  ? "Corrigiendo..."
-                  : "Confirmar correccion"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <MovementCorrectionModal
+        correcting={correctingMovementId === movementToCorrect?.id}
+        movement={movementToCorrect}
+        onCancel={() => setMovementToCorrect(null)}
+        onConfirm={correctMovement}
+      />
 
     </section>
   );
