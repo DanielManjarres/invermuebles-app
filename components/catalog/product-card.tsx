@@ -131,11 +131,13 @@ export function ProductCard({
           <div>
             <span className="tag">{product.catalogCategory || product.category}</span>
             <h2>{product.name}</h2>
-            <span className="reference">
-              {usesVariantSelection
-                ? selectedVariant?.reference ?? product.reference
-                : product.reference}
-            </span>
+            {usesVariantSelection ? (
+              selectedVariant ? (
+                <span className="reference">{selectedVariant.reference}</span>
+              ) : null
+            ) : (
+              <span className="reference">{product.reference}</span>
+            )}
             <p>{productSummary}</p>
           </div>
           <div className="productFooter">
