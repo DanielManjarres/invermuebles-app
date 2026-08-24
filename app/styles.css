@@ -2805,8 +2805,7 @@ th {
   min-width: 0;
 }
 
-.movementCorrectionLink,
-.movementArchiveLink {
+.movementCorrectionLink {
   align-items: center;
   background: transparent;
   border: 0;
@@ -2820,11 +2819,6 @@ th {
 
 .movementCorrectionLink {
   color: var(--green-dark);
-}
-
-.movementArchiveLink:hover {
-  color: #9b2924;
-  text-decoration: underline;
 }
 
 .movementCorrectionLink:hover {
