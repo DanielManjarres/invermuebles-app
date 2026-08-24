@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { Minus, PackageSearch, Plus, ReceiptText, Search, Trash2 } from "lucide-react";
 
-import { MoneyInput } from "@/components/admin-sales/form-controls";
-import { SelectMenu } from "@/components/select-menu";
+import { IntegerInput } from "@/components/ui/integer-input";
+import { MoneyInput } from "@/components/ui/money-input";
+import { SelectMenu } from "@/components/ui/select-menu";
 import type { Product, ProductInventoryVariant } from "@/lib/products";
 import {
   paymentMethodLabels,
@@ -80,41 +81,6 @@ function formatMoney(value: number) {
     style: "currency",
     currency: "COP",
   }).format(value);
-}
-
-function QuantityInput({
-  max,
-  value,
-  onValueChange,
-}: {
-  max: number;
-  value: number;
-  onValueChange: (value: number) => void;
-}) {
-  const [textValue, setTextValue] = useState(String(value));
-
-  useEffect(() => setTextValue(String(value)), [value]);
-
-  function handleChange(nextValue: string) {
-    const digits = nextValue.replace(/\D/g, "");
-    setTextValue(digits);
-    if (digits) onValueChange(Math.min(Math.max(1, Number(digits)), max));
-  }
-
-  return (
-    <input
-      aria-label="Cantidad"
-      inputMode="numeric"
-      type="text"
-      value={textValue}
-      onBlur={() => {
-        const nextQuantity = textValue ? Math.min(Math.max(1, Number(textValue)), max) : 1;
-        onValueChange(nextQuantity);
-        setTextValue(String(nextQuantity));
-      }}
-      onChange={(event) => handleChange(event.target.value)}
-    />
-  );
 }
 
 function FlexibleNumberInput({
@@ -211,7 +177,16 @@ export function AdminLocalSaleForm(props: Props) {
             <div className="saleCartProductInfo"><strong>{item.product.name}{item.variant ? ` · ${item.variant.name}` : ""}</strong><span>{item.variant?.reference ?? item.product.reference} · Base {formatMoney(item.variant?.salePrice ?? item.product.salePrice)}</span></div>
             <div className="saleQuantityBlock"><span>Cantidad</span><div className="quantityControl" aria-label="Cambiar cantidad">
               <button className="quantityButton" type="button" disabled={item.quantity === 1} onClick={() => onUpdateQuantity(item.lineId, item.quantity - 1)}><Minus size={16} /></button>
-              <QuantityInput max={item.variant?.stock ?? item.product.stock} value={item.quantity} onValueChange={(quantity) => onUpdateQuantity(item.lineId, quantity)} />
+              <IntegerInput
+                allowEmpty={false}
+                ariaLabel="Cantidad"
+                max={item.variant?.stock ?? item.product.stock}
+                min={1}
+                value={item.quantity}
+                onValueChange={(quantity) => {
+                  if (quantity !== "") onUpdateQuantity(item.lineId, quantity);
+                }}
+              />
               <button className="quantityButton" type="button" disabled={item.quantity >= (item.variant?.stock ?? item.product.stock)} onClick={() => onUpdateQuantity(item.lineId, item.quantity + 1)}><Plus size={16} /></button>
             </div></div>
             <label className="salePriceField">Precio vendido<MoneyInput value={item.unitPrice} onValueChange={(value) => onUnitPriceChange(item.lineId, value)} /></label>

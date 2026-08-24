@@ -10,14 +10,14 @@ import {
   Trash2,
 } from "lucide-react";
 import type { Product } from "@/lib/products";
-import { ProductCard } from "@/components/product-card";
+import { ProductCard } from "@/components/catalog/product-card";
 import {
   ALL_CATALOG_CATEGORIES,
   filterCatalogProducts,
   getCatalogCategory,
 } from "@/lib/catalog-filter";
 import { whatsappUrl } from "@/lib/company";
-import { useAdminSaleCart } from "@/components/use-admin-sale-cart";
+import { useAdminSaleCart } from "@/components/admin-sales/use-admin-sale-cart";
 
 type CatalogBrowserProps = {
   mode?: "public" | "admin";

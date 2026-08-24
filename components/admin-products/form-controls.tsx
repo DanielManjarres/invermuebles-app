@@ -1,5 +1,7 @@
 "use client";
 
+import { MoneyInput } from "@/components/ui/money-input";
+
 export function ProductMoneyField({
   label,
   onChange,
@@ -14,16 +16,13 @@ export function ProductMoneyField({
   return (
     <label>
       {label}{required ? " *" : ""}
-      <input
-        inputMode="numeric"
-        onChange={(event) => {
-          const digits = event.target.value.replace(/\D/g, "");
-          onChange(digits ? Number(digits) : 0);
-        }}
+      <MoneyInput
+        ariaLabel={label}
+        currencyPrefix
+        onValueChange={onChange}
         placeholder="Ej: 1.500.000"
         required={required}
-        type="text"
-        value={value ? `$ ${value.toLocaleString("es-CO")}` : ""}
+        value={value}
       />
     </label>
   );

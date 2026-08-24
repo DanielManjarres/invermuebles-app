@@ -1,8 +1,9 @@
 import type { FormEvent } from "react";
 import { Trash2 } from "lucide-react";
 
-import { MoneyInput, paymentOptions } from "@/components/admin-credits/form-controls";
-import { SelectMenu } from "@/components/select-menu";
+import { paymentOptions } from "@/components/admin-credits/form-controls";
+import { MoneyInput } from "@/components/ui/money-input";
+import { SelectMenu } from "@/components/ui/select-menu";
 import type { AdminCredit, PaymentMethod } from "@/lib/credits";
 
 type CreditStatus = "ACTIVE" | "OVERDUE";
@@ -107,7 +108,7 @@ export function AdminCreditManagementModals({
                 <MoneyInput
                   id="edit-initial-payment"
                   value={editInitialPayment}
-                  onChange={onEditInitialPaymentChange}
+                  onValueChange={onEditInitialPaymentChange}
                 />
               </label>
               <label>

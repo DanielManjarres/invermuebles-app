@@ -1,5 +1,5 @@
 import { Check, ShoppingCart, X } from "lucide-react";
-import { SelectMenu } from "@/components/select-menu";
+import { SelectMenu } from "@/components/ui/select-menu";
 import type { Product, ProductInventoryVariant } from "@/lib/products";
 
 type ProductDetailModalProps = {

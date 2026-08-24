@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { ArrowLeft, Minus, Plus, Send, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { useCart } from "@/components/use-cart";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { useCart } from "@/components/cart/use-cart";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 import { whatsappUrl } from "@/lib/company";
 
 function summarizeDetails(details?: string) {
@@ -61,6 +61,11 @@ export default function CartPage() {
 
     setIsSending(true);
     setFeedback("");
+    const whatsappWindow = window.open("about:blank", "_blank");
+
+    if (whatsappWindow) {
+      whatsappWindow.opener = null;
+    }
 
     try {
       const response = await fetch("/api/orders", {
@@ -80,15 +85,22 @@ export default function CartPage() {
       };
 
       if (!response.ok || !result.id) {
+        whatsappWindow?.close();
         setFeedback(result.message ?? "No se pudo registrar el pedido.");
         return;
       }
 
       const cartWhatsappUrl = `${whatsappUrl}?text=${buildWhatsappMessage(result.id)}`;
-      window.open(cartWhatsappUrl, "_blank", "noopener,noreferrer");
+      if (whatsappWindow) {
+        whatsappWindow.location.href = cartWhatsappUrl;
+      } else {
+        window.open(cartWhatsappUrl, "_blank", "noopener,noreferrer");
+      }
       setSentOrderId(result.id);
       setFeedback("Pedido registrado. Se abrió WhatsApp para continuar la atención.");
+      clearCart();
     } catch {
+      whatsappWindow?.close();
       setFeedback("No se pudo conectar con el sistema. Intenta de nuevo.");
     } finally {
       setIsSending(false);
@@ -108,8 +120,16 @@ export default function CartPage() {
       <section className="cartLayout">
         {items.length === 0 ? (
           <div className="emptyState">
-            <h2>No hay productos seleccionados</h2>
-            <p>Agrega productos desde el catálogo para crear una solicitud.</p>
+            <h2>
+              {orderAlreadySent
+                ? `Pedido #${sentOrderId.slice(-6).toUpperCase()} registrado`
+                : "No hay productos seleccionados"}
+            </h2>
+            <p>
+              {orderAlreadySent
+                ? feedback
+                : "Agrega productos desde el catálogo para crear una solicitud."}
+            </p>
             <Link className="primaryButton" href="/catalogo">
               Ir al catálogo
             </Link>
@@ -151,6 +171,10 @@ export default function CartPage() {
                         className="quantityButton"
                         type="button"
                         aria-label="Subir cantidad"
+                        disabled={
+                          item.availableStock !== undefined &&
+                          item.quantity >= item.availableStock
+                        }
                         onClick={() =>
                           handleCartChange(() => increaseItemQuantity(item.id))
                         }

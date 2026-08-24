@@ -10,7 +10,7 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
-import { SelectMenu, type SelectMenuOption } from "@/components/select-menu";
+import { SelectMenu, type SelectMenuOption } from "@/components/ui/select-menu";
 import { canEditOrderCustomer } from "@/lib/order-policy";
 import { canTransitionOrderStatus } from "@/lib/order-status-policy";
 import {

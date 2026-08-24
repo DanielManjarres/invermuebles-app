@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { X } from "lucide-react";
-import { SelectMenu } from "@/components/select-menu";
+import { SelectMenu } from "@/components/ui/select-menu";
+import { IntegerInput } from "@/components/ui/integer-input";
 import type { InventoryItem } from "@/components/admin-inventory/inventory-groups";
 import {
   movementLabels,
@@ -100,15 +101,14 @@ export function StockMovementModal({
         <div className="adminFormGrid movementFormGrid">
           <label>
             {form.type === "adjustment" ? "Cantidad real contada" : "Cantidad"}
-            <input
+            <IntegerInput
               autoFocus
-              min={form.type === "adjustment" ? "0" : "1"}
-              required
-              type="number"
-              value={form.quantity}
-              onChange={(event) =>
-                onFormChange({ ...form, quantity: event.target.value })
+              min={form.type === "adjustment" ? 0 : 1}
+              onValueChange={(quantity) =>
+                onFormChange({ ...form, quantity: quantity === "" ? "" : String(quantity) })
               }
+              required
+              value={form.quantity === "" ? "" : Number(form.quantity)}
             />
           </label>
           <label>

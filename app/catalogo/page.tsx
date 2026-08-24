@@ -1,6 +1,6 @@
-import { CatalogBrowser } from "@/components/catalog-browser";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { CatalogBrowser } from "@/components/catalog/catalog-browser";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { getProducts } from "@/lib/database-products";
 
 export const dynamic = "force-dynamic";

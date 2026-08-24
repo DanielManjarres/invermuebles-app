@@ -1,8 +1,8 @@
 import type { FormEvent } from "react";
 import { PackageCheck, RotateCcw, Trash2 } from "lucide-react";
 
-import { MoneyInput } from "@/components/admin-sales/form-controls";
-import { SelectMenu } from "@/components/select-menu";
+import { MoneyInput } from "@/components/ui/money-input";
+import { SelectMenu } from "@/components/ui/select-menu";
 import { paymentMethodLabels, type AdminSale, type PaymentMethod } from "@/lib/sales";
 
 type Props = {

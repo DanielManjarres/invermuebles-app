@@ -1,6 +1,6 @@
 import { AdminSalesManager } from "@/components/admin-sales/admin-sales-manager";
-import { LogoutButton } from "@/components/logout-button";
-import { SiteHeader } from "@/components/site-header";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { SiteHeader } from "@/components/layout/site-header";
 import { getCustomers } from "@/lib/database-customers";
 import { getOrders, getProducts } from "@/lib/database-products";
 import { getSales } from "@/lib/database-sales";

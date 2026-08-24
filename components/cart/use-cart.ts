@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 export type CartItem = {
+  availableStock?: number;
   category?: string;
   details?: string;
   id: string;
@@ -61,11 +62,15 @@ export function useCart() {
     const existingItem = currentItems.find((cartItem) => cartItem.id === item.id);
 
     if (existingItem) {
-      const nextQuantity = existingItem.quantity + 1;
+      const availableStock = item.availableStock ?? existingItem.availableStock;
+      const nextQuantity = availableStock !== undefined && availableStock > 0
+        ? Math.min(existingItem.quantity + 1, availableStock)
+        : existingItem.quantity;
       const nextItems = currentItems.map((cartItem) =>
         cartItem.id === item.id
           ? {
               ...cartItem,
+              ...item,
               quantity: nextQuantity,
             }
           : cartItem,
@@ -101,7 +106,11 @@ export function useCart() {
       item.id === id
         ? {
             ...item,
-            quantity: item.quantity + 1,
+            quantity: item.availableStock !== undefined && item.availableStock > 0
+              ? Math.min(item.quantity + 1, item.availableStock)
+              : item.availableStock === undefined
+                ? item.quantity + 1
+                : item.quantity,
           }
         : item,
     );
