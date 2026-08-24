@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Printer, X } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { company } from "@/lib/company";
 import { getPaymentReceiptNumber } from "@/lib/payment-receipt";
@@ -21,7 +22,11 @@ function formatMoney(value: number) {
 export function AdminPaymentReceiptModal({ account, balanceAfter, onClose, payment }: Props) {
   const receiptNumber = getPaymentReceiptNumber(payment.id);
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <div className="adminModalBackdrop paymentReceiptBackdrop" role="presentation">
       <section
         aria-labelledby="payment-receipt-title"
@@ -120,6 +125,7 @@ export function AdminPaymentReceiptModal({ account, balanceAfter, onClose, payme
           </footer>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

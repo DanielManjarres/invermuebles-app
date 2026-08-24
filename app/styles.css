@@ -5840,28 +5840,26 @@ th {
 
 @media print {
   @page { margin: 7mm; size: 5.5in 8.5in; }
-  body { background: white !important; }
-  body * { visibility: hidden !important; }
-  .paymentReceiptBackdrop,
-  .paymentReceiptBackdrop * { visibility: visible !important; }
+  html,
+  body { background: white !important; height: auto !important; min-height: 0 !important; }
+  body > :not(.paymentReceiptBackdrop) { display: none !important; }
   .paymentReceiptBackdrop {
     background: white !important;
-    inset: 0;
+    display: block;
+    inset: auto;
     overflow: visible;
     padding: 0;
-    position: absolute;
+    position: static;
   }
   .paymentReceiptModal {
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    left: 0;
     max-height: none;
     max-width: none;
     overflow: visible;
     padding: 0;
-    position: absolute;
-    top: 0;
+    position: static;
     width: 100%;
   }
   .paymentReceiptActions { display: none !important; }
