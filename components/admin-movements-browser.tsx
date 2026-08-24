@@ -1,10 +1,8 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
-  Check,
-  ChevronDown,
   Layers3,
   PackageSearch,
   Search,
@@ -17,6 +15,10 @@ import {
   type StockMovement,
 } from "@/lib/stock-movements";
 import { isProtectedStockMovement } from "@/lib/stock-movement-policy";
+import {
+  MovementFilterMenu,
+  type MovementFilterOption,
+} from "@/components/admin-movements/movement-filter-menu";
 
 const allTypes = "all";
 const allProductTypes = "all";
@@ -24,11 +26,6 @@ const allProducts = "all";
 const movementsPerPage = 8;
 
 type DateFilter = "all" | "today" | "week" | "month";
-
-type FilterOption = {
-  label: string;
-  value: string;
-};
 
 const dateFilters: Array<{ label: string; value: DateFilter }> = [
   { label: "Todas las fechas", value: "all" },
@@ -59,62 +56,6 @@ function matchesDateFilter(movement: StockMovement, filter: DateFilter) {
 
   startDate.setDate(today.getDate() - (filter === "week" ? 7 : 30));
   return movementDate >= startDate;
-}
-
-type FilterMenuProps = {
-  icon: ReactNode;
-  isOpen: boolean;
-  label: string;
-  onSelect: (value: string) => void;
-  onToggle: () => void;
-  options: FilterOption[];
-  value: string;
-};
-
-function FilterMenu({
-  icon,
-  isOpen,
-  label,
-  onSelect,
-  onToggle,
-  options,
-  value,
-}: FilterMenuProps) {
-  const selectedOption =
-    options.find((option) => option.value === value) ?? options[0];
-
-  return (
-    <label className="filterMenuLabel">
-      <span>{label}</span>
-      <div className={isOpen ? "filterMenu open" : "filterMenu"}>
-        <button className="filterMenuButton" type="button" onClick={onToggle}>
-          {icon}
-          <span>{selectedOption.label}</span>
-          <ChevronDown size={16} />
-        </button>
-
-        {isOpen ? (
-          <div className="filterMenuList" role="listbox">
-            {options.map((option) => (
-              <button
-                className={
-                  option.value === value
-                    ? "filterMenuOption active"
-                    : "filterMenuOption"
-                }
-                key={option.value}
-                type="button"
-                onClick={() => onSelect(option.value)}
-              >
-                <span>{option.label}</span>
-                {option.value === value ? <Check size={15} /> : null}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </label>
-  );
 }
 
 function getSignedQuantity(movement: StockMovement) {
@@ -211,7 +152,7 @@ export function AdminMovementsBrowser({
     [movements]
   );
 
-  const productTypeOptions = useMemo<FilterOption[]>(
+  const productTypeOptions = useMemo<MovementFilterOption[]>(
     () => [
       { label: "Todos", value: allProductTypes },
       ...productTypes.map((type) => ({ label: type, value: type })),
@@ -219,7 +160,7 @@ export function AdminMovementsBrowser({
     [productTypes]
   );
 
-  const productOptions = useMemo<FilterOption[]>(
+  const productOptions = useMemo<MovementFilterOption[]>(
     () => [
       { label: "Todos", value: allProducts },
       ...products.map((product) => ({ label: product, value: product })),
@@ -392,7 +333,7 @@ export function AdminMovementsBrowser({
           />
         ) : null}
 
-        <FilterMenu
+        <MovementFilterMenu
           icon={<Layers3 size={17} />}
           isOpen={openFilter === "productType"}
           label="Tipo"
@@ -407,7 +348,7 @@ export function AdminMovementsBrowser({
           }}
         />
 
-        <FilterMenu
+        <MovementFilterMenu
           icon={<CalendarDays size={17} />}
           isOpen={openFilter === "date"}
           label="Fecha"
@@ -420,7 +361,7 @@ export function AdminMovementsBrowser({
           }}
         />
 
-        <FilterMenu
+        <MovementFilterMenu
           icon={<PackageSearch size={17} />}
           isOpen={openFilter === "product"}
           label="Producto"
