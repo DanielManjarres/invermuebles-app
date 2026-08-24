@@ -40,13 +40,9 @@ async function mutateTaxonomy(
 export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
-  const [productTypeCategoryId, setProductTypeCategoryId] = useState(
-    categories[0]?.id ?? "",
-  );
-  const [productTypeId, setProductTypeId] = useState(
-    categories[0]?.productTypes[0]?.id ?? "",
-  );
+  const [categoryId, setCategoryId] = useState("");
+  const [productTypeCategoryId, setProductTypeCategoryId] = useState("");
+  const [productTypeId, setProductTypeId] = useState("");
   const [categoryName, setCategoryName] = useState("");
   const [productTypeName, setProductTypeName] = useState("");
   const [attributeName, setAttributeName] = useState("");
@@ -177,6 +173,21 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
     );
   }
 
+  function toggleConfiguration() {
+    if (isOpen) {
+      setIsOpen(false);
+      return;
+    }
+
+    setCategoryId("");
+    setProductTypeCategoryId("");
+    setProductTypeId("");
+    setAttributeType("");
+    setOptionAttributeId("");
+    setError("");
+    setIsOpen(true);
+  }
+
   return (
     <section className="tableSection catalogTaxonomySection">
       <div className="catalogTaxonomyToggle">
@@ -188,7 +199,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
         <button
           className="secondaryButton"
           type="button"
-          onClick={() => setIsOpen((current) => !current)}
+          onClick={toggleConfiguration}
         >
           <Settings2 size={17} />
           {isOpen ? "Cerrar configuración" : "Administrar estructura"}
@@ -217,11 +228,9 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
             categoryOptions={categoryOptions}
             isSaving={isSaving}
             onCategoryChange={(value) => {
-              const nextCategory = categories.find(
-                (category) => category.id === value,
-              );
               setCategoryId(value);
-              setProductTypeId(nextCategory?.productTypes[0]?.id ?? "");
+              setProductTypeId("");
+              setOptionAttributeId("");
             }}
             onDelete={setDeleteTarget}
             onEdit={openEdit}
