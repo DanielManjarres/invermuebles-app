@@ -98,6 +98,13 @@ export async function POST(request: Request) {
             throw new Error("VARIANT_PRODUCT_MISMATCH");
           }
 
+          if (!variant) {
+            const variantCount = await tx.productVariant.count({
+              where: { productId: product.id },
+            });
+            if (variantCount > 0) throw new Error("VARIANT_REQUIRED");
+          }
+
           const previousStock = variant?.stock ?? product.stock;
           const nextStock = calculateNextStock(
             previousStock,
@@ -195,6 +202,13 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { message: "La variante no pertenece al producto indicado." },
+        { status: 400 }
+      );
+    }
+
+    if (error instanceof Error && error.message === "VARIANT_REQUIRED") {
+      return NextResponse.json(
+        { message: "Selecciona la variante que recibirá el movimiento." },
         { status: 400 }
       );
     }

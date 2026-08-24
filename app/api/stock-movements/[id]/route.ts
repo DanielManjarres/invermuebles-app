@@ -2,54 +2,9 @@ import { StockMovementType, UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { isProtectedStockMovement } from "@/lib/stock-movement-policy";
 
 type RouteContext = { params: Promise<{ id: string }> };
-
-function isSaleMovement(reason: string, note: string | null) {
-  return (
-    reason.startsWith("Venta ") ||
-    reason === "Venta desde pedido confirmado" ||
-    reason === "Devolucion por anulacion de venta" ||
-    note?.includes("Venta ") === true
-  );
-}
-
-export async function PATCH(_request: Request, context: RouteContext) {
-  const unauthorized = await requireAdminSession();
-  if (unauthorized) {
-    return unauthorized;
-  }
-
-  const { id } = await context.params;
-  const movement = await prisma.stockMovement.findUnique({
-    where: { id },
-    select: { id: true, archivedAt: true },
-  });
-
-  if (!movement) {
-    return NextResponse.json(
-      { message: "No se encontro el movimiento." },
-      { status: 404 }
-    );
-  }
-
-  if (movement.archivedAt) {
-    return NextResponse.json({
-      id: movement.id,
-      message: "El movimiento ya estaba retirado del historial visible.",
-    });
-  }
-
-  await prisma.stockMovement.update({
-    where: { id: movement.id },
-    data: { archivedAt: new Date() },
-  });
-
-  return NextResponse.json({
-    id: movement.id,
-    message: "Movimiento eliminado del historial visible. El stock no cambio.",
-  });
-}
 
 export async function DELETE(_request: Request, context: RouteContext) {
   const unauthorized = await requireAdminSession();
@@ -82,11 +37,11 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   }
 
-  if (isSaleMovement(movement.reason, movement.note)) {
+  if (isProtectedStockMovement(movement)) {
     return NextResponse.json(
       {
         message:
-          "Los movimientos relacionados con ventas no se eliminan. Anula la venta para registrar la devolucion correctamente.",
+          "Los movimientos automáticos no se corrigen manualmente. Gestiona la operación que los originó para conservar el historial.",
       },
       { status: 409 }
     );

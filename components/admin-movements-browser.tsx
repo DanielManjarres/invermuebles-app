@@ -16,6 +16,7 @@ import {
   type MovementType,
   type StockMovement,
 } from "@/lib/stock-movements";
+import { isProtectedStockMovement } from "@/lib/stock-movement-policy";
 
 const allTypes = "all";
 const allProductTypes = "all";
@@ -129,14 +130,7 @@ function getSignedQuantity(movement: StockMovement) {
 }
 
 function canCorrectMovement(movement: StockMovement) {
-  return (
-    !movement.reason.startsWith("Venta ") &&
-    movement.reason !== "Venta desde pedido confirmado" &&
-    movement.reason !== "Devolucion por anulacion de venta" &&
-    !movement.reason.startsWith("Correccion de movimiento") &&
-    !movement.note?.includes("Venta ") &&
-    !movement.note?.includes("Se corrigio el movimiento")
-  );
+  return !isProtectedStockMovement(movement);
 }
 
 type AdminMovementsBrowserProps = {
@@ -158,10 +152,7 @@ export function AdminMovementsBrowser({
   const [currentPage, setCurrentPage] = useState(1);
   const [movementToCorrect, setMovementToCorrect] =
     useState<StockMovement | null>(null);
-  const [movementToArchive, setMovementToArchive] =
-    useState<StockMovement | null>(null);
   const [correctingMovementId, setCorrectingMovementId] = useState("");
-  const [archivingMovementId, setArchivingMovementId] = useState("");
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -321,33 +312,6 @@ export function AdminMovementsBrowser({
       setNotice("No se pudo conectar con el sistema.");
     } finally {
       setCorrectingMovementId("");
-    }
-  }
-
-  async function archiveMovement(movement: StockMovement) {
-    setArchivingMovementId(movement.id);
-
-    try {
-      const response = await fetch(`/api/stock-movements/${movement.id}`, {
-        method: "PATCH",
-      });
-      const result = (await response.json()) as { message?: string };
-
-      if (!response.ok) {
-        setNotice(result.message ?? "No se pudo eliminar el movimiento del historial.");
-        setMovementToArchive(null);
-        return;
-      }
-
-      setMovements((currentMovements) =>
-        currentMovements.filter((currentMovement) => currentMovement.id !== movement.id)
-      );
-      setMovementToArchive(null);
-      setNotice(result.message ?? "Movimiento eliminado del historial visible.");
-    } catch {
-      setNotice("No se pudo conectar con el sistema.");
-    } finally {
-      setArchivingMovementId("");
     }
   }
 
@@ -545,16 +509,6 @@ export function AdminMovementsBrowser({
                         Corregir
                       </button>
                     ) : null}
-                    <button
-                      aria-label="Eliminar del historial"
-                      className="movementArchiveLink"
-                      title="Eliminar del historial"
-                      type="button"
-                      onClick={() => setMovementToArchive(movement)}
-                    >
-                      <Trash2 size={13} />
-                      Eliminar
-                    </button>
                   </div>
                 </dl>
 
@@ -650,63 +604,6 @@ export function AdminMovementsBrowser({
         </div>
       ) : null}
 
-      {movementToArchive ? (
-        <div className="modalOverlay" role="presentation">
-          <div className="adminModal recordDeleteModal">
-            <div className="modalHeader">
-              <div>
-                <p className="eyebrow">Administracion del historial</p>
-                <h2>Eliminar movimiento</h2>
-              </div>
-              <button
-                aria-label="Cerrar confirmacion"
-                className="modalClose"
-                type="button"
-                onClick={() => setMovementToArchive(null)}
-              >
-                x
-              </button>
-            </div>
-
-            <div className="recordDeleteWarning">
-              <Trash2 size={20} />
-              <p>
-                El movimiento desaparecera del historial visible, pero se
-                conservara en el sistema. Esta accion no cambia el stock.
-              </p>
-            </div>
-
-            <div className="recordDeleteTarget">
-              <span>Movimiento seleccionado</span>
-              <strong>{movementToArchive.productName}</strong>
-              <small>
-                {movementToArchive.reason} - Stock {movementToArchive.previousStock} -&gt; {movementToArchive.nextStock}
-              </small>
-            </div>
-
-            <div className="modalActions">
-              <button
-                className="secondaryButton"
-                type="button"
-                onClick={() => setMovementToArchive(null)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="dangerButton"
-                disabled={archivingMovementId === movementToArchive.id}
-                type="button"
-                onClick={() => archiveMovement(movementToArchive)}
-              >
-                <Trash2 size={18} />
-                {archivingMovementId === movementToArchive.id
-                  ? "Eliminando..."
-                  : "Eliminar del historial"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
