@@ -1,4 +1,4 @@
-import { AdminMovementsBrowser } from "@/components/admin-movements-browser";
+import { AdminMovementsBrowser } from "@/components/admin-movements/admin-movements-browser";
 import { LogoutButton } from "@/components/logout-button";
 import { SiteHeader } from "@/components/site-header";
 import { getStockMovements } from "@/lib/database-products";
