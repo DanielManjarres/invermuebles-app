@@ -1,4 +1,4 @@
-import { Pencil, Trash2, UserRound, WalletCards } from "lucide-react";
+import { Pencil, ReceiptText, Trash2, UserRound, WalletCards } from "lucide-react";
 
 import type { AdminCredit } from "@/lib/credits";
 
@@ -11,6 +11,7 @@ type Props = {
   onEdit: () => void;
   onLockedAction: () => void;
   onPayment: () => void;
+  onReceipt: (paymentId: string) => void;
   paymentDisabled: boolean;
 };
 
@@ -27,6 +28,7 @@ export function AdminCreditDetail({
   onEdit,
   onLockedAction,
   onPayment,
+  onReceipt,
   paymentDisabled,
 }: Props) {
   return (
@@ -149,6 +151,14 @@ export function AdminCreditDetail({
               </div>
               {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
               {payment.note ? <small>{payment.note}</small> : null}
+              <button
+                className="secondaryButton paymentReceiptButton"
+                type="button"
+                onClick={() => onReceipt(payment.id)}
+              >
+                <ReceiptText size={16} />
+                Ver recibo
+              </button>
             </article>
           ))
         )}

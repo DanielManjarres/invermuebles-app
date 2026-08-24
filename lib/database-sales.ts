@@ -7,6 +7,9 @@ const saleInclude = {
   credit: true,
   order: true,
   payments: {
+    include: {
+      user: true,
+    },
     orderBy: { createdAt: "asc" },
   },
   items: {
@@ -60,6 +63,7 @@ function mapSale(sale: SaleWithRelations): AdminSale {
     customerId: sale.customerId ?? "",
     customerName: sale.customer?.fullName ?? "Venta sin cliente registrado",
     customerDocument: sale.customer?.document ?? "",
+    customerPhone: sale.customer?.phone ?? "",
     orderId: sale.orderId ?? "",
     orderShortId: sale.orderId ? sale.orderId.slice(-6).toUpperCase() : "",
     source: sale.source,
@@ -90,6 +94,8 @@ function mapSale(sale: SaleWithRelations): AdminSale {
       note: payment.note ?? "",
       isInitial: payment.isInitial,
       createdAt: formatDate(payment.createdAt),
+      createdAtISO: payment.createdAt.toISOString(),
+      userName: payment.user?.name ?? "Administrador",
     })),
   };
 }
