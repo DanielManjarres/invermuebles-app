@@ -19,6 +19,7 @@ import {
   MovementFilterMenu,
   type MovementFilterOption,
 } from "@/components/admin-movements/movement-filter-menu";
+import { MovementOverview } from "@/components/admin-movements/movement-overview";
 
 const allTypes = "all";
 const allProductTypes = "all";
@@ -258,34 +259,7 @@ export function AdminMovementsBrowser({
 
   return (
     <section className="tableSection movementSection">
-      <div className="sectionHeader movementSectionHeader">
-        <div>
-          <p className="eyebrow">Historial interno</p>
-          <h2>Movimientos de inventario</h2>
-          <p className="sectionLead">
-            Revisa las entradas, salidas y ajustes realizados sobre el stock.
-          </p>
-        </div>
-      </div>
-
-      <div className="movementSummaryGrid" aria-label="Resumen de movimientos">
-        <article>
-          <span>Total movimientos</span>
-          <strong>{movementStats.total}</strong>
-        </article>
-        <article>
-          <span>Entradas</span>
-          <strong>{movementStats.entry}</strong>
-        </article>
-        <article>
-          <span>Salidas</span>
-          <strong>{movementStats.exit}</strong>
-        </article>
-        <article>
-          <span>Ajustes</span>
-          <strong>{movementStats.adjustment}</strong>
-        </article>
-      </div>
+      <MovementOverview stats={movementStats} />
 
       <div className="inventoryToolbar movementToolbar">
         <label className="searchBox">
