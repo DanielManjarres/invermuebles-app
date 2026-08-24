@@ -8,7 +8,8 @@ import type {
   CatalogProductVariant,
 } from "@/lib/catalog-products";
 import { ProductMoneyField } from "@/components/admin-products/form-controls";
-import { SelectMenu } from "@/components/select-menu";
+import { IntegerInput } from "@/components/ui/integer-input";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type VariantFormModalProps = {
   onClose: () => void;
@@ -174,12 +175,14 @@ export function VariantFormModal({
           {!isEditing ? (
             <label>
               Stock inicial
-              <input
+              <IntegerInput
+                allowEmpty={false}
                 min={0}
+                onValueChange={(stock) => {
+                  if (stock !== "") updateForm({ stock });
+                }}
                 required
-                type="number"
                 value={form.stock}
-                onChange={(event) => updateForm({ stock: Number(event.target.value) })}
               />
             </label>
           ) : (
@@ -190,14 +193,14 @@ export function VariantFormModal({
           )}
           <label>
             Stock mínimo
-            <input
+            <IntegerInput
+              allowEmpty={false}
               min={0}
+              onValueChange={(minimumStock) => {
+                if (minimumStock !== "") updateForm({ minimumStock });
+              }}
               required
-              type="number"
               value={form.minimumStock}
-              onChange={(event) =>
-                updateForm({ minimumStock: Number(event.target.value) })
-              }
             />
           </label>
           <label>

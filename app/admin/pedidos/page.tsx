@@ -1,6 +1,6 @@
 import { AdminOrdersBrowser } from "@/components/admin-orders/admin-orders-browser";
-import { LogoutButton } from "@/components/logout-button";
-import { SiteHeader } from "@/components/site-header";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { SiteHeader } from "@/components/layout/site-header";
 import { getCustomers } from "@/lib/database-customers";
 import { getOrders } from "@/lib/database-products";
 

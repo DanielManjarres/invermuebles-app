@@ -3,9 +3,9 @@
 import { Check, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/products";
-import { ProductDetailModal } from "@/components/product-card/product-detail-modal";
-import { useCart } from "@/components/use-cart";
-import type { AdminSaleCartResult } from "@/components/use-admin-sale-cart";
+import { ProductDetailModal } from "@/components/catalog/product-detail-modal";
+import { useCart } from "@/components/cart/use-cart";
+import type { AdminSaleCartResult } from "@/components/admin-sales/use-admin-sale-cart";
 
 type ProductCardProps = {
   actionLabel?: string;
@@ -90,6 +90,7 @@ export function ProductCard({
     }
 
     const result = addItem({
+      availableStock: selectedVariant?.stock ?? product.stock,
       category: product.catalogCategory || product.category,
       details: product.details,
       id: selectedVariant?.id ?? product.id,

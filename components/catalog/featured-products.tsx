@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Product } from "@/lib/products";
-import { ProductCard } from "@/components/product-card";
+import { ProductCard } from "@/components/catalog/product-card";
 
 type FeaturedProductsProps = {
   products: Product[];

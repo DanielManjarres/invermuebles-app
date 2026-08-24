@@ -1,5 +1,5 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
-import { SelectMenu } from "@/components/select-menu";
+import { SelectMenu } from "@/components/ui/select-menu";
 import { customerStatusLabels, type AdminCustomer } from "@/lib/customers";
 
 export type CustomerFormState = {

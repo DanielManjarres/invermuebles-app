@@ -1,8 +1,8 @@
 import { ArrowRight, MessageCircle, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { FeaturedProducts } from "@/components/featured-products";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { FeaturedProducts } from "@/components/catalog/featured-products";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { company, whatsappUrl } from "@/lib/company";
 import { getProducts } from "@/lib/database-products";
 

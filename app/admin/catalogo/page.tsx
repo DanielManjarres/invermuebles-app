@@ -1,6 +1,6 @@
-import { CatalogBrowser } from "@/components/catalog-browser";
-import { LogoutButton } from "@/components/logout-button";
-import { SiteHeader } from "@/components/site-header";
+import { CatalogBrowser } from "@/components/catalog/catalog-browser";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { SiteHeader } from "@/components/layout/site-header";
 import { getProducts } from "@/lib/database-products";
 
 export const dynamic = "force-dynamic";

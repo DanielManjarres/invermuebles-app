@@ -1,8 +1,9 @@
 import type { FormEvent } from "react";
 import { WalletCards } from "lucide-react";
 
-import { MoneyInput, paymentOptions } from "@/components/admin-credits/form-controls";
-import { SelectMenu } from "@/components/select-menu";
+import { paymentOptions } from "@/components/admin-credits/form-controls";
+import { MoneyInput } from "@/components/ui/money-input";
+import { SelectMenu } from "@/components/ui/select-menu";
 import type { PaymentMethod } from "@/lib/credits";
 import type { PortfolioAccount } from "@/lib/portfolio";
 
@@ -71,7 +72,12 @@ export function AdminCreditPaymentModal({
         <div className="creditPaymentFields">
           <label>
             Valor recibido
-            <MoneyInput id="payment-amount" value={amount} onChange={onAmountChange} />
+            <MoneyInput
+              id="payment-amount"
+              onValueChange={onAmountChange}
+              placeholder="Ej: 100.000"
+              value={amount}
+            />
           </label>
           <label>
             Medio

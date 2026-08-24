@@ -1,11 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  sessionCookieName,
+  verifyAdminSessionToken,
+} from "@/lib/admin-session-token";
 
-const sessionCookie = "invermuebles_session";
-const sessionValue = "admin-authenticated";
-
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasSession = request.cookies.get(sessionCookie)?.value === sessionValue;
+  const hasSession = await verifyAdminSessionToken(
+    request.cookies.get(sessionCookieName)?.value,
+  );
 
   if (pathname.startsWith("/admin") && !hasSession) {
     const loginUrl = new URL("/login", request.url);

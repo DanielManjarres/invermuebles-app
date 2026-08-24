@@ -1,6 +1,6 @@
 import { AdminMovementsBrowser } from "@/components/admin-movements/admin-movements-browser";
-import { LogoutButton } from "@/components/logout-button";
-import { SiteHeader } from "@/components/site-header";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { SiteHeader } from "@/components/layout/site-header";
 import { getStockMovements } from "@/lib/database-products";
 
 export const dynamic = "force-dynamic";

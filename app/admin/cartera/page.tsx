@@ -1,6 +1,6 @@
 import { AdminCreditsManager } from "@/components/admin-credits/admin-credits-manager";
-import { LogoutButton } from "@/components/logout-button";
-import { SiteHeader } from "@/components/site-header";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { SiteHeader } from "@/components/layout/site-header";
 import { getCredits } from "@/lib/database-credits";
 import { getCustomers } from "@/lib/database-customers";
 import { getSales } from "@/lib/database-sales";

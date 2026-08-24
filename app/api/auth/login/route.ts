@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  sessionCookieName,
-  sessionCookieValue,
   verifyPassword,
 } from "@/lib/auth";
+import {
+  createAdminSessionToken,
+  sessionCookieName,
+} from "@/lib/admin-session-token";
 
 type LoginRequest = {
   password?: string;
@@ -46,8 +48,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const sessionToken = await createAdminSessionToken();
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(sessionCookieName, sessionCookieValue, {
+  response.cookies.set(sessionCookieName, sessionToken, {
     httpOnly: true,
     maxAge: 60 * 60 * 8,
     path: "/",

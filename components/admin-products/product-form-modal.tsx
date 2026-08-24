@@ -7,7 +7,8 @@ import type {
   CatalogProductRecord,
 } from "@/lib/catalog-products";
 import { ProductMoneyField } from "@/components/admin-products/form-controls";
-import { SelectMenu } from "@/components/select-menu";
+import { IntegerInput } from "@/components/ui/integer-input";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type ProductFormModalProps = {
   categories: CatalogCategory[];
@@ -382,35 +383,20 @@ export function ProductFormModal({
               />
               <label>
                 Stock inicial *
-                <input
-                  inputMode="numeric"
+                <IntegerInput
                   min={0}
+                  onValueChange={(stock) => updateForm({ stock })}
                   required
-                  step={1}
-                  type="number"
                   value={form.stock}
-                  onChange={(event) =>
-                    updateForm({
-                      stock: event.target.value === "" ? "" : Number(event.target.value),
-                    })
-                  }
                 />
               </label>
               <label>
                 Stock mínimo *
-                <input
-                  inputMode="numeric"
+                <IntegerInput
                   min={0}
+                  onValueChange={(minimumStock) => updateForm({ minimumStock })}
                   required
-                  step={1}
-                  type="number"
                   value={form.minimumStock}
-                  onChange={(event) =>
-                    updateForm({
-                      minimumStock:
-                        event.target.value === "" ? "" : Number(event.target.value),
-                    })
-                  }
                 />
               </label>
               <label>

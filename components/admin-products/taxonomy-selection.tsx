@@ -1,5 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { SelectMenu } from "@/components/select-menu";
+import { SelectMenu } from "@/components/ui/select-menu";
 import type { CatalogCategory } from "@/lib/catalog-products";
 import type { TaxonomyTarget } from "@/components/admin-products/taxonomy-dialogs";
 

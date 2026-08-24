@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminCustomerDetail } from "@/components/admin-customers/admin-customer-detail";
-import { LogoutButton } from "@/components/logout-button";
-import { SiteHeader } from "@/components/site-header";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { SiteHeader } from "@/components/layout/site-header";
 import { getCustomerById } from "@/lib/database-customers";
 
 export const dynamic = "force-dynamic";

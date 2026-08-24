@@ -13,8 +13,9 @@ import {
   UserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { SiteHeader } from "@/components/site-header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { company } from "@/lib/company";
+import { getSafeAdminRedirect } from "@/lib/login-redirect";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,35 +23,44 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
+
     setError("");
+    setIsSubmitting(true);
 
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ password, user }),
-    }).catch(() => null);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password, user }),
+      }).catch(() => null);
 
-    if (!response) {
-      setError("No se pudo conectar con el servidor.");
-      return;
+      if (!response) {
+        setError("No se pudo conectar con el servidor.");
+        return;
+      }
+
+      const result = (await response.json().catch(() => ({}))) as {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        setError(result.message ?? "Usuario o contraseña incorrectos.");
+        return;
+      }
+
+      const nextPath = new URLSearchParams(window.location.search).get("next");
+      router.push(getSafeAdminRedirect(nextPath));
+      router.refresh();
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const result = (await response.json().catch(() => ({}))) as {
-      message?: string;
-    };
-
-    if (!response.ok) {
-      setError(result.message ?? "Usuario o contraseña incorrectos.");
-      return;
-    }
-
-    const nextPath = new URLSearchParams(window.location.search).get("next");
-    router.push(nextPath || "/admin");
   }
 
   return (
@@ -97,6 +107,7 @@ export default function LoginPage() {
                 <UserRound size={19} />
                 <input
                   autoComplete="username"
+                  disabled={isSubmitting}
                   onChange={(event) => setUser(event.target.value)}
                   placeholder="Ingresa tu usuario"
                   type="text"
@@ -111,6 +122,7 @@ export default function LoginPage() {
                 <KeyRound size={19} />
                 <input
                   autoComplete="current-password"
+                  disabled={isSubmitting}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Ingresa tu contraseña"
                   type={showPassword ? "text" : "password"}
@@ -118,6 +130,7 @@ export default function LoginPage() {
                 />
                 <button
                   className="passwordToggle"
+                  disabled={isSubmitting}
                   title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
@@ -129,9 +142,14 @@ export default function LoginPage() {
 
             {error ? <p className="formError">{error}</p> : null}
 
-            <button className="primaryButton fullWidth" type="submit">
+            <button
+              aria-busy={isSubmitting}
+              className="primaryButton fullWidth"
+              disabled={isSubmitting}
+              type="submit"
+            >
               <LockKeyhole size={18} />
-              Ingresar
+              {isSubmitting ? "Ingresando..." : "Ingresar"}
             </button>
 
             <Link className="loginBackLink" href="/">

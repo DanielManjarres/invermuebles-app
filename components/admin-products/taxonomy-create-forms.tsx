@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { Plus } from "lucide-react";
-import { SelectMenu } from "@/components/select-menu";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type SelectOption = {
   label: string;

@@ -15,7 +15,7 @@ import { type AdminSale, type PaymentMethod } from "@/lib/sales";
 import {
   clearAdminSaleCart,
   useAdminSaleCart,
-} from "@/components/use-admin-sale-cart";
+} from "@/components/admin-sales/use-admin-sale-cart";
 
 type AdminSalesManagerProps = {
   customers: AdminCustomer[];

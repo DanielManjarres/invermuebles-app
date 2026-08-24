@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { sessionCookieName, sessionCookieValue } from "@/lib/auth";
+import {
+  sessionCookieName,
+  verifyAdminSessionToken,
+} from "@/lib/admin-session-token";
 
 export async function hasAdminSession() {
   const cookieStore = await cookies();
-  return cookieStore.get(sessionCookieName)?.value === sessionCookieValue;
+  return verifyAdminSessionToken(cookieStore.get(sessionCookieName)?.value);
 }
 
 export async function requireAdminSession() {

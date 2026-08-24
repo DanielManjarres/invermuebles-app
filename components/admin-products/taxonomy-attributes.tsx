@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { SelectMenu } from "@/components/select-menu";
+import { SelectMenu } from "@/components/ui/select-menu";
 import type {
   CatalogAttributeDataType,
   CatalogCategory,
