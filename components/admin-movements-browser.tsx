@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Trash2, Undo2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
-  movementLabels,
   type MovementType,
   type StockMovement,
 } from "@/lib/stock-movements";
-import { isProtectedStockMovement } from "@/lib/stock-movement-policy";
 import {
   type MovementFilterOption,
 } from "@/components/admin-movements/movement-filter-menu";
@@ -16,6 +14,7 @@ import {
   MovementFilters,
   type MovementDateFilter,
 } from "@/components/admin-movements/movement-filters";
+import { MovementList } from "@/components/admin-movements/movement-list";
 
 const allTypes = "all";
 const allProductTypes = "all";
@@ -44,22 +43,6 @@ function matchesDateFilter(movement: StockMovement, filter: MovementDateFilter) 
 
   startDate.setDate(today.getDate() - (filter === "week" ? 7 : 30));
   return movementDate >= startDate;
-}
-
-function getSignedQuantity(movement: StockMovement) {
-  if (movement.type === "entry") {
-    return `+${movement.quantity}`;
-  }
-
-  if (movement.type === "exit") {
-    return `-${movement.quantity}`;
-  }
-
-  return movement.quantity;
-}
-
-function canCorrectMovement(movement: StockMovement) {
-  return !isProtectedStockMovement(movement);
 }
 
 type AdminMovementsBrowserProps = {
@@ -271,109 +254,14 @@ export function AdminMovementsBrowser({
         </div>
       ) : null}
 
-      {filteredMovements.length === 0 ? (
-        <div className="emptyState">
-          <h2>No hay movimientos registrados</h2>
-          <p>
-            Cuando registres una entrada, salida o ajuste desde el inventario,
-            aparecera en esta pantalla.
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="movementResultsBar">
-            <span>
-              Mostrando {paginatedMovements.length} de{" "}
-              {filteredMovements.length} movimiento(s)
-            </span>
-            <span>
-              Pagina {currentPage} de {totalPages}
-            </span>
-          </div>
-
-          <div className="movementList">
-            {paginatedMovements.map((movement) => (
-              <article className="movementCard" key={movement.id}>
-                <div className="movementCardMain">
-                  <span className={`movementBadge ${movement.type}`}>
-                    {movementLabels[movement.type]}
-                  </span>
-                  <div>
-                    <h3>{movement.productName}</h3>
-                    <p>
-                      {movement.productReference} -{" "}
-                      {movement.productCategory || "Sin tipo"}
-                      {movement.productClass ? ` / ${movement.productClass}` : ""}
-                    </p>
-                  </div>
-                </div>
-
-                <dl className="movementCardData">
-                  <div>
-                    <dt>Fecha</dt>
-                    <dd>{movement.createdAt}</dd>
-                  </div>
-                  <div>
-                    <dt>Cantidad</dt>
-                    <dd>{getSignedQuantity(movement)}</dd>
-                  </div>
-                  <div>
-                    <dt>Stock</dt>
-                    <dd>
-                      {movement.previousStock} → {movement.nextStock}
-                    </dd>
-                  </div>
-                  <div className="movementUserCell">
-                    <dt>Usuario</dt>
-                    <dd>{movement.user}</dd>
-                    {canCorrectMovement(movement) ? (
-                      <button
-                        aria-label="Corregir movimiento"
-                        className="movementCorrectionLink"
-                        title="Corregir movimiento"
-                        type="button"
-                        onClick={() => setMovementToCorrect(movement)}
-                      >
-                        <Undo2 size={13} />
-                        Corregir
-                      </button>
-                    ) : null}
-                  </div>
-                </dl>
-
-                <p className="movementReason">
-                  <strong>{movement.reason}</strong>
-                  {movement.note ? ` - ${movement.note}` : ""}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          {totalPages > 1 ? (
-            <div className="paginationControls">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              >
-                Anterior
-              </button>
-              <span>
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() =>
-                  setCurrentPage((page) => Math.min(totalPages, page + 1))
-                }
-              >
-                Siguiente
-              </button>
-            </div>
-          ) : null}
-        </>
-      )}
+      <MovementList
+        currentPage={currentPage}
+        movements={paginatedMovements}
+        totalMovements={filteredMovements.length}
+        totalPages={totalPages}
+        onCorrect={setMovementToCorrect}
+        onPageChange={setCurrentPage}
+      />
 
       {movementToCorrect ? (
         <div className="modalOverlay" role="presentation">
