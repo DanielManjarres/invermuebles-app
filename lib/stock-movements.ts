@@ -1,5 +1,3 @@
-import type { Product } from "@/lib/products";
-
 export type MovementType = "entry" | "exit" | "adjustment";
 
 export type StockMovement = {
@@ -30,8 +28,6 @@ export type StockMovementFormState = {
   note: string;
 };
 
-export const stockMovementsStorageKey = "invermuebles_stock_movements";
-
 export const movementLabels: Record<MovementType, string> = {
   entry: "Entrada",
   exit: "Salida",
@@ -56,74 +52,4 @@ export function createMovementForm(): StockMovementFormState {
     reason: "",
     note: "",
   };
-}
-
-type CreateStockMovementParams = {
-  nextStock: number;
-  note?: string;
-  previousStock: number;
-  product: Product;
-  quantity: number;
-  reason: string;
-  type: MovementType;
-  user?: string;
-};
-
-export function createStockMovement({
-  nextStock,
-  note = "",
-  previousStock,
-  product,
-  quantity,
-  reason,
-  type,
-  user = "Administrador",
-}: CreateStockMovementParams): StockMovement {
-  const createdAt = new Date();
-
-  return {
-    id: `${product.id}-${createdAt.getTime()}`,
-    productId: product.id,
-    productName: product.name,
-    productReference: product.reference,
-    productCategory: product.category,
-    productClass: product.productClass,
-    type,
-    quantity,
-    previousStock,
-    nextStock,
-    reason,
-    note: note.trim(),
-    createdAt: createdAt.toLocaleString("es-CO", {
-      dateStyle: "short",
-      timeStyle: "short",
-    }),
-    createdAtISO: createdAt.toISOString(),
-    user,
-  };
-}
-
-export function readStockMovements() {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    const storedMovements = window.localStorage.getItem(stockMovementsStorageKey);
-    return storedMovements ? (JSON.parse(storedMovements) as StockMovement[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveStockMovement(movement: StockMovement) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const movements = readStockMovements();
-  window.localStorage.setItem(
-    stockMovementsStorageKey,
-    JSON.stringify([movement, ...movements])
-  );
 }
