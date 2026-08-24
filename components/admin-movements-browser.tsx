@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  CalendarDays,
-  Layers3,
-  PackageSearch,
-  Search,
-  Trash2,
-  Undo2,
-} from "lucide-react";
+import { Trash2, Undo2 } from "lucide-react";
 import {
   movementLabels,
   type MovementType,
@@ -16,26 +9,20 @@ import {
 } from "@/lib/stock-movements";
 import { isProtectedStockMovement } from "@/lib/stock-movement-policy";
 import {
-  MovementFilterMenu,
   type MovementFilterOption,
 } from "@/components/admin-movements/movement-filter-menu";
 import { MovementOverview } from "@/components/admin-movements/movement-overview";
+import {
+  MovementFilters,
+  type MovementDateFilter,
+} from "@/components/admin-movements/movement-filters";
 
 const allTypes = "all";
 const allProductTypes = "all";
 const allProducts = "all";
 const movementsPerPage = 8;
 
-type DateFilter = "all" | "today" | "week" | "month";
-
-const dateFilters: Array<{ label: string; value: DateFilter }> = [
-  { label: "Todas las fechas", value: "all" },
-  { label: "Hoy", value: "today" },
-  { label: "Ultimos 7 dias", value: "week" },
-  { label: "Ultimos 30 dias", value: "month" },
-];
-
-function matchesDateFilter(movement: StockMovement, filter: DateFilter) {
+function matchesDateFilter(movement: StockMovement, filter: MovementDateFilter) {
   if (filter === "all") {
     return true;
   }
@@ -88,7 +75,7 @@ export function AdminMovementsBrowser({
     allTypes
   );
   const [activeProductType, setActiveProductType] = useState(allProductTypes);
-  const [activeDate, setActiveDate] = useState<DateFilter>("all");
+  const [activeDate, setActiveDate] = useState<MovementDateFilter>("all");
   const [activeProduct, setActiveProduct] = useState(allProducts);
   const [openFilter, setOpenFilter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -261,95 +248,22 @@ export function AdminMovementsBrowser({
     <section className="tableSection movementSection">
       <MovementOverview stats={movementStats} />
 
-      <div className="inventoryToolbar movementToolbar">
-        <label className="searchBox">
-          <Search size={18} />
-          <input
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por producto, referencia, tipo o motivo"
-            type="search"
-            value={query}
-          />
-        </label>
-
-        <div className="inventoryFilters" aria-label="Filtros de movimientos">
-          <button
-            className={
-              activeType === allTypes ? "filterButton active" : "filterButton"
-            }
-            type="button"
-            onClick={() => setActiveType(allTypes)}
-          >
-            Todos
-          </button>
-          {(Object.keys(movementLabels) as MovementType[]).map((type) => (
-            <button
-              className={
-                activeType === type ? "filterButton active" : "filterButton"
-              }
-              key={type}
-              type="button"
-              onClick={() => setActiveType(type)}
-            >
-              {movementLabels[type]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="movementFiltersPanel">
-        {openFilter ? (
-          <button
-            className="filterMenuBackdrop"
-            type="button"
-            aria-label="Cerrar filtros"
-            onClick={() => setOpenFilter(null)}
-          />
-        ) : null}
-
-        <MovementFilterMenu
-          icon={<Layers3 size={17} />}
-          isOpen={openFilter === "productType"}
-          label="Tipo"
-          options={productTypeOptions}
-          value={activeProductType}
-          onToggle={() =>
-            setOpenFilter(openFilter === "productType" ? null : "productType")
-          }
-          onSelect={(value) => {
-            setActiveProductType(value);
-            setOpenFilter(null);
-          }}
-        />
-
-        <MovementFilterMenu
-          icon={<CalendarDays size={17} />}
-          isOpen={openFilter === "date"}
-          label="Fecha"
-          options={dateFilters}
-          value={activeDate}
-          onToggle={() => setOpenFilter(openFilter === "date" ? null : "date")}
-          onSelect={(value) => {
-            setActiveDate(value as DateFilter);
-            setOpenFilter(null);
-          }}
-        />
-
-        <MovementFilterMenu
-          icon={<PackageSearch size={17} />}
-          isOpen={openFilter === "product"}
-          label="Producto"
-          options={productOptions}
-          value={activeProduct}
-          onToggle={() =>
-            setOpenFilter(openFilter === "product" ? null : "product")
-          }
-          onSelect={(value) => {
-            setActiveProduct(value);
-            setOpenFilter(null);
-          }}
-        />
-      </div>
+      <MovementFilters
+        activeDate={activeDate}
+        activeProduct={activeProduct}
+        activeProductType={activeProductType}
+        activeType={activeType}
+        openFilter={openFilter}
+        productOptions={productOptions}
+        productTypeOptions={productTypeOptions}
+        query={query}
+        onDateChange={setActiveDate}
+        onOpenFilterChange={setOpenFilter}
+        onProductChange={setActiveProduct}
+        onProductTypeChange={setActiveProductType}
+        onQueryChange={setQuery}
+        onTypeChange={setActiveType}
+      />
 
       {notice ? (
         <div className="orderToast" role="status">
