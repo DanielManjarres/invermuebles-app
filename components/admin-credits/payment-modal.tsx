@@ -64,7 +64,7 @@ export function AdminCreditPaymentModal({
         <div className="recordDeleteTarget">
           <span>Cuenta seleccionada</span>
           <strong>{account.customerName}</strong>
-          <small>Venta #{account.saleShortId} · Saldo disponible {formatMoney(account.balance)}</small>
+          <small>Venta N.º {account.saleShortId} · Saldo disponible {formatMoney(account.balance)}</small>
         </div>
 
         {error ? <p className="creditFormMessage error">{error}</p> : null}

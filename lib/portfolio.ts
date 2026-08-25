@@ -22,6 +22,7 @@ export type PortfolioPayment = {
   amount: number;
   methodLabel: string;
   reference: string;
+  receiptNumber: string;
   note: string;
   principalAmount: number | null;
   interestAmount: number | null;
@@ -63,6 +64,7 @@ function mapCreditPayment(payment: AdminCreditPayment): PortfolioPayment {
     amount: payment.amount,
     methodLabel: payment.methodLabel,
     reference: payment.reference,
+    receiptNumber: payment.receiptNumber,
     note: payment.note,
     principalAmount: payment.principalAmount,
     interestAmount: payment.interestAmount,
@@ -79,6 +81,7 @@ function mapSalePayment(payment: AdminSalePayment): PortfolioPayment {
     amount: payment.amount,
     methodLabel: portfolioPaymentMethodLabels[payment.method],
     reference: payment.reference,
+    receiptNumber: payment.receiptNumber,
     note: payment.note,
     principalAmount: null,
     interestAmount: null,
@@ -141,6 +144,7 @@ export function buildPortfolioAccounts(
           amount: sale.total,
           methodLabel: "Sistecrédito",
           reference: sale.sistecreditoApproval,
+          receiptNumber: "",
           note: "Pago aprobado por Sistecrédito.",
           principalAmount: null,
           interestAmount: null,

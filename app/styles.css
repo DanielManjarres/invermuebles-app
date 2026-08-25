@@ -2294,6 +2294,23 @@ th {
   grid-column: 1 / -1;
 }
 
+.pricingSummary {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  font-size: 0.78rem;
+  gap: 5px 14px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 12px 14px;
+}
+
+.pricingSummary small {
+  color: var(--muted);
+  grid-column: 1 / -1;
+}
+
 .adminFormGrid .checkRow {
   align-items: center;
   display: flex;

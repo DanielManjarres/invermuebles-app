@@ -13,6 +13,7 @@ export type AdminCreditPayment = {
   method: PaymentMethod;
   methodLabel: string;
   reference: string;
+  receiptNumber: string;
   note: string;
   principalAmount: number;
   interestAmount: number;

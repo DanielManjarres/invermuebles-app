@@ -88,7 +88,8 @@ export function AdminSalesHistory({
             <article className="saleHistoryCard" key={sale.id}>
               <div>
                 <span className="saleBadge">{saleStatusLabels[sale.status]}</span>
-                <h3>Venta #{sale.shortId}</h3>
+                <h3>Venta N.º {sale.shortId}</h3>
+                <p>Cuenta / factura electrónica: {sale.invoiceCode}</p>
                 <p>
                   {sale.createdAt} · {saleSourceLabels[sale.source]} · {saleTypeLabels[sale.type]}
                   {sale.paymentMethod ? ` · ${paymentMethodLabels[sale.paymentMethod]}` : ""}
@@ -110,6 +111,8 @@ export function AdminSalesHistory({
               </div>
               <div className="salePaymentSummary">
                 <strong>{formatMoney(sale.total)}</strong>
+                <span>Valor antes de IVA: {formatMoney(sale.taxableBase)}</span>
+                <span>IVA generado (DIAN): {formatMoney(sale.taxAmount)}</span>
                 <span>Recibido: {formatMoney(sale.amountPaid)}</span>
                 {sale.balance > 0 ? <span>Saldo: {formatMoney(sale.balance)}</span> : null}
               </div>

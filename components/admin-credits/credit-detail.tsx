@@ -35,10 +35,10 @@ export function AdminCreditDetail({
     <div className="creditSelectedAccount">
       <div className="creditDetailHeader">
         <div>
-          <span className="sectionEyebrow">Cuenta #{credit.shortId}</span>
+          <span className="sectionEyebrow">Cuenta {credit.shortId}</span>
           <h3>{credit.saleTypeLabel}</h3>
           <p>
-            Venta #{credit.saleShortId} · {credit.months} mes(es) · {credit.interestRate}% interés
+            Venta N.º {credit.saleShortId} · {credit.months} mes(es) · {credit.interestRate}% interés
           </p>
         </div>
         <div className="creditHeaderActions">
@@ -110,7 +110,7 @@ export function AdminCreditDetail({
       <div className="creditSaleSummary">
         <div>
           <strong>
-            {credit.saleTypeLabel} · Venta #{credit.saleShortId}
+            {credit.saleTypeLabel} · Venta N.º {credit.saleShortId}
           </strong>
         </div>
         <ul>

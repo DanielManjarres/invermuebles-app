@@ -2,6 +2,7 @@ import { Prisma, StockMovementType, UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
 import {
   INITIAL_STOCK_REASON,
   PRODUCT_VARIANT_INITIAL_NOTE,
@@ -15,6 +16,7 @@ import {
 type VariantRequest = {
   active?: boolean;
   attributeValues?: VariantAttributeInput[];
+  baseCost?: number;
   cost?: number;
   location?: string;
   minimumStock?: number;
@@ -125,12 +127,15 @@ export async function POST(request: Request) {
   }
 
   const reference = normalizeVariantReference(body.reference);
+  const baseCost = Number(body.baseCost);
+  const taxRate = DEFAULT_TAX_RATE;
+  const cost = addTax(baseCost, taxRate).total;
   const name = buildVariantName(
     product.catalogProductType.attributes,
     normalizedAttributes.values,
     reference,
   );
-  const validationError = validateVariantInput({ ...body, name, reference });
+  const validationError = validateVariantInput({ ...body, cost, name, reference });
   if (validationError) {
     return NextResponse.json({ message: validationError }, { status: 400 });
   }
@@ -162,7 +167,8 @@ export async function POST(request: Request) {
           attributeValues: {
             create: normalizedAttributes.values,
           },
-          cost: String(Number(body.cost)),
+          baseCost: String(baseCost),
+          cost: String(cost),
           location: cleanText(body.location) || null,
           minimumStock: Number(body.minimumStock),
           name,
@@ -170,6 +176,7 @@ export async function POST(request: Request) {
           reference,
           salePrice: String(Number(body.salePrice)),
           stock,
+          taxRate: String(taxRate),
         },
       });
 

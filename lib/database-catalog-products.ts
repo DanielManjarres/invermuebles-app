@@ -101,6 +101,7 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
             unit: attributeValue.attribute.unit ?? "",
             value: attributeValue.value,
           })),
+          baseCost: Number(variant.baseCost),
           cost: Number(variant.cost),
           id: variant.id,
           location: variant.location ?? "",
@@ -109,6 +110,7 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
           reference: variant.reference,
           salePrice: Number(variant.salePrice),
           stock: variant.stock,
+          taxRate: Number(variant.taxRate),
         })),
         visible: product.visible,
       }));

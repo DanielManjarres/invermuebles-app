@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { consumePaymentReceiptNumber } from "@/lib/document-numbering";
 import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
 
 type RouteContext = {
@@ -112,6 +113,7 @@ export async function POST(request: Request, context: RouteContext) {
       });
 
       if (initialPayment > 0) {
+        const receiptNumber = await consumePaymentReceiptNumber(tx);
         const user = await tx.user.upsert({
           create: {
             active: true,
@@ -133,6 +135,7 @@ export async function POST(request: Request, context: RouteContext) {
             method: body.method!,
             note: "Pago inicial al configurar el crédito.",
             principalAmount: initialPrincipalAmount,
+            receiptNumber,
             saleId: sale.id,
             userId: user.id,
           },

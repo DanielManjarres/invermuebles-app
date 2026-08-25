@@ -91,7 +91,7 @@ export function CustomerCommercialHistory({
                       {account.statusLabel} · {account.paymentsCount} pago(s)
                     </span>
                     <small>
-                      Venta #{account.saleShortId} · {account.createdAt} · Último pago: {account.lastPaymentAt}
+                      Venta N.º {account.saleShortId} · {account.createdAt} · Último pago: {account.lastPaymentAt}
                     </small>
                   </div>
                   <div className="customerActivityValues">

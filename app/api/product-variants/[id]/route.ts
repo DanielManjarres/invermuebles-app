@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
 import {
   canDeleteProductVariant,
   buildVariantName,
@@ -18,6 +19,7 @@ type RouteContext = {
 type VariantUpdateRequest = {
   active?: boolean;
   attributeValues?: VariantAttributeInput[];
+  baseCost?: number;
   cost?: number;
   location?: string;
   minimumStock?: number;
@@ -73,7 +75,10 @@ export async function PUT(request: Request, context: RouteContext) {
     body.reference === undefined
       ? variant.reference
       : normalizeVariantReference(body.reference);
-  const cost = body.cost === undefined ? Number(variant.cost) : Number(body.cost);
+  const baseCost =
+    body.baseCost === undefined ? Number(variant.baseCost) : Number(body.baseCost);
+  const taxRate = DEFAULT_TAX_RATE;
+  const cost = addTax(baseCost, taxRate).total;
   const salePrice =
     body.salePrice === undefined
       ? Number(variant.salePrice)
@@ -154,6 +159,7 @@ export async function PUT(request: Request, context: RouteContext) {
                 create: normalizedAttributes.values,
               }
             : undefined,
+          baseCost: String(baseCost),
           cost: String(cost),
           location:
             body.location === undefined
@@ -163,6 +169,7 @@ export async function PUT(request: Request, context: RouteContext) {
           name,
           reference,
           salePrice: String(salePrice),
+          taxRate: String(taxRate),
         },
       });
 

@@ -11,6 +11,8 @@ import {
 } from "@/components/admin-sales/local-sale-form";
 import { AdminSalesHistory } from "@/components/admin-sales/sales-history";
 import { AdminSalesModals } from "@/components/admin-sales/sales-modals";
+import { NumberingSetupModal } from "@/components/admin-sales/numbering-setup-modal";
+import type { InitialSaleNumbering } from "@/lib/document-numbering";
 import { type AdminSale, type PaymentMethod } from "@/lib/sales";
 import {
   clearAdminSaleCart,
@@ -107,6 +109,7 @@ export function AdminSalesManager({
   const [financePaymentMethod, setFinancePaymentMethod] = useState<PaymentMethod | "">("");
   const [financeStatus, setFinanceStatus] = useState<"ACTIVE" | "OVERDUE">("ACTIVE");
   const [isFinancingSale, setIsFinancingSale] = useState(false);
+  const [showNumberingSetup, setShowNumberingSetup] = useState(false);
   const adminSaleCart = useAdminSaleCart(products);
 
   const preparedOrder = useMemo(
@@ -379,12 +382,12 @@ export function AdminSalesManager({
     }
   }
 
-  async function createLocalSale() {
-    if (cartItems.length === 0 || isSaving) return;
+  async function createLocalSale(numbering?: InitialSaleNumbering) {
+    if (cartItems.length === 0 || isSaving) return false;
 
     if (!selectedCustomerId) {
       setNotice("Selecciona el cliente que realiza la compra.");
-      return;
+      return false;
     }
 
     const maximumInitialPayment =
@@ -396,27 +399,27 @@ export function AdminSalesManager({
           ? "La primera cuota no puede ser mayor a la deuda total con intereses."
           : "El pago inicial no puede ser mayor al total de la venta."
       );
-      return;
+      return false;
     }
 
     if (saleType === "CASH" && amountPaid !== cartTotal) {
       setNotice("En contado se debe registrar el valor completo de la venta.");
-      return;
+      return false;
     }
 
     if (isReserved && amountPaid < reservedMinimum) {
       setNotice("El separado requiere un abono minimo del 10 % del total.");
-      return;
+      return false;
     }
 
     if (saleType === "CREDIT_CASH" && amountPaid <= 0) {
       setNotice("El credicontado requiere registrar un pago inicial.");
-      return;
+      return false;
     }
 
     if (isSistecredito && !sistecreditoApproval.trim()) {
       setNotice("Registra el numero de aprobacion de Sistecredito.");
-      return;
+      return false;
     }
 
     setIsSaving(true);
@@ -436,6 +439,7 @@ export function AdminSalesManager({
             unitPrice: item.unitPrice,
           })),
           notes,
+          numbering,
           orderId: preparedOrderId || undefined,
           paymentMethod: amountPaid > 0 && !isSistecredito ? paymentMethod : undefined,
           sistecreditoApproval: isSistecredito ? sistecreditoApproval.trim() : undefined,
@@ -445,14 +449,18 @@ export function AdminSalesManager({
         method: "POST",
       });
       const result = (await response.json()) as {
+        code?: string;
         id?: string;
         message?: string;
         stockApplied?: boolean;
       };
 
       if (!response.ok || !result.id) {
+        if (result.code === "NUMBERING_REQUIRED") {
+          setShowNumberingSetup(true);
+        }
         setNotice(result.message ?? "No se pudo registrar la venta.");
-        return;
+        return false;
       }
 
       setNotice(result.message ?? "Venta registrada correctamente.");
@@ -460,8 +468,10 @@ export function AdminSalesManager({
       window.setTimeout(() => {
         window.location.assign("/admin/ventas");
       }, 700);
+      return true;
     } catch {
       setNotice("No se pudo conectar con el sistema.");
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -490,7 +500,7 @@ export function AdminSalesManager({
       );
       setSaleToDelete(null);
       setSaleDeleteConfirmation("");
-      setNotice(result.message ?? `Venta #${sale.shortId} eliminada permanentemente.`);
+      setNotice(result.message ?? `Venta N.º ${sale.shortId} eliminada permanentemente.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -731,6 +741,13 @@ export function AdminSalesManager({
         onFinanceStatusChange={setFinanceStatus}
         onFinanceSubmit={configureCredit}
       />
+      {showNumberingSetup ? (
+        <NumberingSetupModal
+          isSaving={isSaving}
+          onClose={() => setShowNumberingSetup(false)}
+          onSubmit={createLocalSale}
+        />
+      ) : null}
     </section>
   );
 }

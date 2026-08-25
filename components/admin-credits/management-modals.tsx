@@ -167,9 +167,9 @@ export function AdminCreditManagementModals({
             </div>
             <div className="recordDeleteTarget">
               <span>Crédito seleccionado</span>
-              <strong>Crédito #{deleteCredit.shortId}</strong>
+              <strong>Cuenta {deleteCredit.shortId}</strong>
               <small>
-                Venta #{deleteCredit.saleShortId} · {deleteCredit.customerName}
+                Venta N.º {deleteCredit.saleShortId} · {deleteCredit.customerName}
               </small>
             </div>
             <label className="deleteConfirmationField">
