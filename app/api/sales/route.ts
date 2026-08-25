@@ -156,6 +156,22 @@ export async function POST(request: Request) {
   }
 
   try {
+    const configuredSequenceCount = await prisma.documentSequence.count({
+      where: {
+        key: { in: [DOCUMENT_SEQUENCE_KEYS.sale, DOCUMENT_SEQUENCE_KEYS.invoice] },
+      },
+    });
+
+    if (configuredSequenceCount < 2 && !body.numbering) {
+      return NextResponse.json(
+        {
+          code: "NUMBERING_REQUIRED",
+          message: "Configura el primer número del talonario y de la factura electrónica.",
+        },
+        { status: 409 },
+      );
+    }
+
     const adminUserId = await getAdminUserId();
 
     const sale = await prisma.$transaction(async (tx) => {

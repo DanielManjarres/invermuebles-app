@@ -448,12 +448,23 @@ export function AdminSalesManager({
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const result = (await response.json()) as {
+      const responseText = await response.text();
+      let result: {
         code?: string;
         id?: string;
         message?: string;
         stockApplied?: boolean;
       };
+
+      try {
+        result = JSON.parse(responseText) as typeof result;
+      } catch {
+        result = {
+          message: response.ok
+            ? "El servidor devolvió una respuesta inválida."
+            : `No se pudo registrar la venta (error ${response.status}).`,
+        };
+      }
 
       if (!response.ok || !result.id) {
         if (result.code === "NUMBERING_REQUIRED") {
