@@ -169,7 +169,7 @@ export function buildPortfolioAccounts(
         customerPhone: sale.customerPhone,
         saleId: sale.id,
         saleShortId: sale.shortId,
-        shortId: sale.shortId,
+        shortId: sale.invoiceCode,
         createdAt: sale.createdAt,
         createdAtISO: sale.createdAtISO,
         total: sale.total,

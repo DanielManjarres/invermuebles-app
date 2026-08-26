@@ -75,12 +75,16 @@ export function AdminPaymentReceiptModal({ account, balanceAfter, onClose, payme
 
           <div className="paymentReceiptAccount">
             <div>
-              <span>Cuenta</span>
-              <strong>{account.title} {account.shortId}</strong>
+              <span>Tipo de cuenta</span>
+              <strong>{account.title}</strong>
             </div>
             <div>
               <span>Venta relacionada</span>
               <strong>N.º {account.saleShortId}</strong>
+            </div>
+            <div>
+              <span>Factura electrónica</span>
+              <strong>N.º {account.shortId}</strong>
             </div>
           </div>
 
