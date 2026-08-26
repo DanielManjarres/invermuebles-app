@@ -732,7 +732,9 @@ export function AdminSalesManager({
           onRemoveItem={removeItem}
           onSaleTypeChange={changeSaleType}
           onSistecreditoApprovalChange={setSistecreditoApproval}
-          onSubmit={createLocalSale}
+          onSubmit={() => {
+            void createLocalSale();
+          }}
           onUnitPriceChange={(productId, value) => updateUnitPrice(productId, String(value))}
           onUpdateQuantity={updateQuantity}
         />
