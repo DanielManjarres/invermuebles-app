@@ -93,6 +93,26 @@ async function getAdminUserId() {
   return admin.id;
 }
 
+export async function GET() {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) return unauthorized;
+
+  try {
+    const configuredSequenceCount = await prisma.documentSequence.count({
+      where: {
+        key: { in: [DOCUMENT_SEQUENCE_KEYS.sale, DOCUMENT_SEQUENCE_KEYS.invoice] },
+      },
+    });
+
+    return NextResponse.json({ configured: configuredSequenceCount === 2 });
+  } catch {
+    return NextResponse.json(
+      { message: "No se pudo consultar la configuración de consecutivos." },
+      { status: 500 },
+    );
+  }
+}
+
 export async function POST(request: Request) {
   const unauthorized = await requireAdminSession();
   if (unauthorized) {
@@ -501,7 +521,7 @@ export async function POST(request: Request) {
       }
 
       return sale;
-    });
+    }, { maxWait: 5_000, timeout: 15_000 });
 
     return NextResponse.json(
       {

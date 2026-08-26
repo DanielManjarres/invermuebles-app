@@ -110,6 +110,7 @@ export function AdminSalesManager({
   const [financeStatus, setFinanceStatus] = useState<"ACTIVE" | "OVERDUE">("ACTIVE");
   const [isFinancingSale, setIsFinancingSale] = useState(false);
   const [showNumberingSetup, setShowNumberingSetup] = useState(false);
+  const [numberingConfigured, setNumberingConfigured] = useState<boolean | null>(null);
   const adminSaleCart = useAdminSaleCart(products);
 
   const preparedOrder = useMemo(
@@ -420,6 +421,40 @@ export function AdminSalesManager({
     if (isSistecredito && !sistecreditoApproval.trim()) {
       setNotice("Registra el numero de aprobacion de Sistecredito.");
       return false;
+    }
+
+    if (!numbering && numberingConfigured !== true) {
+      setIsSaving(true);
+      setNotice("");
+
+      try {
+        const numberingResponse = await fetch("/api/sales", { method: "GET" });
+        const numberingResult = (await numberingResponse.json()) as {
+          configured?: boolean;
+          message?: string;
+        };
+
+        if (!numberingResponse.ok) {
+          setNotice(
+            numberingResult.message ?? "No se pudo consultar la configuración de consecutivos.",
+          );
+          return false;
+        }
+
+        if (!numberingResult.configured) {
+          setNumberingConfigured(false);
+          setShowNumberingSetup(true);
+          setNotice("Configura los consecutivos para registrar la primera venta.");
+          return false;
+        }
+
+        setNumberingConfigured(true);
+      } catch {
+        setNotice("No se pudo consultar la configuración de consecutivos.");
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
     }
 
     setIsSaving(true);
