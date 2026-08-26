@@ -5856,7 +5856,7 @@ th {
 }
 
 @media print {
-  @page { margin: 7mm; size: 5.5in 8.5in; }
+  @page { margin: 3mm; size: 8.5in 5.5in; }
   html,
   body { background: white !important; height: auto !important; min-height: 0 !important; }
   body > :not(.paymentReceiptBackdrop) { display: none !important; }
@@ -5883,9 +5883,11 @@ th {
   .paymentReceiptSheet {
     border: 0;
     border-radius: 0;
+    box-sizing: border-box;
     color: #000 !important;
     font-size: 9pt;
     padding: 0;
+    width: 100%;
   }
   .paymentReceiptSheet,
   .paymentReceiptSheet * {
