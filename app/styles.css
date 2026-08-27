@@ -2047,12 +2047,21 @@ th {
 
 .inventoryTable th,
 .inventoryTable td {
-  padding: 10px 9px;
+  padding: 9px 7px;
   vertical-align: middle;
 }
 
 .inventoryTable {
-  min-width: 1100px;
+  min-width: 980px;
+}
+
+.inventoryTable td {
+  font-size: 0.88rem;
+  line-height: 1.3;
+}
+
+.inventoryTable td strong {
+  font-size: 0.9rem;
 }
 
 .inventoryTable th {
@@ -2061,12 +2070,12 @@ th {
 
 .inventoryTable th:nth-child(1),
 .inventoryTable td:nth-child(1) {
-  min-width: 170px;
+  min-width: 145px;
 }
 
 .inventoryTable th:nth-child(2),
 .inventoryTable td:nth-child(2) {
-  min-width: 150px;
+  min-width: 130px;
 }
 
 .inventoryTable th:nth-child(3),
@@ -2091,10 +2100,11 @@ th {
 }
 
 .inventoryTable .manageButton {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   gap: 5px;
-  min-height: 34px;
-  padding: 0 8px;
+  min-height: 32px;
+  padding: 0 7px;
+  white-space: nowrap;
 }
 
 .inventoryLegacyNote {

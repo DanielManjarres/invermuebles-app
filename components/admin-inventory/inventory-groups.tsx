@@ -132,7 +132,7 @@ export function InventoryGroups({
                             onClick={() => onOpenMovement(item)}
                           >
                             <RotateCcw size={15} />
-                            Registrar movimiento
+                            Movimiento
                           </button>
                         </td>
                       </tr>
