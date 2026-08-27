@@ -2047,40 +2047,47 @@ th {
 
 .inventoryTable th,
 .inventoryTable td {
-  overflow-wrap: anywhere;
   padding: 10px 9px;
   vertical-align: middle;
 }
 
 .inventoryTable {
-  table-layout: fixed;
+  min-width: 1100px;
 }
 
-.inventoryTable th:nth-child(1) {
-  width: 14%;
+.inventoryTable th {
+  white-space: nowrap;
 }
 
-.inventoryTable th:nth-child(2) {
-  width: 13%;
+.inventoryTable th:nth-child(1),
+.inventoryTable td:nth-child(1) {
+  min-width: 170px;
+}
+
+.inventoryTable th:nth-child(2),
+.inventoryTable td:nth-child(2) {
+  min-width: 150px;
 }
 
 .inventoryTable th:nth-child(3),
+.inventoryTable td:nth-child(3),
+.inventoryTable th:nth-child(4),
+.inventoryTable td:nth-child(4),
 .inventoryTable th:nth-child(5),
+.inventoryTable td:nth-child(5),
 .inventoryTable th:nth-child(6),
-.inventoryTable th:nth-child(7) {
-  width: 8%;
+.inventoryTable td:nth-child(6),
+.inventoryTable th:nth-child(7),
+.inventoryTable td:nth-child(7),
+.inventoryTable th:nth-child(8),
+.inventoryTable td:nth-child(8),
+.inventoryTable th:nth-child(9),
+.inventoryTable td:nth-child(9) {
+  white-space: nowrap;
 }
 
-.inventoryTable th:nth-child(4) {
-  width: 14%;
-}
-
-.inventoryTable th:nth-child(8) {
-  width: 11%;
-}
-
-.inventoryTable th:nth-child(9) {
-  width: 16%;
+.inventoryTable .actionsHeader {
+  width: auto;
 }
 
 .inventoryTable .manageButton {
