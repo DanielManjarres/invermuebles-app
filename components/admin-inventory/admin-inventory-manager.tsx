@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
 import {
   InventoryGroups,
   type InventoryItem,
@@ -23,6 +24,7 @@ import {
   calculateNextStock,
   isValidStockMovementQuantity,
 } from "@/lib/stock-calculator";
+import { downloadInventoryReport } from "@/lib/admin-report-builders";
 
 type AdminInventoryManagerProps = {
   products: Product[];
@@ -333,6 +335,10 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
             <p className="eyebrow">Control interno</p>
             <h2>Inventario por variante</h2>
           </div>
+          <ExcelDownloadButton
+            disabled={inventory.length === 0}
+            onDownload={() => downloadInventoryReport(inventory)}
+          />
         </div>
 
         <InventoryToolbar

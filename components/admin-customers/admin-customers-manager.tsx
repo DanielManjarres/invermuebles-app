@@ -17,6 +17,8 @@ import {
   CustomerFormModal,
   type CustomerFormState,
 } from "@/components/admin-customers/customer-form-modal";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
+import { downloadCustomersReport } from "@/lib/admin-report-builders";
 
 type AdminCustomersManagerProps = {
   customers: AdminCustomer[];
@@ -257,10 +259,16 @@ export function AdminCustomersManager({
           <p className="eyebrow">Gestión comercial</p>
           <h2>Clientes registrados</h2>
         </div>
-        <button className="primaryButton" type="button" onClick={openCreateForm}>
-          <Plus size={20} />
-          Nuevo cliente
-        </button>
+        <div className="sectionHeaderActions">
+          <ExcelDownloadButton
+            disabled={customers.length === 0}
+            onDownload={() => downloadCustomersReport(customers)}
+          />
+          <button className="primaryButton" type="button" onClick={openCreateForm}>
+            <Plus size={20} />
+            Nuevo cliente
+          </button>
+        </div>
       </div>
 
       {notice ? (

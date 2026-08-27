@@ -12,6 +12,8 @@ import {
 import { AdminSalesHistory } from "@/components/admin-sales/sales-history";
 import { AdminSalesModals } from "@/components/admin-sales/sales-modals";
 import { NumberingSetupModal } from "@/components/admin-sales/numbering-setup-modal";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
+import { downloadSalesReport } from "@/lib/admin-report-builders";
 import type { InitialSaleNumbering } from "@/lib/document-numbering";
 import { type AdminSale, type PaymentMethod } from "@/lib/sales";
 import {
@@ -669,6 +671,12 @@ export function AdminSalesManager({
 
   return (
     <section className="tableSection salesSection">
+      <div className="moduleReportActions">
+        <ExcelDownloadButton
+          disabled={sales.length === 0}
+          onDownload={() => downloadSalesReport(sales)}
+        />
+      </div>
       <div className="movementSummaryGrid" aria-label="Resumen de ventas">
         <article>
           <span>Total ventas</span>

@@ -15,6 +15,8 @@ import {
 } from "@/components/admin-movements/movement-filters";
 import { MovementList } from "@/components/admin-movements/movement-list";
 import { MovementCorrectionModal } from "@/components/admin-movements/movement-correction-modal";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
+import { downloadMovementsReport } from "@/lib/admin-report-builders";
 
 const allTypes = "all";
 const allProductTypes = "all";
@@ -229,6 +231,12 @@ export function AdminMovementsBrowser({
 
   return (
     <section className="tableSection movementSection">
+      <div className="moduleReportActions">
+        <ExcelDownloadButton
+          disabled={movements.length === 0}
+          onDownload={() => downloadMovementsReport(movements)}
+        />
+      </div>
       <MovementOverview stats={movementStats} />
 
       <MovementFilters

@@ -2294,6 +2294,19 @@ th {
   grid-column: 1 / -1;
 }
 
+.sectionHeaderActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.moduleReportActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
 .pricingSummary {
   background: var(--surface-strong);
   border: 1px solid var(--line);
