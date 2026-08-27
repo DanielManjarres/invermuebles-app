@@ -74,8 +74,8 @@ export function InventoryGroups({
           <article className="inventoryGroup" id={group.id} key={group.category}>
             <div className="inventoryGroupHeader">
               <div>
-                <p className="eyebrow">{group.productTypes.join(" / ")}</p>
-                <h3>{group.category}</h3>
+                <p className="eyebrow">{group.category}</p>
+                <h3>{group.productTypes.join(" / ")}</h3>
               </div>
               <div className="inventoryGroupStats">
                 <span>{group.items.length} referencias</span>

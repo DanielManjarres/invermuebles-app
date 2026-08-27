@@ -40,7 +40,7 @@ export function InventoryStats({
   totalReferences,
 }: InventoryStatsProps) {
   return (
-    <section className="statsGrid">
+    <section className="statsGrid inventoryStatsGrid">
       <div className="stat">
         <Boxes size={22} />
         <span>Total referencias</span>

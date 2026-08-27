@@ -1052,6 +1052,11 @@ p {
   padding-bottom: 16px;
 }
 
+.inventoryStatsGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding-bottom: 8px;
+}
+
 .stat {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1833,7 +1838,7 @@ th {
 
 .inventoryGroups {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .inventoryToolbar {
@@ -1964,7 +1969,7 @@ th {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 
 .inventoryShortcut {
@@ -2009,7 +2014,7 @@ th {
   display: flex;
   gap: 14px;
   justify-content: space-between;
-  padding: 16px;
+  padding: 14px 16px;
 }
 
 .inventoryGroupHeader h3 {
@@ -2042,7 +2047,47 @@ th {
 
 .inventoryTable th,
 .inventoryTable td {
+  overflow-wrap: anywhere;
+  padding: 10px 9px;
   vertical-align: middle;
+}
+
+.inventoryTable {
+  table-layout: fixed;
+}
+
+.inventoryTable th:nth-child(1) {
+  width: 14%;
+}
+
+.inventoryTable th:nth-child(2) {
+  width: 13%;
+}
+
+.inventoryTable th:nth-child(3),
+.inventoryTable th:nth-child(5),
+.inventoryTable th:nth-child(6),
+.inventoryTable th:nth-child(7) {
+  width: 8%;
+}
+
+.inventoryTable th:nth-child(4) {
+  width: 14%;
+}
+
+.inventoryTable th:nth-child(8) {
+  width: 11%;
+}
+
+.inventoryTable th:nth-child(9) {
+  width: 16%;
+}
+
+.inventoryTable .manageButton {
+  font-size: 0.76rem;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 8px;
 }
 
 .inventoryLegacyNote {
@@ -2101,6 +2146,25 @@ th {
   max-width: 540px;
   padding: 20px;
   width: min(100%, 540px);
+}
+
+.stockMovementModal {
+  gap: 12px;
+  padding-bottom: 0;
+}
+
+.stockMovementModal .modalHeader h2 {
+  font-size: clamp(1.3rem, 2.2vw, 1.6rem);
+}
+
+.stockMovementModal .modalActions {
+  background: #fff;
+  border-top: 1px solid var(--line);
+  bottom: 0;
+  margin: 0 -20px;
+  padding: 12px 20px 16px;
+  position: sticky;
+  z-index: 2;
 }
 
 .modalHeader {
@@ -4498,6 +4562,10 @@ th {
   .aboutBand,
   .footerMain {
     grid-template-columns: 1fr;
+  }
+
+  .inventoryStatsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .productGrid {
