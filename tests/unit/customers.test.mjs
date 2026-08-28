@@ -8,6 +8,7 @@ import {
 } from "../../lib/customer-policy.ts";
 import {
   getCustomerPaymentAccount,
+  getCustomerPaymentLabel,
   getCustomerPortfolioStatus,
 } from "../../lib/customers.ts";
 
@@ -59,12 +60,25 @@ test("falls back to the sale when a financed account has no credit id", () => {
   });
 });
 
+test("labels payments according to their account type", () => {
+  assert.equal(getCustomerPaymentLabel("CASH", true), "Pago de contado");
+  assert.equal(
+    getCustomerPaymentLabel("SISTECREDITO", true),
+    "Pago por Sistecrédito",
+  );
+  assert.equal(getCustomerPaymentLabel("CREDIT", true), "Pago inicial");
+  assert.equal(getCustomerPaymentLabel("CREDIT", false), "Abono");
+  assert.equal(getCustomerPaymentLabel("RESERVED", false), "Abono");
+});
+
 const validCustomer = {
   document: "1.094.123.456",
   email: "cliente@correo.com",
   fullName: "Cliente de prueba",
   phone: "321 555 1234",
+  referenceName: "Contacto de prueba",
   referencePhone: "310 555 4321",
+  referenceRelation: "Familiar",
   status: "ACTIVE",
 };
 
@@ -80,7 +94,9 @@ test("accepts boundary lengths and empty optional contact fields", () => {
       document: "123456",
       email: "",
       phone: "1234567",
+      referenceName: "",
       referencePhone: "",
+      referenceRelation: "",
     }),
     "",
   );
@@ -102,6 +118,33 @@ test("rejects missing names and invalid reference phones", () => {
   assert.match(
     validateCustomerInput({ ...validCustomer, referencePhone: "123" }),
     /contacto/i,
+  );
+});
+
+test("requires complete reference contact details when one is provided", () => {
+  assert.match(
+    validateCustomerInput({
+      ...validCustomer,
+      referencePhone: "",
+      referenceRelation: "",
+    }),
+    /completa/i,
+  );
+  assert.match(
+    validateCustomerInput({
+      ...validCustomer,
+      referenceName: "",
+    }),
+    /completa/i,
+  );
+  assert.equal(
+    validateCustomerInput({
+      ...validCustomer,
+      referenceName: "",
+      referencePhone: "",
+      referenceRelation: "",
+    }),
+    "",
   );
 });
 

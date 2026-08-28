@@ -88,6 +88,7 @@ function formatDate(date?: Date | null) {
 
   return date.toLocaleString("es-CO", {
     dateStyle: "short",
+    timeZone: "America/Bogota",
     timeStyle: "short",
   });
 }
@@ -118,6 +119,7 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
         createdAt: formatDate(payment.createdAt),
         createdAtValue: payment.createdAt,
         isInitial: payment.isInitial,
+        saleType: sale.type,
       }));
 
       if (sale.type === "SISTECREDITO" && salePayments.length === 0) {
@@ -129,6 +131,7 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
           createdAt: formatDate(sale.createdAt),
           createdAtValue: sale.createdAt,
           isInitial: true,
+          saleType: sale.type,
         });
       }
 

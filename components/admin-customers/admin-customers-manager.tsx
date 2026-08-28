@@ -65,6 +65,7 @@ function buildCustomerFromForm(
 ): AdminCustomer {
   const now = new Date().toLocaleString("es-CO", {
     dateStyle: "short",
+    timeZone: "America/Bogota",
     timeStyle: "short",
   });
 

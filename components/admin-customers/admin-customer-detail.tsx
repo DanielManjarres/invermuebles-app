@@ -76,6 +76,7 @@ function buildCustomerFromForm(
           : "ACTIVE",
     updatedAt: new Date().toLocaleString("es-CO", {
       dateStyle: "short",
+      timeZone: "America/Bogota",
       timeStyle: "short",
     }),
   };

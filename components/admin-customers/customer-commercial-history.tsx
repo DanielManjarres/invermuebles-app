@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { BadgeCheck, CreditCard, ReceiptText } from "lucide-react";
-import type { AdminCustomer } from "@/lib/customers";
+import {
+  getCustomerPaymentLabel,
+  type AdminCustomer,
+} from "@/lib/customers";
 
 type CustomerCommercialHistoryProps = {
   customer: AdminCustomer;
@@ -71,8 +74,8 @@ export function CustomerCommercialHistory({
           <section className="customerActivityPanel customerPortfolioPanel">
           <div className="customerActivityHeader">
             <div>
-              <strong>Cartera reciente</strong>
-              <small>Productos, saldos y pagos de los últimos créditos.</small>
+              <strong>Cuentas recientes</strong>
+              <small>Productos, saldos y pagos de las últimas cuentas.</small>
             </div>
             <Link
               href={`/admin/cartera?buscar=${encodeURIComponent(customer.document)}`}
@@ -101,7 +104,7 @@ export function CustomerCommercialHistory({
                 </article>
               ))
             ) : (
-              <p className="customerActivityEmpty">Sin créditos registrados.</p>
+              <p className="customerActivityEmpty">Sin cuentas registradas.</p>
             )}
           </div>
           </section>
@@ -125,7 +128,12 @@ export function CustomerCommercialHistory({
                 </div>
                 <div>
                   <strong>{payment.methodLabel}</strong>
-                  <span>{payment.isInitial ? "Pago inicial" : "Abono"}</span>
+                  <span>
+                    {getCustomerPaymentLabel(
+                      payment.saleType,
+                      payment.isInitial,
+                    )}
+                  </span>
                 </div>
                 <small>{payment.createdAt}</small>
               </article>
@@ -140,8 +148,8 @@ export function CustomerCommercialHistory({
         <div className="customerCommercialEmpty">
           <ReceiptText size={24} />
           <div>
-            <strong>Sin actividad de cartera</strong>
-            <p>Este cliente todavía no tiene créditos ni pagos registrados.</p>
+            <strong>Sin actividad comercial</strong>
+            <p>Este cliente todavía no tiene cuentas ni pagos registrados.</p>
           </div>
         </div>
       )}
