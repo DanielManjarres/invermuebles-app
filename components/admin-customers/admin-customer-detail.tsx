@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -25,6 +25,7 @@ import {
   type CustomerFormState,
 } from "@/components/admin-customers/customer-form-modal";
 import { CustomerCommercialHistory } from "@/components/admin-customers/customer-commercial-history";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 
 type AdminCustomerDetailProps = {
   customer: AdminCustomer;
@@ -94,6 +95,14 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
+
+  useModalAccessibility({
+    active: isDeleteOpen,
+    blockClose: isDeleting,
+    dialogRef: deleteDialogRef,
+    onClose: () => setIsDeleteOpen(false),
+  });
 
   useEffect(() => {
     if (!notice) {
@@ -272,15 +281,25 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
 
       {isDeleteOpen ? (
         <div className="modalOverlay" role="presentation">
-          <div className="adminModal recordDeleteModal">
+          <div
+            aria-busy={isDeleting}
+            aria-describedby="delete-customer-description"
+            aria-labelledby="delete-customer-title"
+            aria-modal="true"
+            className="adminModal recordDeleteModal"
+            ref={deleteDialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
             <div className="modalHeader">
               <div>
                 <p className="eyebrow">Correccion de registros</p>
-                <h2>Eliminar cliente</h2>
+                <h2 id="delete-customer-title">Eliminar cliente</h2>
               </div>
               <button
                 aria-label="Cerrar confirmacion"
                 className="modalClose"
+                disabled={isDeleting}
                 type="button"
                 onClick={() => setIsDeleteOpen(false)}
               >
@@ -290,7 +309,7 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
 
             <div className="recordDeleteWarning">
               <AlertTriangle size={20} />
-              <p>
+              <p id="delete-customer-description">
                 Solo se eliminara si no tiene pedidos, ventas ni creditos
                 relacionados. Si ya tiene historial, el cliente se conserva y
                 puedes marcarlo como inactivo.
@@ -306,6 +325,7 @@ export function AdminCustomerDetail({ customer }: AdminCustomerDetailProps) {
             <div className="modalActions">
               <button
                 className="secondaryButton"
+                disabled={isDeleting}
                 type="button"
                 onClick={() => setIsDeleteOpen(false)}
               >

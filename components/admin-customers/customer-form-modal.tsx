@@ -1,5 +1,7 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
+import { useRef } from "react";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 import { customerStatusLabels, type AdminCustomer } from "@/lib/customers";
 
 export type CustomerFormState = {
@@ -44,6 +46,18 @@ export function CustomerFormModal({
   onSubmit,
   setForm,
 }: CustomerFormModalProps) {
+  const dialogRef = useRef<HTMLFormElement>(null);
+  const titleId = isEditing
+    ? "edit-customer-dialog-title"
+    : "create-customer-dialog-title";
+  const errorId = `${titleId}-error`;
+
+  useModalAccessibility({
+    blockClose: isSaving,
+    dialogRef,
+    onClose,
+  });
+
   function updateField<Key extends keyof CustomerFormState>(
     field: Key,
     value: CustomerFormState[Key]
@@ -53,17 +67,30 @@ export function CustomerFormModal({
 
   return (
     <div className="modalOverlay" role="presentation">
-      <form className="adminModal customerModal" onSubmit={onSubmit}>
+      <form
+        aria-busy={isSaving}
+        aria-describedby={error ? errorId : undefined}
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="adminModal customerModal"
+        onSubmit={onSubmit}
+        ref={dialogRef}
+        role="dialog"
+        tabIndex={-1}
+      >
         <div className="modalHeader">
           <div>
             <p className="eyebrow">
               {isEditing ? "Editar cliente" : "Nuevo cliente"}
             </p>
-            <h2>{isEditing ? "Actualizar cliente" : "Registrar cliente"}</h2>
+            <h2 id={titleId}>
+              {isEditing ? "Actualizar cliente" : "Registrar cliente"}
+            </h2>
           </div>
           <button
             aria-label="Cerrar formulario"
             className="modalClose"
+            disabled={isSaving}
             type="button"
             onClick={onClose}
           >
@@ -71,7 +98,11 @@ export function CustomerFormModal({
           </button>
         </div>
 
-        {error ? <div className="formError">{error}</div> : null}
+        {error ? (
+          <div className="formError" id={errorId} role="alert">
+            {error}
+          </div>
+        ) : null}
 
         <div className="adminFormGrid">
           <label>
