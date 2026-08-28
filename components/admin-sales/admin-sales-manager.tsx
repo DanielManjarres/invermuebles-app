@@ -671,29 +671,31 @@ export function AdminSalesManager({
 
   return (
     <section className="tableSection salesSection">
-      <div className="moduleReportActions">
-        <ExcelDownloadButton
-          disabled={sales.length === 0}
-          onDownload={() => downloadSalesReport(sales)}
-        />
-      </div>
-      <div className="movementSummaryGrid" aria-label="Resumen de ventas">
-        <article>
-          <span>Total ventas</span>
-          <strong>{sales.length}</strong>
-        </article>
-        <article>
-          <span>Ventas locales</span>
-          <strong>{sales.filter((sale) => sale.source === "LOCAL").length}</strong>
-        </article>
-        <article>
-          <span>Desde pedidos</span>
-          <strong>{sales.filter((sale) => sale.source === "ORDER").length}</strong>
-        </article>
-        <article>
-          <span>Total vendido</span>
-          <strong>{formatMoney(totalSold)}</strong>
-        </article>
+      <div className="salesSummaryRow">
+        <div className="movementSummaryGrid" aria-label="Resumen de ventas">
+          <article>
+            <span>Total ventas</span>
+            <strong>{sales.length}</strong>
+          </article>
+          <article>
+            <span>Ventas locales</span>
+            <strong>{sales.filter((sale) => sale.source === "LOCAL").length}</strong>
+          </article>
+          <article>
+            <span>Desde pedidos</span>
+            <strong>{sales.filter((sale) => sale.source === "ORDER").length}</strong>
+          </article>
+          <article>
+            <span>Total vendido</span>
+            <strong>{formatMoney(totalSold)}</strong>
+          </article>
+        </div>
+        <div className="moduleReportActions">
+          <ExcelDownloadButton
+            disabled={sales.length === 0}
+            onDownload={() => downloadSalesReport(sales)}
+          />
+        </div>
       </div>
 
       <div className="salesLayout">

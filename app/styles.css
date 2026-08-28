@@ -3362,9 +3362,34 @@ th {
 
 .salesSection {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   max-width: 1180px;
-  padding-top: 28px;
+  padding-top: 20px;
+}
+
+.salesSummaryRow {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.salesSummaryRow .movementSummaryGrid {
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.salesSummaryRow .movementSummaryGrid article {
+  min-height: 70px;
+  padding: 10px 14px;
+}
+
+.salesSummaryRow .movementSummaryGrid strong {
+  font-size: 1.35rem;
+}
+
+.salesSummaryRow .moduleReportActions {
+  margin-bottom: 0;
 }
 
 .salesLayout {
