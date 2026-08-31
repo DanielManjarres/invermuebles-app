@@ -86,7 +86,7 @@ export function AdminSalesHistory({
         ) : (
           sales.map((sale) => (
             <article className="saleHistoryCard" key={sale.id}>
-              <div>
+              <div className="saleHistoryIdentity">
                 <span className="saleBadge">{saleStatusLabels[sale.status]}</span>
                 <h3>Venta N.º {sale.shortId}</h3>
                 <p>Cuenta / factura electrónica: {sale.invoiceCode}</p>
@@ -98,7 +98,7 @@ export function AdminSalesHistory({
                     : ""}
                 </p>
               </div>
-              <div>
+              <div className="saleHistoryCustomer">
                 <strong>{sale.customerName}</strong>
                 <span>{sale.customerDocument ? `CC ${sale.customerDocument}` : "Sin cédula"}</span>
               </div>

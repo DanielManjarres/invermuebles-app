@@ -2267,18 +2267,18 @@ th {
 }
 
 .saleHistoryActions {
-  border-top: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
+  align-content: start;
+  display: grid;
   gap: 8px;
-  justify-content: flex-end;
-  padding-top: 10px;
+  grid-area: actions;
 }
 
+.saleHistoryActions .primaryButton,
 .saleHistoryActions .dangerButton,
 .saleHistoryActions .secondaryButton {
   min-height: 36px;
   padding-inline: 12px;
+  width: 100%;
 }
 
 .deleteConfirmationField {
@@ -3722,8 +3722,25 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 10px;
+  gap: 8px 16px;
+  grid-template-areas:
+    "identity payment actions"
+    "customer payment actions"
+    "items items items";
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.75fr) minmax(190px, 0.65fr);
   padding: 12px;
+}
+
+.saleHistoryIdentity {
+  grid-area: identity;
+}
+
+.saleHistoryCustomer {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  grid-area: customer;
 }
 
 .saleHistoryCard h3 {
@@ -3754,6 +3771,7 @@ th {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  grid-area: items;
 }
 
 .saleHistoryItems span {
@@ -3764,8 +3782,11 @@ th {
 }
 
 .salePaymentSummary {
+  border-left: 1px solid var(--line);
   display: grid;
   gap: 4px;
+  grid-area: payment;
+  padding-left: 16px;
 }
 
 .saleHistoryFilters {
@@ -4970,12 +4991,31 @@ th {
   }
 
   .saleHistoryActions {
-    justify-content: stretch;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
   }
 
+  .saleHistoryActions .primaryButton,
   .saleHistoryActions .dangerButton,
   .saleHistoryActions .secondaryButton {
     width: 100%;
+  }
+
+  .saleHistoryCard {
+    grid-template-areas:
+      "identity"
+      "customer"
+      "items"
+      "payment"
+      "actions";
+    grid-template-columns: 1fr;
+  }
+
+  .salePaymentSummary {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-left: 0;
+    padding-top: 10px;
   }
 
   .productDetailInfo {
