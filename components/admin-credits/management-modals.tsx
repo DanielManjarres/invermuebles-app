@@ -1,9 +1,10 @@
-import type { FormEvent } from "react";
+import { useRef, type FormEvent } from "react";
 import { Trash2 } from "lucide-react";
 
 import { paymentOptions } from "@/components/admin-credits/form-controls";
 import { MoneyInput } from "@/components/ui/money-input";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 import type { AdminCredit, PaymentMethod } from "@/lib/credits";
 
 type CreditStatus = "ACTIVE" | "OVERDUE";
@@ -56,15 +57,37 @@ export function AdminCreditManagementModals({
   onEditStatusChange,
   onEditSubmit,
 }: Props) {
+  const editDialogRef = useRef<HTMLFormElement>(null);
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
+  const initialPaymentLabel = editCredit?.saleType === "CREDIT" ? "Primera cuota" : "Pago inicial";
+
+  useModalAccessibility({
+    active: Boolean(editCredit),
+    blockClose: managing,
+    dialogRef: editDialogRef,
+    onClose: onEditClose,
+  });
+
+  useModalAccessibility({
+    active: Boolean(deleteCredit),
+    blockClose: managing,
+    dialogRef: deleteDialogRef,
+    onClose: onDeleteClose,
+  });
+
   return (
     <>
       {editCredit ? (
         <div className="adminModalBackdrop" role="presentation">
           <form
+            aria-busy={managing}
+            aria-describedby="edit-credit-warning"
             aria-labelledby="edit-credit-title"
             aria-modal="true"
-            className="adminModal"
+            className="adminModal creditManagementModal"
+            ref={editDialogRef}
             role="dialog"
+            tabIndex={-1}
             onSubmit={onEditSubmit}
           >
             <div className="modalHeader">
@@ -72,13 +95,20 @@ export function AdminCreditManagementModals({
                 <p className="eyebrow">Corrección administrativa</p>
                 <h2 id="edit-credit-title">Editar crédito #{editCredit.shortId}</h2>
               </div>
-              <button className="iconButton" disabled={managing} type="button" onClick={onEditClose}>
+              <button
+                aria-label="Cerrar edición de crédito"
+                className="iconButton"
+                disabled={managing}
+                type="button"
+                onClick={onEditClose}
+              >
                 <span aria-hidden="true">×</span>
               </button>
             </div>
 
-            <div className="recordDeleteWarning">
-              Solo se permite corregir la financiación mientras no existan abonos posteriores al pago inicial.
+            <div className="recordDeleteWarning" id="edit-credit-warning">
+              Solo se permite corregir la financiación mientras no existan abonos posteriores a la
+              {editCredit.saleType === "CREDIT" ? " primera cuota." : " cuota inicial."}
             </div>
 
             <div className="adminFormGrid">
@@ -104,7 +134,7 @@ export function AdminCreditManagementModals({
                 />
               </label>
               <label>
-                Pago inicial
+                {initialPaymentLabel}
                 <MoneyInput
                   id="edit-initial-payment"
                   value={editInitialPayment}
@@ -112,7 +142,7 @@ export function AdminCreditManagementModals({
                 />
               </label>
               <label>
-                Medio del pago inicial
+                Medio de la {editCredit.saleType === "CREDIT" ? "primera cuota" : "cuota inicial"}
                 <SelectMenu
                   disabled={!editInitialPayment}
                   options={paymentOptions}
@@ -147,21 +177,31 @@ export function AdminCreditManagementModals({
       {deleteCredit ? (
         <div className="adminModalBackdrop" role="presentation">
           <div
+            aria-busy={managing}
+            aria-describedby="delete-credit-warning"
             aria-labelledby="delete-credit-title"
             aria-modal="true"
-            className="adminModal recordDeleteModal"
+            className="adminModal recordDeleteModal creditManagementModal"
+            ref={deleteDialogRef}
             role="dialog"
+            tabIndex={-1}
           >
             <div className="modalHeader">
               <div>
                 <p className="eyebrow">Acción permanente</p>
                 <h2 id="delete-credit-title">Eliminar crédito</h2>
               </div>
-              <button className="iconButton" disabled={managing} type="button" onClick={onDeleteClose}>
+              <button
+                aria-label="Cerrar eliminación de crédito"
+                className="iconButton"
+                disabled={managing}
+                type="button"
+                onClick={onDeleteClose}
+              >
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <div className="recordDeleteWarning">
+            <div className="recordDeleteWarning" id="delete-credit-warning">
               El crédito y su pago inicial se eliminarán permanentemente. La venta se conservará pendiente para
               configurar otra financiación.
             </div>

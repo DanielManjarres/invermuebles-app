@@ -45,6 +45,7 @@ export function AdminCreditAccountCarousel({
   selectedId,
 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
+  const singleAccount = accounts.length === 1;
 
   function scrollAccounts(left: number) {
     listRef.current?.scrollBy({ left, behavior: "smooth" });
@@ -54,8 +55,12 @@ export function AdminCreditAccountCarousel({
     <div className="creditAccounts">
       <div className="creditAccountsHeader">
         <div>
-          <strong>Cuentas del cliente</strong>
-          <span>Selecciona una cuenta para revisar sus detalles y pagos.</span>
+          <strong>{singleAccount ? "Cuenta del cliente" : "Cuentas del cliente"}</strong>
+          <span>
+            {singleAccount
+              ? "Consulta su resumen y abre el detalle de pagos."
+              : "Selecciona una cuenta para revisar sus detalles y pagos."}
+          </span>
         </div>
         {accounts.length > 1 ? (
           <div className="creditAccountControls" aria-label="Desplazar cuentas" role="group">
@@ -98,7 +103,7 @@ export function AdminCreditAccountCarousel({
         </div>
       ) : null}
 
-      <div className="creditAccountList" ref={listRef}>
+      <div className={`creditAccountList${singleAccount ? " singleAccount" : ""}`} ref={listRef}>
         {!accounts.length ? (
           <p className="creditAccountEmpty">
             No hay cuentas {activeGroup === "OPEN" ? "por cobrar" : "pagadas"} para mostrar.
@@ -119,13 +124,17 @@ export function AdminCreditAccountCarousel({
               </span>
             </div>
             <span className="creditAccountProduct">{getProductSummary(account)}</span>
-            <span className="creditAccountMeta">Venta del {getSaleDate(account)}</span>
+            {!singleAccount ? (
+              <span className="creditAccountMeta">Venta del {getSaleDate(account)}</span>
+            ) : null}
             <span className="creditAccountAmount">
               {account.status === "PAID"
                 ? `Total pagado: ${formatMoney(account.amountPaid)}`
                 : `Saldo: ${formatMoney(account.balance)}`}
             </span>
-            <small>Venta N.º {account.saleShortId} · Cuenta {account.shortId}</small>
+            {!singleAccount ? (
+              <small>Venta N.º {account.saleShortId} · Cuenta {account.shortId}</small>
+            ) : null}
           </button>
         ))}
       </div>

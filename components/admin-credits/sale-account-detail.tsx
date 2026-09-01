@@ -82,8 +82,10 @@ export function AdminSaleAccountDetail({ account, paymentDisabled, onPayment, on
                 <strong>{formatMoney(payment.amount)}</strong>
                 <span>{payment.createdAt} · {payment.methodLabel}</span>
               </div>
-              {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
-              {payment.note ? <small>{payment.note}</small> : null}
+              <div className="creditPaymentDetails">
+                {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
+                {payment.note ? <small>{payment.note}</small> : null}
+              </div>
               <button
                 className="secondaryButton paymentReceiptButton"
                 type="button"

@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import { Printer, X } from "lucide-react";
 import { createPortal } from "react-dom";
+import { useRef } from "react";
 
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 import { company } from "@/lib/company";
 import { getPaymentReceiptNumber } from "@/lib/payment-receipt";
 import type { PortfolioAccount, PortfolioPayment } from "@/lib/portfolio";
@@ -20,7 +24,13 @@ function formatMoney(value: number) {
 }
 
 export function AdminPaymentReceiptModal({ account, balanceAfter, onClose, payment }: Props) {
+  const dialogRef = useRef<HTMLElement>(null);
   const receiptNumber = payment.receiptNumber || getPaymentReceiptNumber(payment.id);
+
+  useModalAccessibility({
+    dialogRef,
+    onClose,
+  });
 
   if (typeof document === "undefined") {
     return null;
@@ -32,10 +42,12 @@ export function AdminPaymentReceiptModal({ account, balanceAfter, onClose, payme
         aria-labelledby="payment-receipt-title"
         aria-modal="true"
         className="adminModal paymentReceiptModal"
+        ref={dialogRef}
         role="dialog"
+        tabIndex={-1}
       >
         <div className="paymentReceiptActions">
-          <button className="secondaryButton" type="button" onClick={onClose}>
+          <button aria-label="Cerrar recibo de pago" className="secondaryButton" type="button" onClick={onClose}>
             <X size={18} />
             Cerrar
           </button>
