@@ -5491,8 +5491,8 @@ th {
 .creditAccounts {
   border-bottom: 1px solid var(--line);
   display: grid;
-  gap: 12px;
-  padding: 16px 0;
+  gap: 10px;
+  padding: 12px 0;
 }
 
 .creditAccountsHeader {
@@ -5573,6 +5573,20 @@ th {
   scrollbar-width: thin;
 }
 
+.creditAccountList.singleAccount {
+  grid-auto-flow: row;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.creditAccountList.singleAccount .creditAccountButton {
+  align-items: center;
+  gap: 10px 14px;
+  grid-template-columns: minmax(145px, 0.6fr) minmax(0, 1.4fr) auto;
+  padding: 9px 11px;
+}
+
 .creditAccountButton {
   background: #fff;
   border: 1px solid var(--line);
@@ -5643,7 +5657,7 @@ th {
 }
 
 .creditSelectedAccount {
-  padding-top: 18px;
+  padding-top: 14px;
 }
 
 .creditStatus {
@@ -5698,17 +5712,25 @@ th {
 }
 
 .creditDetailHeader {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
-  gap: 20px;
+  gap: 14px;
   justify-content: space-between;
+}
+
+.creditDetailHeader > div:first-child {
+  align-items: baseline;
+  column-gap: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
 }
 
 .creditHeaderActions {
   align-items: center;
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
   max-width: none;
 }
@@ -5716,8 +5738,8 @@ th {
 .creditHeaderActions .primaryButton,
 .creditHeaderActions .secondaryButton,
 .creditHeaderActions .dangerButton {
-  min-height: 36px;
-  padding-inline: 12px;
+  min-height: 34px;
+  padding-inline: 11px;
 }
 
 .creditHeaderActions button.isDisabled {
@@ -5734,20 +5756,23 @@ th {
 
 .creditDetailHeader h2,
 .creditDetailHeader h3 {
-  font-size: 28px;
-  margin: 4px 0;
+  font-size: 24px;
+  line-height: 1.1;
+  margin: 0;
 }
 
 .creditDetailHeader p {
   color: var(--muted);
-  margin: 0;
+  font-size: 14px;
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
 }
 
 .creditFigures {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .creditFigures article {
@@ -5755,8 +5780,8 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 5px;
-  padding: 12px;
+  gap: 4px;
+  padding: 9px 10px;
 }
 
 .creditFigures strong {
@@ -6054,6 +6079,7 @@ th {
   .creditCustomerProfileHeader,
   .creditAccountsHeader { align-items: flex-start; flex-direction: column; }
   .creditAccountControls { align-self: flex-end; }
+  .creditAccountList.singleAccount .creditAccountButton { grid-template-columns: 1fr; }
   .creditCustomerInfoGrid { grid-template-columns: 1fr; }
   .creditDetailHeader { flex-direction: column; }
   .creditDetailHeader h2,
