@@ -5920,6 +5920,56 @@ th {
   margin: 0;
 }
 
+.creditManagementModal {
+  gap: 12px;
+  max-width: 680px;
+  padding: 18px 18px 0;
+  width: min(100%, 680px);
+}
+
+.creditManagementModal.recordDeleteModal {
+  max-width: 520px;
+  width: min(100%, 520px);
+}
+
+.creditManagementModal .recordDeleteWarning,
+.creditManagementModal .recordDeleteTarget {
+  padding: 10px 12px;
+}
+
+.creditManagementModal .adminFormGrid {
+  gap: 8px 10px;
+}
+
+.creditManagementModal .adminFormGrid label,
+.creditManagementModal .deleteConfirmationField {
+  font-size: 0.82rem;
+  gap: 4px;
+}
+
+.creditManagementModal .adminFormGrid input,
+.creditManagementModal .adminFormGrid select,
+.creditManagementModal .deleteConfirmationField input {
+  min-height: 40px;
+}
+
+.creditManagementModal .modalActions {
+  background: #fff;
+  border-top: 1px solid var(--line);
+  bottom: 0;
+  margin: 0 -18px;
+  padding: 10px 18px 14px;
+  position: sticky;
+  z-index: 2;
+}
+
+.creditManagementModal .modalActions .primaryButton,
+.creditManagementModal .modalActions .secondaryButton,
+.creditManagementModal .modalActions .dangerButton {
+  min-height: 38px;
+  padding-inline: 14px;
+}
+
 .creditFormMessage {
   border-radius: 7px;
   font-weight: 700;
