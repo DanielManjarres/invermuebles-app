@@ -5160,12 +5160,24 @@ th {
   box-sizing: border-box;
   margin: 0 auto;
   max-width: 1180px;
-  padding: 28px 20px 52px;
+  padding: 24px 20px 52px;
   width: 100%;
 }
 
 .creditsPageHeading {
-  margin-bottom: 18px;
+  min-width: 0;
+}
+
+.creditsSectionHeader {
+  align-items: flex-end;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.creditsSectionHeader .moduleReportActions {
+  flex: 0 0 auto;
+  margin-bottom: 0;
 }
 
 .creditsPage .topbar {
@@ -5203,12 +5215,12 @@ th {
 
 .creditsManager {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .creditStats {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -5218,8 +5230,8 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 6px;
-  min-height: 76px;
-  padding: 13px 16px;
+  min-height: 72px;
+  padding: 11px 16px;
 }
 
 .creditStats span,
@@ -6019,6 +6031,8 @@ th {
 @media (max-width: 820px) {
   .creditsPageContent { padding: 28px 16px 48px; }
   .creditsPageHeading h2 { font-size: 30px; }
+  .creditsSectionHeader { align-items: stretch; flex-direction: column; }
+  .creditsSectionHeader .moduleReportActions { justify-content: flex-start; }
   .creditStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .creditToolbar { align-items: stretch; flex-direction: column; }
   .creditSearch { max-width: none; min-width: 0; }

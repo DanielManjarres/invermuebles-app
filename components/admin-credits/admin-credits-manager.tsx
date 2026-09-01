@@ -410,11 +410,18 @@ export function AdminCreditsManager({
 
   return (
     <section className="creditsManager">
-      <div className="moduleReportActions">
-        <ExcelDownloadButton
-          disabled={credits.length === 0 && sales.length === 0}
-          onDownload={() => downloadCreditsReport(credits, sales)}
-        />
+      <div className="creditsSectionHeader">
+        <div className="creditsPageHeading">
+          <p className="eyebrow">Seguimiento financiero</p>
+          <h2>Cuentas y pagos</h2>
+          <p>Busca un cliente para consultar sus cuentas y registrar abonos.</p>
+        </div>
+        <div className="moduleReportActions">
+          <ExcelDownloadButton
+            disabled={credits.length === 0 && sales.length === 0}
+            onDownload={() => downloadCreditsReport(credits, sales)}
+          />
+        </div>
       </div>
       <AdminCreditsOverview
         disabled={saving}

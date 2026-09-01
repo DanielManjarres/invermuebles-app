@@ -35,11 +35,6 @@ export default async function AdminCreditsPage({ searchParams }: Props) {
       </section>
 
       <div className="creditsPageContent">
-        <div className="creditsPageHeading">
-          <p className="eyebrow">Seguimiento financiero</p>
-          <h2>Cuentas y pagos</h2>
-          <p>Busca un cliente para consultar sus cuentas y registrar abonos.</p>
-        </div>
         <AdminCreditsManager
           initialCredits={credits}
           initialCustomers={customers}
