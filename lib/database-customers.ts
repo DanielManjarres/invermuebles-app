@@ -7,6 +7,7 @@ import {
 import { creditStatusLabels } from "@/lib/credits";
 import { prisma } from "@/lib/prisma";
 import { paymentMethodLabels, saleTypeLabels } from "@/lib/sales";
+import { formatInvoiceNumber } from "@/lib/document-numbering";
 
 const customerInclude = {
   _count: {
@@ -28,6 +29,9 @@ const customerInclude = {
       sale: {
         select: {
           id: true,
+          invoiceNumber: true,
+          invoicePrefix: true,
+          saleNumber: true,
           type: true,
           items: {
             orderBy: { createdAt: "asc" },
@@ -47,6 +51,9 @@ const customerInclude = {
       balance: true,
       createdAt: true,
       id: true,
+      invoiceNumber: true,
+      invoicePrefix: true,
+      saleNumber: true,
       total: true,
       type: true,
       credit: {
@@ -81,6 +88,7 @@ function formatDate(date?: Date | null) {
 
   return date.toLocaleString("es-CO", {
     dateStyle: "short",
+    timeZone: "America/Bogota",
     timeStyle: "short",
   });
 }
@@ -104,10 +112,14 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
         id: payment.id,
         amount: Number(payment.amount),
         ...paymentAccount,
+        accountShortId:
+          formatInvoiceNumber(sale.invoicePrefix, sale.invoiceNumber) ||
+          paymentAccount.accountShortId,
         methodLabel: paymentMethodLabels[payment.method],
         createdAt: formatDate(payment.createdAt),
         createdAtValue: payment.createdAt,
         isInitial: payment.isInitial,
+        saleType: sale.type,
       }));
 
       if (sale.type === "SISTECREDITO" && salePayments.length === 0) {
@@ -119,6 +131,7 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
           createdAt: formatDate(sale.createdAt),
           createdAtValue: sale.createdAt,
           isInitial: true,
+          saleType: sale.type,
         });
       }
 
@@ -127,8 +140,13 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
     .sort((first, second) => second.createdAtValue.getTime() - first.createdAtValue.getTime());
   const creditAccounts = customer.credits.map((credit) => ({
     id: `credit:${credit.id}`,
-    shortId: credit.id.slice(-6).toUpperCase(),
-    saleShortId: credit.sale?.id.slice(-6).toUpperCase() ?? "",
+    shortId:
+      formatInvoiceNumber(
+        credit.sale?.invoicePrefix ?? null,
+        credit.sale?.invoiceNumber ?? null,
+      ) || credit.id.slice(-6).toUpperCase(),
+    saleShortId:
+      credit.sale?.saleNumber?.toString() ?? credit.sale?.id.slice(-6).toUpperCase() ?? "",
     title: saleTypeLabels[credit.sale?.type ?? "CREDIT"],
     statusLabel: creditStatusLabels[credit.status],
     total: Number(credit.total),
@@ -157,8 +175,10 @@ function mapCustomer(customer: CustomerWithRelations): AdminCustomer {
 
       return {
         id: `sale:${sale.id}`,
-        shortId: sale.id.slice(-6).toUpperCase(),
-        saleShortId: sale.id.slice(-6).toUpperCase(),
+        shortId:
+          formatInvoiceNumber(sale.invoicePrefix, sale.invoiceNumber) ||
+          sale.id.slice(-6).toUpperCase(),
+        saleShortId: sale.saleNumber?.toString() ?? sale.id.slice(-6).toUpperCase(),
         title: saleTypeLabels[sale.type],
         statusLabel: isOpen ? "Activo" : "Pagado",
         total: Number(sale.total),

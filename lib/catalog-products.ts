@@ -49,6 +49,7 @@ export type CatalogVariantAttributeValue = {
 export type CatalogProductVariant = {
   active: boolean;
   attributeValues: CatalogVariantAttributeValue[];
+  baseCost: number;
   cost: number;
   id: string;
   location: string;
@@ -57,6 +58,7 @@ export type CatalogProductVariant = {
   reference: string;
   salePrice: number;
   stock: number;
+  taxRate: number;
 };
 
 export type CatalogProductRecord = {

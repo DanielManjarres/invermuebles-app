@@ -10,6 +10,8 @@ import { AdminCreditsOverview, type CreditFilter } from "@/components/admin-cred
 import { AdminCreditPaymentModal } from "@/components/admin-credits/payment-modal";
 import { AdminPaymentReceiptModal } from "@/components/admin-credits/payment-receipt-modal";
 import { AdminSaleAccountDetail } from "@/components/admin-credits/sale-account-detail";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
+import { downloadCreditsReport } from "@/lib/admin-report-builders";
 import {
   type AdminCredit,
   type CreditStats,
@@ -408,6 +410,12 @@ export function AdminCreditsManager({
 
   return (
     <section className="creditsManager">
+      <div className="moduleReportActions">
+        <ExcelDownloadButton
+          disabled={credits.length === 0 && sales.length === 0}
+          onDownload={() => downloadCreditsReport(credits, sales)}
+        />
+      </div>
       <AdminCreditsOverview
         disabled={saving}
         filter={filter}

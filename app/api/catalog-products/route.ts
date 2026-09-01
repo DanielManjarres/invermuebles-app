@@ -6,6 +6,7 @@ import {
   validateCatalogProductInput,
 } from "@/lib/catalog-product-policy";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
 import {
   CATALOG_PRODUCT_INITIAL_NOTE,
   buildVariantName,
@@ -21,6 +22,7 @@ type CatalogProductRequest = {
   catalogProductTypeId?: string;
   initialVariant?: {
     attributeValues?: VariantAttributeInput[];
+    baseCost?: number;
     cost?: number;
     location?: string;
     minimumStock?: number;
@@ -144,6 +146,9 @@ export async function POST(request: Request) {
   }
 
   const reference = normalizeVariantReference(body.initialVariant.reference);
+  const baseCost = Number(body.initialVariant.baseCost);
+  const taxRate = DEFAULT_TAX_RATE;
+  const cost = addTax(baseCost, taxRate).total;
   const variantName = buildVariantName(
     catalogProductType.attributes,
     normalizedAttributes.values,
@@ -151,6 +156,7 @@ export async function POST(request: Request) {
   );
   const variantError = validateVariantInput({
     ...body.initialVariant,
+    cost,
     name: variantName,
     reference,
   });
@@ -184,8 +190,9 @@ export async function POST(request: Request) {
       const createdProduct = await transaction.product.create({
         data: {
           brand: productInput.brand || null,
+          baseCost: String(baseCost),
           catalogProductTypeId: catalogProductType.id,
-          cost: String(Number(body.initialVariant?.cost)),
+          cost: String(cost),
           details: productInput.details,
           imageUrl: productInput.primaryImageUrl || null,
           model: productInput.model || null,
@@ -195,6 +202,7 @@ export async function POST(request: Request) {
           reference,
           salePrice: String(Number(body.initialVariant?.salePrice)),
           stock,
+          taxRate: String(taxRate),
           visible: body.visible ?? false,
         },
       });
@@ -203,7 +211,8 @@ export async function POST(request: Request) {
         data: {
           active: true,
           attributeValues: { create: normalizedAttributes.values },
-          cost: String(Number(body.initialVariant?.cost)),
+          baseCost: String(baseCost),
+          cost: String(cost),
           location: cleanText(body.initialVariant?.location) || null,
           minimumStock: Number(body.initialVariant?.minimumStock),
           name: variantName,
@@ -211,6 +220,7 @@ export async function POST(request: Request) {
           reference,
           salePrice: String(Number(body.initialVariant?.salePrice)),
           stock,
+          taxRate: String(taxRate),
         },
       });
 

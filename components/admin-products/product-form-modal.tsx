@@ -6,7 +6,7 @@ import type {
   CatalogCategory,
   CatalogProductRecord,
 } from "@/lib/catalog-products";
-import { ProductMoneyField } from "@/components/admin-products/form-controls";
+import { VariantPricingFields } from "@/components/admin-products/variant-pricing-fields";
 import { IntegerInput } from "@/components/ui/integer-input";
 import { SelectMenu } from "@/components/ui/select-menu";
 
@@ -20,7 +20,7 @@ type ProductFormState = {
   attributeValues: Record<string, string>;
   brand: string;
   categoryId: string;
-  cost: number;
+  baseCost: number;
   details: string;
   imageUrl: string;
   location: string;
@@ -39,7 +39,7 @@ function createForm(product?: CatalogProductRecord): ProductFormState {
     attributeValues: {},
     brand: product?.brand ?? "",
     categoryId: product?.categoryId ?? "",
-    cost: 0,
+    baseCost: 0,
     details: product?.details ?? "",
     imageUrl: product?.imageUrl ?? "",
     location: "",
@@ -126,7 +126,7 @@ export function ProductFormModal({
     }
     if (
       !isEditing &&
-      (form.cost <= 0 || form.salePrice <= 0)
+      (form.baseCost <= 0 || form.salePrice <= 0)
     ) {
       setError("El costo y el precio de venta deben ser mayores que cero.");
       return;
@@ -188,7 +188,7 @@ export function ProductFormModal({
                             value: form.attributeValues[attribute.id],
                           },
                     ),
-                  cost: form.cost,
+                  baseCost: form.baseCost,
                   location: form.location,
                   minimumStock: Number(form.minimumStock),
                   reference: form.reference,
@@ -369,17 +369,10 @@ export function ProductFormModal({
               <div className="formHint">
                 El nombre se genera automáticamente con los atributos de la variante.
               </div>
-              <ProductMoneyField
-                label="Costo"
-                required
-                value={form.cost}
-                onChange={(cost) => updateForm({ cost })}
-              />
-              <ProductMoneyField
-                label="Precio de venta"
-                required
-                value={form.salePrice}
-                onChange={(salePrice) => updateForm({ salePrice })}
+              <VariantPricingFields
+                baseCost={form.baseCost}
+                salePrice={form.salePrice}
+                onChange={(pricing) => updateForm(pricing)}
               />
               <label>
                 Stock inicial *

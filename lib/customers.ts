@@ -30,6 +30,7 @@ export type AdminCustomerPayment = {
   methodLabel: string;
   createdAt: string;
   isInitial: boolean;
+  saleType: SaleType;
 };
 
 export type AdminCustomer = {
@@ -73,6 +74,21 @@ export function getCustomerPaymentAccount(
     accountShortId: accountId.slice(-6).toUpperCase(),
     accountTitle: customerAccountTitles[saleType],
   };
+}
+
+export function getCustomerPaymentLabel(
+  saleType: SaleType,
+  isInitial: boolean,
+) {
+  if (saleType === "CASH") {
+    return "Pago de contado";
+  }
+
+  if (saleType === "SISTECREDITO") {
+    return "Pago por Sistecrédito";
+  }
+
+  return isInitial ? "Pago inicial" : "Abono";
 }
 
 export const customerStatusLabels: Record<CustomerStatus, string> = {

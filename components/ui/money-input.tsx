@@ -61,7 +61,6 @@ export function MoneyInput({
         setIsFocused(true);
         setTextValue(value > 0 ? String(value) : "");
       }}
-      pattern="[0-9.]*"
       placeholder={placeholder}
       required={required}
       type="text"

@@ -7,7 +7,7 @@ import type {
   CatalogProductType,
   CatalogProductVariant,
 } from "@/lib/catalog-products";
-import { ProductMoneyField } from "@/components/admin-products/form-controls";
+import { VariantPricingFields } from "@/components/admin-products/variant-pricing-fields";
 import { IntegerInput } from "@/components/ui/integer-input";
 import { SelectMenu } from "@/components/ui/select-menu";
 
@@ -21,7 +21,7 @@ type VariantFormModalProps = {
 type VariantFormState = {
   active: boolean;
   attributeValues: Record<string, string>;
-  cost: number;
+  baseCost: number;
   location: string;
   minimumStock: number;
   reference: string;
@@ -38,7 +38,7 @@ function createForm(variant?: CatalogProductVariant): VariantFormState {
         value.optionId || value.value,
       ]),
     ),
-    cost: variant?.cost ?? 0,
+    baseCost: variant?.baseCost ?? 0,
     location: variant?.location ?? "",
     minimumStock: variant?.minimumStock ?? 0,
     reference: variant?.reference ?? "",
@@ -96,7 +96,7 @@ export function VariantFormModal({
         body: JSON.stringify({
           active: form.active,
           attributeValues: buildAttributeValues(),
-          cost: form.cost,
+          baseCost: form.baseCost,
           location: form.location,
           minimumStock: form.minimumStock,
           productId: product.id,
@@ -162,15 +162,10 @@ export function VariantFormModal({
           <div className="formHint">
             El nombre se genera automáticamente con los atributos de la variante.
           </div>
-          <ProductMoneyField
-            label="Costo"
-            value={form.cost}
-            onChange={(cost) => updateForm({ cost })}
-          />
-          <ProductMoneyField
-            label="Precio de venta"
-            value={form.salePrice}
-            onChange={(salePrice) => updateForm({ salePrice })}
+          <VariantPricingFields
+            baseCost={form.baseCost}
+            salePrice={form.salePrice}
+            onChange={(pricing) => updateForm(pricing)}
           />
           {!isEditing ? (
             <label>

@@ -18,9 +18,9 @@ export function AdminSaleAccountDetail({ account, paymentDisabled, onPayment, on
     <div className="creditSelectedAccount">
       <div className="creditDetailHeader">
         <div>
-          <span className="sectionEyebrow">Cuenta #{account.shortId}</span>
+          <span className="sectionEyebrow">Cuenta {account.shortId}</span>
           <h3>{account.title}</h3>
-          <p>Venta #{account.saleShortId} · {account.createdAt}</p>
+          <p>Venta N.º {account.saleShortId} · {account.createdAt}</p>
         </div>
         <div className="creditHeaderActions">
           <span className={`creditStatus creditStatus-${account.status.toLowerCase()}`}>
@@ -51,7 +51,7 @@ export function AdminSaleAccountDetail({ account, paymentDisabled, onPayment, on
       </div>
 
       <div className="creditSaleSummary">
-        <div><strong>{account.title} · Venta #{account.saleShortId}</strong></div>
+        <div><strong>{account.title} · Venta N.º {account.saleShortId}</strong></div>
         <ul>
           {account.items.map((item) => (
             <li key={item.id}>

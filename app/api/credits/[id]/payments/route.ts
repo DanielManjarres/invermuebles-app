@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { getCreditById } from "@/lib/database-credits";
 import { prisma } from "@/lib/prisma";
+import { consumePaymentReceiptNumber } from "@/lib/document-numbering";
 import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
 
 type RouteContext = {
@@ -137,6 +138,7 @@ export async function POST(request: Request, context: RouteContext) {
         where: { email: "admin@invermuebles.com" },
       });
 
+      const receiptNumber = await consumePaymentReceiptNumber(tx);
       await tx.salePayment.create({
         data: {
           amount,
@@ -146,6 +148,7 @@ export async function POST(request: Request, context: RouteContext) {
           note: body.note?.trim() || null,
           principalAmount: payment.principalAmount,
           reference: body.reference?.trim() || null,
+          receiptNumber,
           saleId: credit.sale.id,
           userId: user.id,
         },

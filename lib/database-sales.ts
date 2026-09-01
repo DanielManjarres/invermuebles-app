@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { AdminSale } from "@/lib/sales";
 import { prisma } from "@/lib/prisma";
+import { formatInvoiceNumber, formatReceiptNumber } from "@/lib/document-numbering";
 
 const saleInclude = {
   customer: true,
@@ -60,7 +61,10 @@ function mapSale(sale: SaleWithRelations): AdminSale {
 
   return {
     id: sale.id,
-    shortId: sale.id.slice(-6).toUpperCase(),
+    shortId: sale.saleNumber?.toString() ?? sale.id.slice(-6).toUpperCase(),
+    invoiceCode:
+      formatInvoiceNumber(sale.invoicePrefix, sale.invoiceNumber) ||
+      sale.id.slice(-6).toUpperCase(),
     customerId: sale.customerId ?? "",
     customerName: sale.customer?.fullName ?? "Venta sin cliente registrado",
     customerDocument: sale.customer?.document ?? "",
@@ -82,6 +86,8 @@ function mapSale(sale: SaleWithRelations): AdminSale {
     balance: Number(sale.balance),
     notes: sale.notes ?? "",
     sistecreditoApproval: sale.sistecreditoApproval ?? "",
+    taxableBase: Number(sale.taxableBase),
+    taxAmount: Number(sale.taxAmount),
     total: Number(sale.total),
     createdAt: formatDate(sale.createdAt),
     createdAtISO: sale.createdAt.toISOString(),
@@ -92,6 +98,8 @@ function mapSale(sale: SaleWithRelations): AdminSale {
       amount: Number(payment.amount),
       method: payment.method,
       reference: payment.reference ?? "",
+      receiptNumber:
+        formatReceiptNumber(payment.receiptNumber) || payment.id.slice(-6).toUpperCase(),
       note: payment.note ?? "",
       isInitial: payment.isInitial,
       createdAt: formatDate(payment.createdAt),

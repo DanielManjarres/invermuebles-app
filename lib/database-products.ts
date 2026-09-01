@@ -81,6 +81,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
         unit: value.attribute.unit ?? "",
         value: value.value,
       })),
+      baseCost: Number(variant.baseCost),
       cost: Number(variant.cost),
       id: variant.id,
       location: variant.location ?? "",
@@ -89,6 +90,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
       reference: variant.reference,
       salePrice: Number(variant.salePrice),
       stock: variant.stock,
+      taxRate: Number(variant.taxRate),
     })),
   }));
 }

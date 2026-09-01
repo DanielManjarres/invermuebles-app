@@ -98,7 +98,7 @@ export function AdminSalesModals({
             </div>
             <div className="recordDeleteTarget">
               <span>Venta seleccionada</span>
-              <strong>Venta #{saleToDelete.shortId}</strong>
+              <strong>Venta N.º {saleToDelete.shortId}</strong>
               <small>{saleToDelete.customerName}</small>
             </div>
             <label className="deleteConfirmationField">
@@ -126,7 +126,7 @@ export function AdminSalesModals({
           <div aria-labelledby="delivery-sale-title" aria-modal="true" className="adminModal" role="dialog">
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Venta #{deliverySale.shortId}</p>
+                <p className="eyebrow">Venta N.º {deliverySale.shortId}</p>
                 <h2 id="delivery-sale-title">
                   {deliveryAction === "DELIVER" ? "Confirmar entrega" : "Deshacer entrega"}
                 </h2>
@@ -148,7 +148,7 @@ export function AdminSalesModals({
             </div>
             <div className="recordDeleteTarget">
               <span>Venta seleccionada</span>
-              <strong>Venta #{deliverySale.shortId}</strong>
+              <strong>Venta N.º {deliverySale.shortId}</strong>
               <small>{deliverySale.customerName}</small>
             </div>
             <div className="modalActions">
@@ -183,7 +183,7 @@ export function AdminSalesModals({
           <form aria-labelledby="configure-credit-title" aria-modal="true" className="adminModal" role="dialog" onSubmit={onFinanceSubmit}>
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Venta #{saleToFinance.shortId}</p>
+                <p className="eyebrow">Venta N.º {saleToFinance.shortId}</p>
                 <h2 id="configure-credit-title">Configurar crédito</h2>
               </div>
               <button className="iconButton" disabled={financing} type="button" onClick={onFinanceClose}>

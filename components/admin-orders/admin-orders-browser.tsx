@@ -14,6 +14,8 @@ import {
 } from "@/lib/orders";
 import type { AdminCustomer } from "@/lib/customers";
 import { canPrepareOrderSale } from "@/lib/order-policy";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
+import { downloadOrdersReport } from "@/lib/admin-report-builders";
 
 const allStatuses = "all";
 const ordersPerPage = 8;
@@ -277,6 +279,10 @@ export function AdminOrdersBrowser({
             crear una venta, cliente o crédito.
           </p>
         </div>
+        <ExcelDownloadButton
+          disabled={orders.length === 0}
+          onDownload={() => downloadOrdersReport(orders)}
+        />
       </div>
 
       <div className="movementSummaryGrid" aria-label="Resumen de pedidos">

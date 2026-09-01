@@ -5,7 +5,9 @@ type CustomerValidationInput = {
   email?: string;
   fullName?: string;
   phone?: string;
+  referenceName?: string;
   referencePhone?: string;
+  referenceRelation?: string;
   status?: CustomerStatus;
 };
 
@@ -54,7 +56,19 @@ export function validateCustomerInput(input: CustomerValidationInput) {
     return "El teléfono debe tener entre 7 y 15 números.";
   }
 
+  const referenceName = cleanText(input.referenceName);
   const referencePhone = normalizePhone(input.referencePhone);
+  const referenceRelation = cleanText(input.referenceRelation);
+  const referenceFields = [
+    referenceName,
+    referencePhone,
+    referenceRelation,
+  ].filter(Boolean);
+
+  if (referenceFields.length > 0 && referenceFields.length < 3) {
+    return "Completa el nombre, la relación y el teléfono del contacto de referencia, o deja los tres campos vacíos.";
+  }
+
   if (referencePhone && (referencePhone.length < 7 || referencePhone.length > 15)) {
     return "El teléfono del contacto debe tener entre 7 y 15 números.";
   }

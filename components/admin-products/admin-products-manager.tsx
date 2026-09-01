@@ -14,6 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
 import type {
   CatalogCategory,
   CatalogProductRecord,
@@ -23,6 +24,7 @@ import { ProductFormModal } from "@/components/admin-products/product-form-modal
 import { VariantFormModal } from "@/components/admin-products/variant-form-modal";
 import { TaxonomyManager } from "@/components/admin-products/taxonomy-manager";
 import { MAX_FEATURED_PRODUCTS } from "@/lib/featured-product-policy";
+import { downloadProductsReport } from "@/lib/admin-report-builders";
 
 type AdminProductsManagerProps = {
   categories: CatalogCategory[];
@@ -166,14 +168,20 @@ export function AdminProductsManager({
               inicio: {stats.featured} de {MAX_FEATURED_PRODUCTS}.
             </p>
           </div>
-          <button
-            className="primaryButton"
-            type="button"
-            onClick={() => setIsCreating(true)}
-          >
-            <PackagePlus size={18} />
-            Nuevo producto
-          </button>
+          <div className="sectionHeaderActions">
+            <ExcelDownloadButton
+              disabled={products.length === 0}
+              onDownload={() => downloadProductsReport(products)}
+            />
+            <button
+              className="primaryButton"
+              type="button"
+              onClick={() => setIsCreating(true)}
+            >
+              <PackagePlus size={18} />
+              Nuevo producto
+            </button>
+          </div>
         </div>
 
         <div className="inventoryToolbar productsToolbar">

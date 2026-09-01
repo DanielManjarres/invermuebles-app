@@ -24,6 +24,7 @@ export type ProductInventoryVariant = {
     unit: string;
     value: string;
   }>;
+  baseCost: number;
   cost: number;
   id: string;
   location: string;
@@ -32,6 +33,7 @@ export type ProductInventoryVariant = {
   reference: string;
   salePrice: number;
   stock: number;
+  taxRate: number;
 };
 
 export const products: Product[] = [

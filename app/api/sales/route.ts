@@ -9,8 +9,17 @@ import {
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { prisma } from "@/lib/prisma";
+import {
+  DOCUMENT_SEQUENCE_KEYS,
+  consumePaymentReceiptNumber,
+  consumeSequence,
+  formatInvoiceNumber,
+  initializeSaleSequences,
+  type InitialSaleNumbering,
+} from "@/lib/document-numbering";
 import { getFinancedSaleDeliveryStatus } from "@/lib/sale-delivery-policy";
 import { canPrepareOrderSale } from "@/lib/order-policy";
+import { splitTaxIncluded } from "@/lib/tax-calculator";
 
 type SaleItemRequest = {
   productId?: string;
@@ -29,6 +38,7 @@ type SaleRequest = {
   type?: SaleType;
   creditMonths?: number;
   interestRate?: number;
+  numbering?: InitialSaleNumbering;
   sistecreditoApproval?: string;
 };
 
@@ -81,6 +91,26 @@ async function getAdminUserId() {
   });
 
   return admin.id;
+}
+
+export async function GET() {
+  const unauthorized = await requireAdminSession();
+  if (unauthorized) return unauthorized;
+
+  try {
+    const configuredSequenceCount = await prisma.documentSequence.count({
+      where: {
+        key: { in: [DOCUMENT_SEQUENCE_KEYS.sale, DOCUMENT_SEQUENCE_KEYS.invoice] },
+      },
+    });
+
+    return NextResponse.json({ configured: configuredSequenceCount === 2 });
+  } catch {
+    return NextResponse.json(
+      { message: "No se pudo consultar la configuración de consecutivos." },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -146,6 +176,22 @@ export async function POST(request: Request) {
   }
 
   try {
+    const configuredSequenceCount = await prisma.documentSequence.count({
+      where: {
+        key: { in: [DOCUMENT_SEQUENCE_KEYS.sale, DOCUMENT_SEQUENCE_KEYS.invoice] },
+      },
+    });
+
+    if (configuredSequenceCount < 2 && !body.numbering) {
+      return NextResponse.json(
+        {
+          code: "NUMBERING_REQUIRED",
+          message: "Configura el primer número del talonario y de la factura electrónica.",
+        },
+        { status: 409 },
+      );
+    }
+
     const adminUserId = await getAdminUserId();
 
     const sale = await prisma.$transaction(async (tx) => {
@@ -161,6 +207,19 @@ export async function POST(request: Request) {
       if (customer.status === "INACTIVE" || customer.status === "BLOCKED") {
         throw new Error("CUSTOMER_UNAVAILABLE");
       }
+
+      const configuredSequences = await tx.documentSequence.findMany({
+        where: {
+          key: { in: [DOCUMENT_SEQUENCE_KEYS.sale, DOCUMENT_SEQUENCE_KEYS.invoice] },
+        },
+        select: { key: true },
+      });
+      if (configuredSequences.length < 2) {
+        if (!body.numbering) throw new Error("NUMBERING_REQUIRED");
+        await initializeSaleSequences(tx, body.numbering);
+      }
+      const saleSequence = await consumeSequence(tx, DOCUMENT_SEQUENCE_KEYS.sale);
+      const invoiceSequence = await consumeSequence(tx, DOCUMENT_SEQUENCE_KEYS.invoice);
 
       const orderId = body.orderId?.trim() || null;
       let items = normalizeItems(body.items);
@@ -229,9 +288,13 @@ export async function POST(request: Request) {
         }
 
         const unitPrice = item.unitPrice || Number(variant?.salePrice ?? product.salePrice);
+        const lineTotal = unitPrice * item.quantity;
+        const taxRate = Number(variant?.taxRate ?? product.taxRate);
+        const tax = splitTaxIncluded(lineTotal, taxRate);
         return {
+          baseCost: variant?.baseCost ?? product.baseCost,
           cost: variant?.cost ?? product.cost,
-          lineTotal: unitPrice * item.quantity,
+          lineTotal,
           productCategory:
             product.catalogProductType?.category.name ?? product.productType.name,
           productClass:
@@ -240,6 +303,9 @@ export async function POST(request: Request) {
           productName: product.name,
           productReference: variant?.reference ?? product.reference,
           quantity: item.quantity,
+          taxAmount: tax.taxAmount,
+          taxableBase: tax.baseAmount,
+          taxRate,
           unitPrice,
           variantAttributes: variant
             ? variant.attributeValues.map((value) => ({
@@ -253,6 +319,8 @@ export async function POST(request: Request) {
         };
       });
       const total = saleItems.reduce((sum, item) => sum + item.lineTotal, 0);
+      const taxableBase = saleItems.reduce((sum, item) => sum + item.taxableBase, 0);
+      const taxAmount = saleItems.reduce((sum, item) => sum + item.taxAmount, 0);
 
       let amountPaid = initialPayment;
       let balance = 0;
@@ -319,6 +387,8 @@ export async function POST(request: Request) {
           amountPaid,
           balance,
           customerId: customer.id,
+          invoiceNumber: invoiceSequence.number,
+          invoicePrefix: invoiceSequence.prefix,
           items: { create: saleItems },
           notes: body.notes?.trim() || null,
           orderId,
@@ -329,6 +399,9 @@ export async function POST(request: Request) {
           source: orderId ? SaleSource.ORDER : SaleSource.LOCAL,
           status,
           stockApplied,
+          saleNumber: saleSequence.number,
+          taxableBase,
+          taxAmount,
           total,
           type: saleType,
           credit: financingTypes.has(saleType)
@@ -349,6 +422,7 @@ export async function POST(request: Request) {
       });
 
       if (amountPaid > 0 && saleType !== SaleType.SISTECREDITO && paymentMethod) {
+        const receiptNumber = await consumePaymentReceiptNumber(tx);
         await tx.salePayment.create({
           data: {
             amount: amountPaid,
@@ -362,6 +436,7 @@ export async function POST(request: Request) {
             note: "Pago inicial al registrar la venta.",
             principalAmount:
               saleType === SaleType.CREDIT ? principal - outstandingPrincipal : null,
+            receiptNumber,
             saleId: sale.id,
             userId: adminUserId,
           },
@@ -446,22 +521,39 @@ export async function POST(request: Request) {
       }
 
       return sale;
-    });
+    }, { maxWait: 5_000, timeout: 15_000 });
 
     return NextResponse.json(
       {
         id: sale.id,
+        invoiceCode: formatInvoiceNumber(sale.invoicePrefix, sale.invoiceNumber),
         message: "Venta registrada correctamente.",
         status: sale.status,
         total: Number(sale.total),
         amountPaid: Number(sale.amountPaid),
         balance: Number(sale.balance),
         stockApplied: sale.stockApplied,
+        saleNumber: sale.saleNumber,
       },
       { status: 201 }
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
+    if (message === "NUMBERING_REQUIRED") {
+      return NextResponse.json(
+        {
+          code: "NUMBERING_REQUIRED",
+          message: "Configura el primer nÃºmero del talonario y de la factura electrÃ³nica.",
+        },
+        { status: 409 },
+      );
+    }
+    if (message.startsWith("INVALID_NUMBERING:")) {
+      return NextResponse.json(
+        { message: message.slice("INVALID_NUMBERING:".length) },
+        { status: 400 },
+      );
+    }
     const errors: Record<string, [string, number]> = {
       CUSTOMER_NOT_FOUND: ["Selecciona un cliente válido para la venta.", 400],
       CUSTOMER_UNAVAILABLE: ["El cliente está inactivo o bloqueado para nuevas ventas.", 400],

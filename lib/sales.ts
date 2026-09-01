@@ -26,6 +26,7 @@ export type AdminSalePayment = {
   amount: number;
   method: PaymentMethod;
   reference: string;
+  receiptNumber: string;
   note: string;
   isInitial: boolean;
   createdAt: string;
@@ -36,6 +37,7 @@ export type AdminSalePayment = {
 export type AdminSale = {
   id: string;
   shortId: string;
+  invoiceCode: string;
   customerId: string;
   customerName: string;
   customerDocument: string;
@@ -53,6 +55,8 @@ export type AdminSale = {
   balance: number;
   notes: string;
   sistecreditoApproval: string;
+  taxableBase: number;
+  taxAmount: number;
   total: number;
   createdAt: string;
   createdAtISO: string;

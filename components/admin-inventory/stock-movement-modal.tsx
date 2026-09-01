@@ -52,7 +52,10 @@ export function StockMovementModal({
 
   return (
     <div className="modalOverlay" role="dialog" aria-modal="true">
-      <form className="adminModal smallModal" onSubmit={onSubmit}>
+      <form
+        className="adminModal smallModal stockMovementModal"
+        onSubmit={onSubmit}
+      >
         <div className="modalHeader">
           <div>
             <p className="eyebrow">Movimiento de inventario</p>

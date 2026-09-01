@@ -125,7 +125,7 @@ export function AdminCreditAccountCarousel({
                 ? `Total pagado: ${formatMoney(account.amountPaid)}`
                 : `Saldo: ${formatMoney(account.balance)}`}
             </span>
-            <small>Venta #{account.saleShortId} · Cuenta #{account.shortId}</small>
+            <small>Venta N.º {account.saleShortId} · Cuenta {account.shortId}</small>
           </button>
         ))}
       </div>

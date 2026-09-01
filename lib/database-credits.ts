@@ -3,6 +3,7 @@ import type { AdminCredit, CreditStats } from "@/lib/credits";
 import { creditStatusLabels } from "@/lib/credits";
 import { paymentMethodLabels, saleTypeLabels } from "@/lib/sales";
 import { prisma } from "@/lib/prisma";
+import { formatInvoiceNumber, formatReceiptNumber } from "@/lib/document-numbering";
 
 const creditInclude = {
   customer: true,
@@ -70,6 +71,8 @@ function mapCredit(credit: CreditWithRelations): AdminCredit {
     method: payment.method,
     methodLabel: paymentMethodLabels[payment.method],
     reference: payment.reference ?? "",
+    receiptNumber:
+      formatReceiptNumber(payment.receiptNumber) || payment.id.slice(-6).toUpperCase(),
     note: payment.note ?? "",
     principalAmount: Number(payment.principalAmount ?? 0),
     interestAmount: Number(payment.interestAmount ?? 0),
@@ -84,9 +87,13 @@ function mapCredit(credit: CreditWithRelations): AdminCredit {
 
   return {
     id: credit.id,
-    shortId: credit.id.slice(-6).toUpperCase(),
+    shortId:
+      formatInvoiceNumber(credit.sale?.invoicePrefix ?? null, credit.sale?.invoiceNumber ?? null) ||
+      credit.id.slice(-6).toUpperCase(),
     saleId: credit.saleId ?? "",
-    saleShortId: credit.saleId ? credit.saleId.slice(-6).toUpperCase() : "",
+    saleShortId:
+      credit.sale?.saleNumber?.toString() ??
+      (credit.saleId ? credit.saleId.slice(-6).toUpperCase() : ""),
     customerId: credit.customerId,
     customerName: credit.customer.fullName,
     customerDocument: credit.customer.document ?? "",

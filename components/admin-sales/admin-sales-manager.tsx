@@ -11,6 +11,10 @@ import {
 } from "@/components/admin-sales/local-sale-form";
 import { AdminSalesHistory } from "@/components/admin-sales/sales-history";
 import { AdminSalesModals } from "@/components/admin-sales/sales-modals";
+import { NumberingSetupModal } from "@/components/admin-sales/numbering-setup-modal";
+import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-button";
+import { downloadSalesReport } from "@/lib/admin-report-builders";
+import type { InitialSaleNumbering } from "@/lib/document-numbering";
 import { type AdminSale, type PaymentMethod } from "@/lib/sales";
 import {
   clearAdminSaleCart,
@@ -107,6 +111,8 @@ export function AdminSalesManager({
   const [financePaymentMethod, setFinancePaymentMethod] = useState<PaymentMethod | "">("");
   const [financeStatus, setFinanceStatus] = useState<"ACTIVE" | "OVERDUE">("ACTIVE");
   const [isFinancingSale, setIsFinancingSale] = useState(false);
+  const [showNumberingSetup, setShowNumberingSetup] = useState(false);
+  const [numberingConfigured, setNumberingConfigured] = useState<boolean | null>(null);
   const adminSaleCart = useAdminSaleCart(products);
 
   const preparedOrder = useMemo(
@@ -379,12 +385,12 @@ export function AdminSalesManager({
     }
   }
 
-  async function createLocalSale() {
-    if (cartItems.length === 0 || isSaving) return;
+  async function createLocalSale(numbering?: InitialSaleNumbering) {
+    if (cartItems.length === 0 || isSaving) return false;
 
     if (!selectedCustomerId) {
       setNotice("Selecciona el cliente que realiza la compra.");
-      return;
+      return false;
     }
 
     const maximumInitialPayment =
@@ -396,27 +402,61 @@ export function AdminSalesManager({
           ? "La primera cuota no puede ser mayor a la deuda total con intereses."
           : "El pago inicial no puede ser mayor al total de la venta."
       );
-      return;
+      return false;
     }
 
     if (saleType === "CASH" && amountPaid !== cartTotal) {
       setNotice("En contado se debe registrar el valor completo de la venta.");
-      return;
+      return false;
     }
 
     if (isReserved && amountPaid < reservedMinimum) {
       setNotice("El separado requiere un abono minimo del 10 % del total.");
-      return;
+      return false;
     }
 
     if (saleType === "CREDIT_CASH" && amountPaid <= 0) {
       setNotice("El credicontado requiere registrar un pago inicial.");
-      return;
+      return false;
     }
 
     if (isSistecredito && !sistecreditoApproval.trim()) {
       setNotice("Registra el numero de aprobacion de Sistecredito.");
-      return;
+      return false;
+    }
+
+    if (!numbering && numberingConfigured !== true) {
+      setIsSaving(true);
+      setNotice("");
+
+      try {
+        const numberingResponse = await fetch("/api/sales", { method: "GET" });
+        const numberingResult = (await numberingResponse.json()) as {
+          configured?: boolean;
+          message?: string;
+        };
+
+        if (!numberingResponse.ok) {
+          setNotice(
+            numberingResult.message ?? "No se pudo consultar la configuración de consecutivos.",
+          );
+          return false;
+        }
+
+        if (!numberingResult.configured) {
+          setNumberingConfigured(false);
+          setShowNumberingSetup(true);
+          setNotice("Configura los consecutivos para registrar la primera venta.");
+          return false;
+        }
+
+        setNumberingConfigured(true);
+      } catch {
+        setNotice("No se pudo consultar la configuración de consecutivos.");
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
     }
 
     setIsSaving(true);
@@ -436,6 +476,7 @@ export function AdminSalesManager({
             unitPrice: item.unitPrice,
           })),
           notes,
+          numbering,
           orderId: preparedOrderId || undefined,
           paymentMethod: amountPaid > 0 && !isSistecredito ? paymentMethod : undefined,
           sistecreditoApproval: isSistecredito ? sistecreditoApproval.trim() : undefined,
@@ -444,15 +485,30 @@ export function AdminSalesManager({
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const result = (await response.json()) as {
+      const responseText = await response.text();
+      let result: {
+        code?: string;
         id?: string;
         message?: string;
         stockApplied?: boolean;
       };
 
+      try {
+        result = JSON.parse(responseText) as typeof result;
+      } catch {
+        result = {
+          message: response.ok
+            ? "El servidor devolvió una respuesta inválida."
+            : `No se pudo registrar la venta (error ${response.status}).`,
+        };
+      }
+
       if (!response.ok || !result.id) {
+        if (result.code === "NUMBERING_REQUIRED") {
+          setShowNumberingSetup(true);
+        }
         setNotice(result.message ?? "No se pudo registrar la venta.");
-        return;
+        return false;
       }
 
       setNotice(result.message ?? "Venta registrada correctamente.");
@@ -460,8 +516,10 @@ export function AdminSalesManager({
       window.setTimeout(() => {
         window.location.assign("/admin/ventas");
       }, 700);
+      return true;
     } catch {
       setNotice("No se pudo conectar con el sistema.");
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -490,7 +548,7 @@ export function AdminSalesManager({
       );
       setSaleToDelete(null);
       setSaleDeleteConfirmation("");
-      setNotice(result.message ?? `Venta #${sale.shortId} eliminada permanentemente.`);
+      setNotice(result.message ?? `Venta N.º ${sale.shortId} eliminada permanentemente.`);
     } catch {
       setNotice("No se pudo conectar con el sistema.");
     } finally {
@@ -613,23 +671,31 @@ export function AdminSalesManager({
 
   return (
     <section className="tableSection salesSection">
-      <div className="movementSummaryGrid" aria-label="Resumen de ventas">
-        <article>
-          <span>Total ventas</span>
-          <strong>{sales.length}</strong>
-        </article>
-        <article>
-          <span>Ventas locales</span>
-          <strong>{sales.filter((sale) => sale.source === "LOCAL").length}</strong>
-        </article>
-        <article>
-          <span>Desde pedidos</span>
-          <strong>{sales.filter((sale) => sale.source === "ORDER").length}</strong>
-        </article>
-        <article>
-          <span>Total vendido</span>
-          <strong>{formatMoney(totalSold)}</strong>
-        </article>
+      <div className="salesSummaryRow">
+        <div className="movementSummaryGrid" aria-label="Resumen de ventas">
+          <article>
+            <span>Total ventas</span>
+            <strong>{sales.length}</strong>
+          </article>
+          <article>
+            <span>Ventas locales</span>
+            <strong>{sales.filter((sale) => sale.source === "LOCAL").length}</strong>
+          </article>
+          <article>
+            <span>Desde pedidos</span>
+            <strong>{sales.filter((sale) => sale.source === "ORDER").length}</strong>
+          </article>
+          <article>
+            <span>Total vendido</span>
+            <strong>{formatMoney(totalSold)}</strong>
+          </article>
+        </div>
+        <div className="moduleReportActions">
+          <ExcelDownloadButton
+            disabled={sales.length === 0}
+            onDownload={() => downloadSalesReport(sales)}
+          />
+        </div>
       </div>
 
       <div className="salesLayout">
@@ -676,7 +742,9 @@ export function AdminSalesManager({
           onRemoveItem={removeItem}
           onSaleTypeChange={changeSaleType}
           onSistecreditoApprovalChange={setSistecreditoApproval}
-          onSubmit={createLocalSale}
+          onSubmit={() => {
+            void createLocalSale();
+          }}
           onUnitPriceChange={(productId, value) => updateUnitPrice(productId, String(value))}
           onUpdateQuantity={updateQuantity}
         />
@@ -731,6 +799,13 @@ export function AdminSalesManager({
         onFinanceStatusChange={setFinanceStatus}
         onFinanceSubmit={configureCredit}
       />
+      {showNumberingSetup ? (
+        <NumberingSetupModal
+          isSaving={isSaving}
+          onClose={() => setShowNumberingSetup(false)}
+          onSubmit={createLocalSale}
+        />
+      ) : null}
     </section>
   );
 }
