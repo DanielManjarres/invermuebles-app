@@ -86,24 +86,26 @@ export function AdminCreditDetail({
 
       <div className="creditFigures">
         <article>
-          <span>Capital inicial</span>
-          <strong>{formatMoney(credit.principal)}</strong>
+          <span>Valor base de venta</span>
+          <strong>{formatMoney(credit.saleTotal)}</strong>
         </article>
         <article>
-          <span>Interés acordado</span>
-          <strong>{credit.interestRate}%</strong>
+          <span>Interés del crédito ({credit.interestRate}%)</span>
+          <strong>{formatMoney(credit.total - credit.principal)}</strong>
         </article>
         <article>
-          <span>Capital pendiente</span>
-          <strong>{formatMoney(credit.outstandingPrincipal)}</strong>
+          <span>Total del crédito</span>
+          <strong>{formatMoney(credit.total)}</strong>
         </article>
         <article>
-          <span>Interés pendiente</span>
-          <strong>{formatMoney(credit.interestBalance)}</strong>
+          <span>
+            Total pagado · {credit.payments.length} {credit.payments.length === 1 ? "cuota" : "cuotas"}
+          </span>
+          <strong>{formatMoney(credit.amountPaid)}</strong>
         </article>
         <article className="creditFigureBalance">
-          <span>{credit.status === "PAID" ? "Total pagado" : "Saldo total"}</span>
-          <strong>{formatMoney(credit.status === "PAID" ? credit.total : credit.balance)}</strong>
+          <span>Saldo pendiente</span>
+          <strong>{formatMoney(credit.balance)}</strong>
         </article>
       </div>
 
@@ -149,7 +151,13 @@ export function AdminCreditDetail({
                 <span>Capital: {formatMoney(payment.principalAmount)}</span>
                 <span>Interés: {formatMoney(payment.interestAmount)}</span>
                 {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
-                {payment.note ? <small>{payment.note}</small> : null}
+                {payment.note ? (
+                  <small>
+                    {payment.isInitial && credit.saleType === "CREDIT"
+                      ? "Primera cuota al registrar la venta."
+                      : payment.note}
+                  </small>
+                ) : null}
               </div>
               <button
                 className="secondaryButton paymentReceiptButton"

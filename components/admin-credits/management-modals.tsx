@@ -59,6 +59,7 @@ export function AdminCreditManagementModals({
 }: Props) {
   const editDialogRef = useRef<HTMLFormElement>(null);
   const deleteDialogRef = useRef<HTMLDivElement>(null);
+  const initialPaymentLabel = editCredit?.saleType === "CREDIT" ? "Primera cuota" : "Pago inicial";
 
   useModalAccessibility({
     active: Boolean(editCredit),
@@ -106,7 +107,8 @@ export function AdminCreditManagementModals({
             </div>
 
             <div className="recordDeleteWarning" id="edit-credit-warning">
-              Solo se permite corregir la financiación mientras no existan abonos posteriores al pago inicial.
+              Solo se permite corregir la financiación mientras no existan abonos posteriores a la
+              {editCredit.saleType === "CREDIT" ? " primera cuota." : " cuota inicial."}
             </div>
 
             <div className="adminFormGrid">
@@ -132,7 +134,7 @@ export function AdminCreditManagementModals({
                 />
               </label>
               <label>
-                Pago inicial
+                {initialPaymentLabel}
                 <MoneyInput
                   id="edit-initial-payment"
                   value={editInitialPayment}
@@ -140,7 +142,7 @@ export function AdminCreditManagementModals({
                 />
               </label>
               <label>
-                Medio del pago inicial
+                Medio de la {editCredit.saleType === "CREDIT" ? "primera cuota" : "cuota inicial"}
                 <SelectMenu
                   disabled={!editInitialPayment}
                   options={paymentOptions}

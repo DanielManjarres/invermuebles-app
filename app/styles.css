@@ -5184,17 +5184,8 @@ th {
   position: static;
 }
 
-.creditsPage .pageHeader {
-  padding-bottom: 20px;
-  padding-top: 20px;
-}
-
 .creditsPage .pageHeaderRow {
   align-items: center;
-}
-
-.creditsPage .pageHeader h1 {
-  font-size: clamp(1.9rem, 3vw, 2.15rem);
 }
 
 .creditsPage .pageHeader p:not(.eyebrow) {
