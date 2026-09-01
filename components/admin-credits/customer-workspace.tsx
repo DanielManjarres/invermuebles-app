@@ -102,7 +102,7 @@ export function AdminCreditsCustomerWorkspace({
                 <span>
                   {customer.phone || "Sin teléfono"} · {customer.city || "Sin ciudad"}
                 </span>
-                <b>{formatMoney(getCustomerBalance(listCredits))}</b>
+                <b>Saldo: {formatMoney(getCustomerBalance(listCredits))}</b>
               </button>
             );
           })

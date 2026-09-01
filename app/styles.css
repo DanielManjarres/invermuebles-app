@@ -5316,8 +5316,8 @@ th {
 .creditsWorkspace {
   align-items: start;
   display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(270px, 300px) minmax(0, 1fr);
+  gap: 14px;
+  grid-template-columns: minmax(300px, 325px) minmax(0, 1fr);
 }
 
 .creditAccountNotice {
@@ -5350,7 +5350,7 @@ th {
   border-bottom: 1px solid var(--line);
   display: grid;
   gap: 2px;
-  padding: 13px;
+  padding: 11px 13px;
 }
 
 .creditListHeading div {
@@ -5371,8 +5371,8 @@ th {
   border-bottom: 1px solid var(--line);
   cursor: pointer;
   display: grid;
-  gap: 5px;
-  padding: 13px;
+  gap: 4px;
+  padding: 11px 13px;
   text-align: left;
   width: 100%;
 }
@@ -5402,8 +5402,8 @@ th {
 
 .creditListItem b {
   color: var(--primary);
-  font-size: 17px;
-  margin-top: 4px;
+  font-size: 15px;
+  margin-top: 3px;
 }
 
 .creditCustomerTop,
@@ -5423,8 +5423,8 @@ th {
 .creditCustomerProfile {
   border-bottom: 1px solid var(--line);
   display: grid;
-  gap: 14px;
-  padding-bottom: 18px;
+  gap: 12px;
+  padding-bottom: 14px;
 }
 
 .creditCustomerProfileHeader {
@@ -5458,7 +5458,7 @@ th {
 
 .creditCustomerInfoGrid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: 0.9fr 1.35fr 0.9fr 1fr;
 }
 
@@ -5467,9 +5467,9 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
-  padding: 11px;
+  padding: 9px 10px;
 }
 
 .creditCustomerInfoCard svg {
@@ -5673,7 +5673,7 @@ th {
 }
 
 .creditDetail {
-  padding: 20px;
+  padding: 16px;
 }
 
 .creditDetailEmpty {
