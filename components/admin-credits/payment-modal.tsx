@@ -1,9 +1,10 @@
-import type { FormEvent } from "react";
+import { useRef, type FormEvent } from "react";
 import { WalletCards } from "lucide-react";
 
 import { paymentOptions } from "@/components/admin-credits/form-controls";
 import { MoneyInput } from "@/components/ui/money-input";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 import type { PaymentMethod } from "@/lib/credits";
 import type { PortfolioAccount } from "@/lib/portfolio";
 
@@ -42,21 +43,40 @@ export function AdminCreditPaymentModal({
   reference,
   saving,
 }: Props) {
+  const dialogRef = useRef<HTMLFormElement>(null);
+  const errorId = "payment-modal-error";
+
+  useModalAccessibility({
+    blockClose: saving,
+    dialogRef,
+    onClose,
+  });
+
   return (
     <div className="adminModalBackdrop" role="presentation">
       <form
+        aria-busy={saving}
+        aria-describedby={error ? errorId : undefined}
         aria-labelledby="payment-modal-title"
         aria-modal="true"
         className="adminModal creditPaymentModal"
         role="dialog"
         onSubmit={onSubmit}
+        ref={dialogRef}
+        tabIndex={-1}
       >
         <div className="modalHeader">
           <div>
             <p className="eyebrow">{account.title} #{account.shortId}</p>
             <h2 id="payment-modal-title">Registrar abono</h2>
           </div>
-          <button className="iconButton" disabled={saving} type="button" onClick={onClose}>
+          <button
+            aria-label="Cerrar registro de abono"
+            className="iconButton"
+            disabled={saving}
+            type="button"
+            onClick={onClose}
+          >
             <span aria-hidden="true">×</span>
           </button>
         </div>
@@ -67,7 +87,7 @@ export function AdminCreditPaymentModal({
           <small>Venta N.º {account.saleShortId} · Saldo disponible {formatMoney(account.balance)}</small>
         </div>
 
-        {error ? <p className="creditFormMessage error">{error}</p> : null}
+        {error ? <p className="creditFormMessage error" id={errorId} role="alert">{error}</p> : null}
 
         <div className="creditPaymentFields">
           <label>

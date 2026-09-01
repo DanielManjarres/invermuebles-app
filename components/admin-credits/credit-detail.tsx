@@ -145,12 +145,12 @@ export function AdminCreditDetail({
                   {payment.createdAt} · {payment.methodLabel}
                 </span>
               </div>
-              <div>
+              <div className="creditPaymentDetails">
                 <span>Capital: {formatMoney(payment.principalAmount)}</span>
                 <span>Interés: {formatMoney(payment.interestAmount)}</span>
+                {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
+                {payment.note ? <small>{payment.note}</small> : null}
               </div>
-              {payment.reference ? <small>Comprobante: {payment.reference}</small> : null}
-              {payment.note ? <small>{payment.note}</small> : null}
               <button
                 className="secondaryButton paymentReceiptButton"
                 type="button"
