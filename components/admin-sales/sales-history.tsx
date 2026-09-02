@@ -84,8 +84,14 @@ export function AdminSalesHistory({
             <p>Cuando finalices una venta, aparecerá en este historial.</p>
           </div>
         ) : (
-          sales.map((sale) => (
-            <article className="saleHistoryCard" key={sale.id}>
+          sales.map((sale) => {
+            const isCreditSale = sale.type === "CREDIT" && sale.interestRate !== null;
+            const interestRate = sale.interestRate ?? 0;
+            const creditInterest = isCreditSale ? sale.total * (interestRate / 100) : 0;
+            const creditTotal = sale.total + creditInterest;
+
+            return (
+              <article className="saleHistoryCard" key={sale.id}>
               <div className="saleHistoryIdentity">
                 <span className="saleBadge">{saleStatusLabels[sale.status]}</span>
                 <h3>Venta N.º {sale.shortId}</h3>
@@ -110,11 +116,28 @@ export function AdminSalesHistory({
                 ))}
               </div>
               <div className="salePaymentSummary">
-                <strong>{formatMoney(sale.total)}</strong>
-                <span>Valor antes de IVA: {formatMoney(sale.taxableBase)}</span>
-                <span>IVA generado (DIAN): {formatMoney(sale.taxAmount)}</span>
-                <span>Recibido: {formatMoney(sale.amountPaid)}</span>
-                {sale.balance > 0 ? <span>Saldo: {formatMoney(sale.balance)}</span> : null}
+                {isCreditSale ? (
+                  <>
+                    <strong>Total del crédito: {formatMoney(creditTotal)}</strong>
+                    <span>Valor base de venta: {formatMoney(sale.total)}</span>
+                    <span>
+                      Interés del crédito ({interestRate}%): {formatMoney(creditInterest)}
+                    </span>
+                    <span>
+                      Total pagado · {sale.payments.length}{" "}
+                      {sale.payments.length === 1 ? "cuota" : "cuotas"}: {formatMoney(sale.amountPaid)}
+                    </span>
+                    <span>Saldo pendiente: {formatMoney(sale.balance)}</span>
+                  </>
+                ) : (
+                  <>
+                    <strong>{formatMoney(sale.total)}</strong>
+                    <span>Valor antes de IVA: {formatMoney(sale.taxableBase)}</span>
+                    <span>IVA generado (DIAN): {formatMoney(sale.taxAmount)}</span>
+                    <span>Recibido: {formatMoney(sale.amountPaid)}</span>
+                    {sale.balance > 0 ? <span>Saldo: {formatMoney(sale.balance)}</span> : null}
+                  </>
+                )}
               </div>
               <div className="saleHistoryActions">
                   {sale.status === "PENDING_DELIVERY" ? (
@@ -163,8 +186,9 @@ export function AdminSalesHistory({
                     </button>
                   ) : null}
               </div>
-            </article>
-          ))
+              </article>
+            );
+          })
         )}
       </div>
     </article>
