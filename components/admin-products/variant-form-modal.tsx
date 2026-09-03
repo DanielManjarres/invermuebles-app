@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useRef, useState } from "react";
 import { Trash2, X } from "lucide-react";
 import type {
   CatalogProductRecord,
@@ -10,6 +10,7 @@ import type {
 import { VariantPricingFields } from "@/components/admin-products/variant-pricing-fields";
 import { IntegerInput } from "@/components/ui/integer-input";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 
 type VariantFormModalProps = {
   onClose: () => void;
@@ -58,11 +59,24 @@ export function VariantFormModal({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const dialogRef = useRef<HTMLFormElement>(null);
   const activeAttributes = useMemo(
     () => productType.attributes.filter((attribute) => attribute.active),
     [productType.attributes],
   );
   const isEditing = Boolean(variant);
+  const titleId = isEditing ? "edit-variant-dialog-title" : "create-variant-dialog-title";
+  const errorId = `${titleId}-error`;
+  const warningId = `${titleId}-delete-warning`;
+  const describedBy = [confirmDelete ? warningId : "", error ? errorId : ""]
+    .filter(Boolean)
+    .join(" ") || undefined;
+
+  useModalAccessibility({
+    blockClose: isSaving || isDeleting,
+    dialogRef,
+    onClose,
+  });
 
   function updateForm(changes: Partial<VariantFormState>) {
     setForm((current) => ({ ...current, ...changes }));
@@ -137,14 +151,30 @@ export function VariantFormModal({
   }
 
   return (
-    <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-      <form className="adminModal catalogProductModal" onSubmit={handleSubmit}>
+    <div className="adminModalBackdrop" role="presentation">
+      <form
+        aria-busy={isSaving || isDeleting}
+        aria-describedby={describedBy}
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="adminModal catalogProductModal"
+        onSubmit={handleSubmit}
+        ref={dialogRef}
+        role="dialog"
+        tabIndex={-1}
+      >
         <div className="modalHeader">
           <div>
             <p className="eyebrow">{isEditing ? "Editar variante" : "Nueva variante"}</p>
-            <h2>{product.name}</h2>
+            <h2 id={titleId}>{product.name}</h2>
           </div>
-          <button className="modalClose" type="button" onClick={onClose}>
+          <button
+            aria-label="Cerrar formulario de variante"
+            className="modalClose"
+            disabled={isSaving || isDeleting}
+            type="button"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
@@ -275,14 +305,14 @@ export function VariantFormModal({
           </div>
 
           {confirmDelete ? (
-            <div className="recordDeleteWarning">
+            <div className="recordDeleteWarning" id={warningId}>
               <p>
                 Se eliminarán esta variante y únicamente su entrada inicial. No se permite
                 si tiene ventas, pedidos o movimientos posteriores.
               </p>
             </div>
           ) : null}
-          {error ? <p className="formError">{error}</p> : null}
+          {error ? <p className="formError" id={errorId}>{error}</p> : null}
         </div>
         <div className="modalActions variantModalActions">
           {variant ? (

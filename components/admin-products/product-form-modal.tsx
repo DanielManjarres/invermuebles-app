@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 import type {
   CatalogCategory,
@@ -9,6 +9,7 @@ import type {
 import { VariantPricingFields } from "@/components/admin-products/variant-pricing-fields";
 import { IntegerInput } from "@/components/ui/integer-input";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 
 type ProductFormModalProps = {
   categories: CatalogCategory[];
@@ -70,6 +71,7 @@ export function ProductFormModal({
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const dialogRef = useRef<HTMLFormElement>(null);
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === form.categoryId),
     [categories, form.categoryId],
@@ -82,6 +84,14 @@ export function ProductFormModal({
     [form.productTypeId, selectedCategory],
   );
   const isEditing = Boolean(product);
+  const titleId = isEditing ? "edit-product-dialog-title" : "create-product-dialog-title";
+  const errorId = `${titleId}-error`;
+
+  useModalAccessibility({
+    blockClose: isSaving || isUploading,
+    dialogRef,
+    onClose,
+  });
 
   function updateForm(changes: Partial<ProductFormState>) {
     setForm((current) => ({ ...current, ...changes }));
@@ -218,14 +228,30 @@ export function ProductFormModal({
   }
 
   return (
-    <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-      <form className="adminModal catalogProductModal" onSubmit={handleSubmit}>
+    <div className="adminModalBackdrop" role="presentation">
+      <form
+        aria-busy={isSaving || isUploading}
+        aria-describedby={error ? errorId : undefined}
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="adminModal catalogProductModal"
+        onSubmit={handleSubmit}
+        ref={dialogRef}
+        role="dialog"
+        tabIndex={-1}
+      >
         <div className="modalHeader">
           <div>
             <p className="eyebrow">{isEditing ? "Editar producto" : "Nuevo producto"}</p>
-            <h2>{isEditing ? product?.name : "Registrar producto"}</h2>
+            <h2 id={titleId}>{isEditing ? product?.name : "Registrar producto"}</h2>
           </div>
-          <button className="modalClose" type="button" onClick={onClose}>
+          <button
+            aria-label="Cerrar formulario de producto"
+            className="modalClose"
+            disabled={isSaving || isUploading}
+            type="button"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
@@ -472,7 +498,7 @@ export function ProductFormModal({
           </label>
         </div>
 
-        {error ? <p className="formError">{error}</p> : null}
+        {error ? <p className="formError" id={errorId}>{error}</p> : null}
         </div>
         <div className="modalActions catalogProductModalActions">
           <button className="secondaryButton" type="button" onClick={onClose}>

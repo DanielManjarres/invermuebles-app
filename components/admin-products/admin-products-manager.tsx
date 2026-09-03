@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Boxes,
@@ -23,6 +23,7 @@ import type {
 import { ProductFormModal } from "@/components/admin-products/product-form-modal";
 import { VariantFormModal } from "@/components/admin-products/variant-form-modal";
 import { TaxonomyManager } from "@/components/admin-products/taxonomy-manager";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 import { MAX_FEATURED_PRODUCTS } from "@/lib/featured-product-policy";
 import { downloadProductsReport } from "@/lib/admin-report-builders";
 
@@ -56,6 +57,14 @@ export function AdminProductsManager({
   const [isDeleting, setIsDeleting] = useState(false);
   const [featuredProductId, setFeaturedProductId] = useState<string | null>(null);
   const [featuredError, setFeaturedError] = useState("");
+  const productDeleteDialogRef = useRef<HTMLDivElement>(null);
+
+  useModalAccessibility({
+    active: Boolean(productToDelete),
+    blockClose: isDeleting,
+    dialogRef: productDeleteDialogRef,
+    onClose: () => setProductToDelete(null),
+  });
 
   const stats = useMemo(() => {
     const variants = products.flatMap((product) => product.variants);
@@ -308,7 +317,7 @@ export function AdminProductsManager({
                         ? "Guardando"
                         : product.featured
                           ? "Quitar de inicio"
-                          : "Destacar en inicio"}
+                          : "Destacar"}
                     </button>
                     <button
                       className="secondaryButton"
@@ -449,22 +458,37 @@ export function AdminProductsManager({
       ) : null}
 
       {productToDelete ? (
-        <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <div className="adminModal smallModal productDeleteModal">
+        <div className="adminModalBackdrop" role="presentation">
+          <div
+            aria-busy={isDeleting}
+            aria-describedby={
+              deleteError
+                ? "delete-product-warning delete-product-error"
+                : "delete-product-warning"
+            }
+            aria-labelledby="delete-product-title"
+            aria-modal="true"
+            className="adminModal smallModal productDeleteModal"
+            ref={productDeleteDialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
             <div className="modalHeader">
               <div>
                 <p className="eyebrow">Acción permanente</p>
-                <h2>Eliminar producto</h2>
+                <h2 id="delete-product-title">Eliminar producto</h2>
               </div>
               <button
+                aria-label="Cerrar eliminación de producto"
                 className="modalClose"
+                disabled={isDeleting}
                 type="button"
                 onClick={() => setProductToDelete(null)}
               >
                 <X size={20} />
               </button>
             </div>
-            <div className="recordDeleteWarning">
+            <div className="recordDeleteWarning" id="delete-product-warning">
               <p>
                 Solo se podrá eliminar si no existen pedidos, ventas ni movimientos
                 posteriores al inventario inicial.
@@ -479,7 +503,9 @@ export function AdminProductsManager({
                 {productToDelete.variants.length === 1 ? "variante" : "variantes"}
               </span>
             </div>
-            {deleteError ? <p className="formError">{deleteError}</p> : null}
+            {deleteError ? (
+              <p className="formError" id="delete-product-error">{deleteError}</p>
+            ) : null}
             <div className="modalActions">
               <button
                 className="secondaryButton"

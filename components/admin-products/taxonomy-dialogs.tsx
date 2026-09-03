@@ -1,5 +1,6 @@
-import type { FormEvent } from "react";
+import { useRef, type FormEvent } from "react";
 import { Trash2, X } from "lucide-react";
+import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 
 export type TaxonomyTarget = {
   endpoint: string;
@@ -33,17 +34,50 @@ export function TaxonomyDialogs({
   onEditSubmit,
   onEditValueChange,
 }: TaxonomyDialogsProps) {
+  const editDialogRef = useRef<HTMLFormElement>(null);
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
+
+  useModalAccessibility({
+    active: Boolean(editTarget),
+    blockClose: isSaving,
+    dialogRef: editDialogRef,
+    onClose: onCloseEdit,
+  });
+
+  useModalAccessibility({
+    active: Boolean(deleteTarget),
+    blockClose: isSaving,
+    dialogRef: deleteDialogRef,
+    onClose: onCloseDelete,
+  });
+
   return (
     <>
       {editTarget ? (
-        <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <form className="adminModal smallModal productTaxonomyDialog" onSubmit={onEditSubmit}>
+        <div className="adminModalBackdrop" role="presentation">
+          <form
+            aria-busy={isSaving}
+            aria-describedby={error ? "edit-taxonomy-error" : undefined}
+            aria-labelledby="edit-taxonomy-title"
+            aria-modal="true"
+            className="adminModal smallModal productTaxonomyDialog"
+            onSubmit={onEditSubmit}
+            ref={editDialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
             <div className="modalHeader">
               <div>
                 <p className="eyebrow">Configuración de productos</p>
-                <h2>Editar nombre</h2>
+                <h2 id="edit-taxonomy-title">Editar nombre</h2>
               </div>
-              <button className="modalClose" type="button" onClick={onCloseEdit}>
+              <button
+                aria-label="Cerrar edición de configuración"
+                className="modalClose"
+                disabled={isSaving}
+                type="button"
+                onClick={onCloseEdit}
+              >
                 <X size={18} />
               </button>
             </div>
@@ -56,7 +90,7 @@ export function TaxonomyDialogs({
                 onChange={(event) => onEditValueChange(event.target.value)}
               />
             </label>
-            {error ? <p className="formError">{error}</p> : null}
+            {error ? <p className="formError" id="edit-taxonomy-error">{error}</p> : null}
             <div className="modalActions">
               <button className="secondaryButton" type="button" onClick={onCloseEdit}>
                 Cancelar
@@ -70,18 +104,37 @@ export function TaxonomyDialogs({
       ) : null}
 
       {deleteTarget ? (
-        <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <div className="adminModal smallModal productTaxonomyDialog">
+        <div className="adminModalBackdrop" role="presentation">
+          <div
+            aria-busy={isSaving}
+            aria-describedby={
+              error
+                ? "delete-taxonomy-warning delete-taxonomy-error"
+                : "delete-taxonomy-warning"
+            }
+            aria-labelledby="delete-taxonomy-title"
+            aria-modal="true"
+            className="adminModal smallModal productTaxonomyDialog"
+            ref={deleteDialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
             <div className="modalHeader">
               <div>
                 <p className="eyebrow">Acción permanente</p>
-                <h2>Eliminar configuración</h2>
+                <h2 id="delete-taxonomy-title">Eliminar configuración</h2>
               </div>
-              <button className="modalClose" type="button" onClick={onCloseDelete}>
+              <button
+                aria-label="Cerrar eliminación de configuración"
+                className="modalClose"
+                disabled={isSaving}
+                type="button"
+                onClick={onCloseDelete}
+              >
                 <X size={18} />
               </button>
             </div>
-            <div className="recordDeleteWarning">
+            <div className="recordDeleteWarning" id="delete-taxonomy-warning">
               <p>
                 Solo se eliminará si no está siendo utilizada por productos,
                 variantes u otros elementos de la estructura.
@@ -91,7 +144,7 @@ export function TaxonomyDialogs({
               <span>Elemento seleccionado</span>
               <strong>{deleteTarget.label}</strong>
             </div>
-            {error ? <p className="formError">{error}</p> : null}
+            {error ? <p className="formError" id="delete-taxonomy-error">{error}</p> : null}
             <div className="modalActions">
               <button
                 className="secondaryButton"
