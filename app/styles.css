@@ -513,6 +513,29 @@ p {
   padding: 0 12px;
 }
 
+.catalogSection .productCard {
+  grid-template-rows: 156px minmax(200px, 1fr);
+}
+
+.catalogSection .productImage {
+  height: 156px;
+}
+
+.catalogSection .productInfo {
+  gap: 10px;
+  min-height: 200px;
+  padding: 14px;
+}
+
+.catalogSection .productCard .productInfo p {
+  -webkit-line-clamp: 2;
+}
+
+.catalogSection .productCard .iconTextButton {
+  flex: 1 0 100%;
+  white-space: nowrap;
+}
+
 .tag,
 .available,
 .stockLow,
@@ -865,19 +888,21 @@ p {
 .catalogTools {
   align-items: center;
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .catalogFilterControls {
-  display: grid;
+  align-items: center;
+  display: flex;
   flex: 1;
   gap: 12px;
   min-width: 0;
 }
 
 .catalogSearchBox {
+  flex: 1 1 520px;
   max-width: 640px;
   width: 100%;
 }
@@ -4809,6 +4834,20 @@ th {
     flex-direction: column;
   }
 
+  .catalogFilterControls {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .catalogSearchBox {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .adminSaleCartActions {
+    align-self: flex-start;
+  }
+
   .taxonomyForms,
   .taxonomyForm,
   .taxonomyForm:nth-child(2),
@@ -5035,12 +5074,25 @@ th {
     grid-template-rows: 136px minmax(210px, 1fr);
   }
 
+  .catalogSection .productCard {
+    grid-template-rows: 136px minmax(205px, 1fr);
+  }
+
   .productImage {
+    height: 136px;
+  }
+
+  .catalogSection .productImage {
     height: 136px;
   }
 
   .productInfo {
     gap: 10px;
+    min-height: 205px;
+    padding: 12px;
+  }
+
+  .catalogSection .productInfo {
     min-height: 205px;
     padding: 12px;
   }
