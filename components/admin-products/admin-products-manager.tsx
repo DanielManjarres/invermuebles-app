@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Boxes,
   Eye,
   EyeOff,
-  Layers3,
   PackagePlus,
   Pencil,
   Plus,
@@ -318,7 +318,7 @@ export function AdminProductsManager({
                         setManagingProduct(product);
                       }}
                     >
-                      <Layers3 size={16} />
+                      <Boxes size={16} />
                       Variantes
                     </button>
                     <button

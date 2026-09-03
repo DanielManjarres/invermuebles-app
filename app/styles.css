@@ -1347,10 +1347,18 @@ th {
 
 .catalogProductActions button {
   font-size: 0.82rem;
+  gap: 5px;
+  justify-content: center;
+  line-height: 1.1;
   min-height: 36px;
   padding-left: 8px;
   padding-right: 8px;
+  text-align: center;
   white-space: nowrap;
+}
+
+.catalogProductActions button svg {
+  flex: 0 0 auto;
 }
 
 .catalogProductFeaturedAction {
@@ -1403,9 +1411,9 @@ th {
 .catalogVariantManager {
   border-top: 1px solid var(--line);
   display: grid;
-  gap: 14px;
-  margin-top: 22px;
-  padding-top: 20px;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
 }
 
 .catalogVariantHeader,
@@ -1418,7 +1426,7 @@ th {
 }
 
 .catalogVariantHeader h3 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   margin: 2px 0;
 }
 
@@ -1429,7 +1437,7 @@ th {
 
 .catalogVariantGrid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .catalogVariantCard {
@@ -1439,9 +1447,9 @@ th {
   border-radius: 8px;
   color: var(--text);
   display: grid;
-  gap: 16px;
+  gap: 12px;
   grid-template-columns: minmax(260px, 2fr) minmax(120px, 0.7fr) minmax(70px, 0.35fr) auto auto;
-  padding: 13px;
+  padding: 10px 12px;
   text-align: left;
   width: 100%;
 }
@@ -1460,7 +1468,7 @@ th {
 .catalogVariantIdentity small,
 .catalogVariantMetric small {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
@@ -1481,8 +1489,9 @@ th {
   align-items: center;
   color: var(--primary);
   display: inline-flex;
+  font-size: 0.84rem;
   font-weight: 800;
-  gap: 6px;
+  gap: 5px;
   justify-content: flex-end;
 }
 
@@ -1715,7 +1724,11 @@ th {
   }
 
   .catalogVariantCard {
-    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(80px, auto));
+    grid-template-columns: minmax(100px, 1fr) minmax(70px, 0.55fr) auto auto;
+  }
+
+  .catalogVariantIdentity {
+    grid-column: 1 / -1;
   }
 
   .catalogVariantBadges,
