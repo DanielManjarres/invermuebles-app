@@ -1342,7 +1342,7 @@ th {
 .catalogProductActions {
   display: grid;
   gap: 6px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .catalogProductActions button {
@@ -1362,7 +1362,7 @@ th {
 }
 
 .catalogProductFeaturedAction {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 .catalogProductDeleteAction {
@@ -1372,25 +1372,99 @@ th {
 }
 
 .catalogProductModal {
+  gap: 10px;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  max-width: 860px;
+  max-height: calc(100vh - 32px);
+  max-width: 900px;
   overflow: hidden;
-  width: min(100%, 860px);
+  padding: 16px;
+  width: min(100%, 900px);
+}
+
+.catalogProductModal .modalHeader h2 {
+  font-size: clamp(1.35rem, 2.2vw, 1.6rem);
 }
 
 .catalogProductModalBody {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+.catalogProductModal .adminFormGrid {
+  gap: 10px;
+}
+
+.catalogProductModal .adminFormGrid textarea {
+  min-height: 68px;
+  padding: 10px 12px;
+}
+
+.catalogProductModal .formHint,
+.catalogProductModal .pricingSummary {
+  padding: 10px 12px;
+}
+
+.catalogProductModal .pricingSummary {
+  gap: 4px 12px;
+}
+
+.catalogProductModal .uploadImageControl {
+  min-height: 40px;
+}
+
+.catalogProductModal .adminFormPreview {
+  gap: 10px;
+  grid-template-columns: 88px minmax(0, 1fr);
+  padding: 10px;
 }
 
 .catalogProductModalActions {
   background: #fff;
   border-top: 1px solid var(--line);
   margin-top: 0;
-  padding-top: 14px;
+  padding-top: 10px;
+}
+
+.productTaxonomyDialog,
+.productDeleteModal {
+  gap: 12px;
+  max-width: 520px;
+  padding: 18px;
+  width: min(100%, 520px);
+}
+
+.productTaxonomyDialog .modalHeader h2,
+.productDeleteModal .modalHeader h2 {
+  font-size: clamp(1.35rem, 2.2vw, 1.55rem);
+}
+
+.productTaxonomyDialog .recordDeleteWarning,
+.productDeleteModal .recordDeleteWarning,
+.productTaxonomyDialog .deleteSummary,
+.productDeleteModal .deleteSummary {
+  padding: 10px 12px;
+}
+
+.productTaxonomyDialog .recordDeleteWarning,
+.productDeleteModal .recordDeleteWarning {
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.productTaxonomyDialog .deleteSummary,
+.productDeleteModal .deleteSummary {
+  gap: 3px;
+}
+
+.productTaxonomyDialog .modalActions,
+.productDeleteModal .modalActions {
+  border-top: 1px solid var(--line);
+  margin-top: 0;
+  padding-top: 10px;
 }
 
 .catalogFormSectionTitle {
@@ -1398,8 +1472,8 @@ th {
   border-top: 1px solid var(--line);
   display: grid;
   gap: 3px;
-  margin-top: 4px;
-  padding: 12px 0;
+  margin-top: 2px;
+  padding: 10px 0;
 }
 
 .catalogFormSectionTitle span {

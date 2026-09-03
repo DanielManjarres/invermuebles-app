@@ -450,11 +450,11 @@ export function AdminProductsManager({
 
       {productToDelete ? (
         <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <div className="adminModal smallModal">
+          <div className="adminModal smallModal productDeleteModal">
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Eliminar producto</p>
-                <h2>{productToDelete.name}</h2>
+                <p className="eyebrow">Acción permanente</p>
+                <h2>Eliminar producto</h2>
               </div>
               <button
                 className="modalClose"
@@ -464,10 +464,21 @@ export function AdminProductsManager({
                 <X size={20} />
               </button>
             </div>
-            <p>
-              Esta acción es permanente y solo se permitirá si no existen pedidos,
-              ventas ni movimientos posteriores al inventario inicial.
-            </p>
+            <div className="recordDeleteWarning">
+              <p>
+                Solo se podrá eliminar si no existen pedidos, ventas ni movimientos
+                posteriores al inventario inicial.
+              </p>
+            </div>
+            <div className="deleteSummary">
+              <span>Producto seleccionado</span>
+              <strong>{productToDelete.name}</strong>
+              <span>
+                {productToDelete.categoryName} / {productToDelete.productTypeName} ·{" "}
+                {productToDelete.variants.length}{" "}
+                {productToDelete.variants.length === 1 ? "variante" : "variantes"}
+              </span>
+            </div>
             {deleteError ? <p className="formError">{deleteError}</p> : null}
             <div className="modalActions">
               <button

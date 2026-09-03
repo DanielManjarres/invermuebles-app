@@ -37,11 +37,11 @@ export function TaxonomyDialogs({
     <>
       {editTarget ? (
         <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <form className="adminModal smallModal" onSubmit={onEditSubmit}>
+          <form className="adminModal smallModal productTaxonomyDialog" onSubmit={onEditSubmit}>
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Editar configuración</p>
-                <h2>{editTarget.label}</h2>
+                <p className="eyebrow">Configuración de productos</p>
+                <h2>Editar nombre</h2>
               </div>
               <button className="modalClose" type="button" onClick={onCloseEdit}>
                 <X size={18} />
@@ -71,11 +71,11 @@ export function TaxonomyDialogs({
 
       {deleteTarget ? (
         <div className="adminModalBackdrop" role="dialog" aria-modal="true">
-          <div className="adminModal smallModal">
+          <div className="adminModal smallModal productTaxonomyDialog">
             <div className="modalHeader">
               <div>
-                <p className="eyebrow">Eliminar configuración</p>
-                <h2>{deleteTarget.label}</h2>
+                <p className="eyebrow">Acción permanente</p>
+                <h2>Eliminar configuración</h2>
               </div>
               <button className="modalClose" type="button" onClick={onCloseDelete}>
                 <X size={18} />
@@ -86,6 +86,10 @@ export function TaxonomyDialogs({
                 Solo se eliminará si no está siendo utilizada por productos,
                 variantes u otros elementos de la estructura.
               </p>
+            </div>
+            <div className="deleteSummary">
+              <span>Elemento seleccionado</span>
+              <strong>{deleteTarget.label}</strong>
             </div>
             {error ? <p className="formError">{error}</p> : null}
             <div className="modalActions">

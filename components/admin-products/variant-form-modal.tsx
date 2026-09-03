@@ -149,7 +149,8 @@ export function VariantFormModal({
           </button>
         </div>
 
-        <div className="adminFormGrid">
+        <div className="catalogProductModalBody">
+          <div className="adminFormGrid">
           <label>
             Referencia
             <input
@@ -271,17 +272,18 @@ export function VariantFormModal({
             />
             Variante activa
           </label>
-        </div>
-
-        {confirmDelete ? (
-          <div className="recordDeleteWarning">
-            <p>
-              Se eliminarán esta variante y únicamente su entrada inicial. No se permite
-              si tiene ventas, pedidos o movimientos posteriores.
-            </p>
           </div>
-        ) : null}
-        {error ? <p className="formError">{error}</p> : null}
+
+          {confirmDelete ? (
+            <div className="recordDeleteWarning">
+              <p>
+                Se eliminarán esta variante y únicamente su entrada inicial. No se permite
+                si tiene ventas, pedidos o movimientos posteriores.
+              </p>
+            </div>
+          ) : null}
+          {error ? <p className="formError">{error}</p> : null}
+        </div>
         <div className="modalActions variantModalActions">
           {variant ? (
             confirmDelete ? (
