@@ -361,10 +361,6 @@ p {
   padding-top: 34px;
 }
 
-.catalogSection .productGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .sectionHeader {
   align-items: flex-end;
   display: flex;
@@ -577,6 +573,7 @@ p {
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.18);
   display: grid;
   grid-template-columns: minmax(250px, 0.76fr) minmax(340px, 1fr);
+  height: min(78vh, 620px);
   max-height: min(78vh, 620px);
   max-width: min(840px, calc(100vw - 40px));
   overflow: hidden;
@@ -4847,7 +4844,13 @@ th {
   }
 
   .catalogSection .productGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .catalogSection .productCard .iconTextButton {
+    font-size: 0.82rem;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .hero {
@@ -5013,6 +5016,7 @@ th {
   .productDetailModal {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
+    height: calc(100vh - 32px);
     max-height: calc(100vh - 32px);
     max-width: min(620px, calc(100vw - 32px));
     overflow: hidden;
@@ -5039,7 +5043,7 @@ th {
 
 @media (max-width: 620px) {
   .catalogSection .productGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .topbar {
@@ -5105,7 +5109,7 @@ th {
   }
 
   .catalogSection .productCard {
-    grid-template-rows: 136px minmax(205px, 1fr);
+    grid-template-rows: 112px minmax(220px, 1fr);
   }
 
   .productImage {
@@ -5113,7 +5117,7 @@ th {
   }
 
   .catalogSection .productImage {
-    height: 136px;
+    height: 112px;
   }
 
   .productInfo {
@@ -5123,17 +5127,31 @@ th {
   }
 
   .catalogSection .productInfo {
-    min-height: 205px;
-    padding: 12px;
+    gap: 8px;
+    min-height: 220px;
+    padding: 10px;
   }
 
   .productInfo h2 {
     font-size: 0.92rem;
   }
 
+  .catalogSection .productInfo h2 {
+    font-size: 0.8rem;
+  }
+
+  .catalogSection .reference {
+    font-size: 0.72rem;
+    margin-bottom: 4px;
+  }
+
   .productCard .productInfo p {
     font-size: 0.8rem;
     -webkit-line-clamp: 2;
+  }
+
+  .catalogSection .productCard .productInfo p {
+    font-size: 0.72rem;
   }
 
   .productFooter {
@@ -5152,6 +5170,13 @@ th {
     font-size: 0.8rem;
     min-height: 36px;
     padding: 0 9px;
+  }
+
+  .catalogSection .productCard .iconTextButton {
+    font-size: 0.72rem;
+    gap: 5px;
+    padding-left: 6px;
+    padding-right: 6px;
   }
 
   .taxonomyNotice {
