@@ -361,6 +361,10 @@ p {
   padding-top: 34px;
 }
 
+.catalogSection .productGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .sectionHeader {
   align-items: flex-end;
   display: flex;
@@ -572,9 +576,9 @@ p {
   border-radius: 8px;
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.18);
   display: grid;
-  grid-template-columns: minmax(260px, 0.78fr) minmax(340px, 1fr);
-  max-height: min(82vh, 680px);
-  max-width: min(880px, calc(100vw - 40px));
+  grid-template-columns: minmax(250px, 0.76fr) minmax(340px, 1fr);
+  max-height: min(78vh, 620px);
+  max-width: min(840px, calc(100vw - 40px));
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -592,25 +596,42 @@ p {
   background: linear-gradient(180deg, #fff, var(--surface-strong));
   display: flex;
   justify-content: center;
-  min-height: 360px;
-  padding: 22px;
+  min-height: 320px;
+  padding: 18px;
 }
 
 .productDetailImage img {
   display: block;
   height: auto;
-  max-height: 430px;
+  max-height: 380px;
   object-fit: contain;
   width: 100%;
 }
 
 .productDetailInfo {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.productDetailScroll {
   align-content: start;
   display: grid;
-  gap: 12px;
-  min-width: 0;
-  overflow: auto;
-  padding: 30px 34px 30px 26px;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 28px 14px 22px;
+  scrollbar-gutter: stable;
+}
+
+.productDetailActions {
+  background: #fff;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+  padding: 12px 28px 14px 22px;
 }
 
 .productDetailInfo h2 {
@@ -4825,6 +4846,10 @@ th {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .catalogSection .productGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .hero {
     min-height: 78vh;
   }
@@ -4987,9 +5012,10 @@ th {
 
   .productDetailModal {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
     max-height: calc(100vh - 32px);
     max-width: min(620px, calc(100vw - 32px));
-    overflow: auto;
+    overflow: hidden;
   }
 
   .productDetailImage {
@@ -5012,6 +5038,10 @@ th {
 }
 
 @media (max-width: 620px) {
+  .catalogSection .productGrid {
+    grid-template-columns: 1fr;
+  }
+
   .topbar {
     align-items: center;
     flex-direction: row;

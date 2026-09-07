@@ -17,8 +17,10 @@ type ProductCardProps = {
 };
 
 function createSummary(details: string) {
-  const firstSentence = details.split(".")[0]?.trim();
-  const summary = firstSentence && firstSentence.length >= 35 ? firstSentence : details;
+  const plainDetails = details.replaceAll("**", "");
+  const firstSentence = plainDetails.split(".")[0]?.trim();
+  const summary =
+    firstSentence && firstSentence.length >= 35 ? firstSentence : plainDetails;
 
   return summary.length > 90 ? `${summary.slice(0, 87).trim()}...` : summary;
 }
