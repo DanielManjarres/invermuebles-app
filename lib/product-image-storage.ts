@@ -115,7 +115,13 @@ function isPrivateIpAddress(address: string) {
   return true;
 }
 
-export async function validateRemoteProductImageUrl(value: string) {
+type ProductImageHostLookup = typeof lookup;
+type ProductImageFetch = typeof fetch;
+
+export async function validateRemoteProductImageUrl(
+  value: string,
+  lookupHost: ProductImageHostLookup = lookup,
+) {
   let url: URL;
 
   try {
@@ -138,7 +144,7 @@ export async function validateRemoteProductImageUrl(value: string) {
 
   let addresses: { address: string }[];
   try {
-    addresses = await lookup(url.hostname, { all: true });
+    addresses = await lookupHost(url.hostname, { all: true });
   } catch {
     throw new ProductImageValidationError(
       "No fue posible encontrar el servidor de la imagen.",
@@ -179,13 +185,21 @@ async function readResponseWithinLimit(response: Response) {
   return Buffer.concat(chunks, size);
 }
 
-export async function downloadProductImage(remoteUrl: string) {
-  let currentUrl = await validateRemoteProductImageUrl(remoteUrl);
+export async function downloadProductImage(
+  remoteUrl: string,
+  dependencies: {
+    fetchRemote?: ProductImageFetch;
+    lookupHost?: ProductImageHostLookup;
+  } = {},
+) {
+  const fetchRemote = dependencies.fetchRemote ?? fetch;
+  const lookupHost = dependencies.lookupHost ?? lookup;
+  let currentUrl = await validateRemoteProductImageUrl(remoteUrl, lookupHost);
 
   for (let redirectCount = 0; redirectCount <= 3; redirectCount += 1) {
     let response: Response;
     try {
-      response = await fetch(currentUrl, {
+      response = await fetchRemote(currentUrl, {
         headers: { "User-Agent": "Invermuebles product image importer" },
         redirect: "manual",
         signal: AbortSignal.timeout(10_000),
@@ -205,6 +219,7 @@ export async function downloadProductImage(remoteUrl: string) {
       }
       currentUrl = await validateRemoteProductImageUrl(
         new URL(location, currentUrl).toString(),
+        lookupHost,
       );
       continue;
     }
