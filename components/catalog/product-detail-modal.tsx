@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, ShoppingCart, X } from "lucide-react";
-import { useId, useRef } from "react";
+import { Check, ShoppingCart, X, ZoomIn } from "lucide-react";
+import { useId, useRef, useState } from "react";
 import { SelectMenu } from "@/components/ui/select-menu";
 import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 import type { Product, ProductInventoryVariant } from "@/lib/products";
@@ -18,6 +18,42 @@ type ProductDetailModalProps = {
   selectedVariant?: ProductInventoryVariant;
   showAction: boolean;
 };
+
+type ProductImageZoomProps = {
+  image: string;
+  name: string;
+  onClose: () => void;
+};
+
+function ProductImageZoom({ image, name, onClose }: ProductImageZoomProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useModalAccessibility({ dialogRef, onClose });
+
+  return (
+    <div className="productImageZoomOverlay" onClick={onClose} role="presentation">
+      <div
+        aria-label={`Imagen ampliada de ${name}`}
+        aria-modal="true"
+        className="productImageZoomDialog"
+        onClick={(event) => event.stopPropagation()}
+        ref={dialogRef}
+        role="dialog"
+        tabIndex={-1}
+      >
+        <button
+          aria-label="Cerrar imagen ampliada"
+          className="modalClose productImageZoomClose"
+          onClick={onClose}
+          type="button"
+        >
+          <X size={20} />
+        </button>
+        <img alt={name} src={image} />
+      </div>
+    </div>
+  );
+}
 
 export function ProductDetailModal({
   cartFeedback,
@@ -45,13 +81,15 @@ export function ProductDetailModal({
   const dialogRef = useRef<HTMLElement>(null);
   const titleId = useId();
   const descriptionId = useId();
+  const [isImageZoomOpen, setIsImageZoomOpen] = useState(false);
 
-  useModalAccessibility({ dialogRef, onClose });
+  useModalAccessibility({ active: !isImageZoomOpen, dialogRef, onClose });
 
   return (
     <div className="modalOverlay" role="presentation">
       <article
         aria-describedby={descriptionId}
+        aria-hidden={isImageZoomOpen || undefined}
         aria-labelledby={titleId}
         aria-modal="true"
         className="productDetailModal"
@@ -68,7 +106,18 @@ export function ProductDetailModal({
           <X size={20} />
         </button>
         <div className="productDetailImage">
-          <img src={product.image} alt={product.name} />
+          <button
+            aria-label={`Ampliar imagen de ${product.name}`}
+            className="productDetailImageButton"
+            onClick={() => setIsImageZoomOpen(true)}
+            type="button"
+          >
+            <img src={product.image} alt={product.name} />
+            <span>
+              <ZoomIn size={16} />
+              Ampliar imagen
+            </span>
+          </button>
         </div>
         <div className="productDetailInfo">
           <div className="productDetailScroll">
@@ -145,6 +194,13 @@ export function ProductDetailModal({
           ) : null}
         </div>
       </article>
+      {isImageZoomOpen ? (
+        <ProductImageZoom
+          image={product.image}
+          name={product.name}
+          onClose={() => setIsImageZoomOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

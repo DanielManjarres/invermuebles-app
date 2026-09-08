@@ -604,6 +604,40 @@ p {
   padding: 18px;
 }
 
+.productDetailImageButton {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: zoom-in;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  width: 100%;
+}
+
+.productDetailImageButton span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  bottom: 8px;
+  color: var(--primary-dark);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 800;
+  gap: 5px;
+  padding: 6px 9px;
+  position: absolute;
+  right: 8px;
+}
+
+.productDetailImageButton:focus-visible {
+  outline: 3px solid rgba(7, 85, 42, 0.2);
+  outline-offset: 3px;
+}
+
 .productDetailImage img {
   display: block;
   height: auto;
@@ -636,6 +670,42 @@ p {
   display: grid;
   gap: 6px;
   padding: 12px 28px 14px 22px;
+}
+
+.productImageZoomOverlay {
+  align-items: center;
+  background: rgba(7, 20, 13, 0.88);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 28px;
+  position: fixed;
+  z-index: 40;
+}
+
+.productImageZoomDialog {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  max-height: calc(100vh - 56px);
+  max-width: calc(100vw - 56px);
+  outline: none;
+  position: relative;
+}
+
+.productImageZoomDialog img {
+  background: #fff;
+  border-radius: 8px;
+  display: block;
+  max-height: calc(100vh - 56px);
+  max-width: calc(100vw - 56px);
+  object-fit: contain;
+}
+
+.productImageZoomClose {
+  background: #fff;
+  right: 10px;
+  top: 10px;
 }
 
 .productDetailInfo h2 {
