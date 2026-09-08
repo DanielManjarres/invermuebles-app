@@ -166,6 +166,33 @@ export function ProductFormModal({
 
     setError("");
     setIsSaving(true);
+    let primaryImageUrl = form.imageUrl.trim();
+
+    if (/^https?:\/\//i.test(primaryImageUrl)) {
+      setIsUploading(true);
+      const imageResponse = await fetch("/api/product-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: primaryImageUrl }),
+      }).catch(() => null);
+      const imageResult = imageResponse
+        ? ((await imageResponse.json().catch(() => ({}))) as {
+            imageUrl?: string;
+            message?: string;
+          })
+        : {};
+      setIsUploading(false);
+
+      if (!imageResponse?.ok || !imageResult.imageUrl) {
+        setIsSaving(false);
+        setError(imageResult.message ?? "No se pudo procesar la imagen de la URL.");
+        return;
+      }
+
+      primaryImageUrl = imageResult.imageUrl;
+      updateForm({ imageUrl: primaryImageUrl });
+    }
+
     const response = await fetch(
       isEditing ? `/api/catalog-products/${product?.id}` : "/api/catalog-products",
       {
@@ -178,7 +205,7 @@ export function ProductFormModal({
                 details: form.details,
                 model: form.model,
                 name: form.name,
-                primaryImageUrl: form.imageUrl,
+                primaryImageUrl,
                 visible: form.visible,
               }
             : {
@@ -208,7 +235,7 @@ export function ProductFormModal({
                 details: form.details,
                 model: form.model,
                 name: form.name,
-                primaryImageUrl: form.imageUrl,
+                primaryImageUrl,
                 visible: form.visible,
               },
         ),
@@ -363,6 +390,10 @@ export function ProductFormModal({
                 onChange={handleImageUpload}
               />
             </span>
+            <small>
+              Las imágenes subidas o agregadas por URL se ajustan automáticamente a
+              1200 × 1200 px al guardar.
+            </small>
           </label>
           {form.imageUrl ? (
             <div className="adminFormPreview adminFormWide">
