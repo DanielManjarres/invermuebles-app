@@ -675,6 +675,7 @@ p {
 .productImageZoomOverlay {
   align-items: center;
   background: rgba(7, 20, 13, 0.88);
+  box-sizing: border-box;
   display: flex;
   inset: 0;
   justify-content: center;
@@ -685,27 +686,33 @@ p {
 
 .productImageZoomDialog {
   align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+  box-sizing: border-box;
   display: flex;
+  height: min(760px, 100%);
   justify-content: center;
-  max-height: calc(100vh - 56px);
-  max-width: calc(100vw - 56px);
   outline: none;
+  padding: 48px 24px 24px;
   position: relative;
+  width: min(1100px, 100%);
 }
 
 .productImageZoomDialog img {
   background: #fff;
-  border-radius: 8px;
   display: block;
-  max-height: calc(100vh - 56px);
-  max-width: calc(100vw - 56px);
+  height: 100%;
   object-fit: contain;
+  width: 100%;
 }
 
 .productImageZoomClose {
   background: #fff;
-  right: 10px;
-  top: 10px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 1;
 }
 
 .productDetailInfo h2 {
