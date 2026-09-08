@@ -9,6 +9,7 @@ export const maxProductImageSize = 5 * 1024 * 1024;
 export const minimumProductImageLongSide = 800;
 export const minimumProductImageShortSide = 600;
 export const normalizedProductImageSize = 1200;
+export const normalizedProductImagePadding = 60;
 
 const supportedProductImageFormats = new Set(["jpeg", "png", "webp"]);
 const supportedProductImageMimeTypes = new Set([
@@ -63,11 +64,23 @@ export async function normalizeProductImage(input: Buffer) {
       limitInputPixels: 40_000_000,
     })
       .rotate()
-      .resize(normalizedProductImageSize, normalizedProductImageSize, {
-        background: "#ffffff",
-        fit: "contain",
-      })
       .flatten({ background: "#ffffff" })
+      .trim({ background: "#ffffff", threshold: 12 })
+      .resize(
+        normalizedProductImageSize - normalizedProductImagePadding * 2,
+        normalizedProductImageSize - normalizedProductImagePadding * 2,
+        {
+          background: "#ffffff",
+          fit: "contain",
+        },
+      )
+      .extend({
+        background: "#ffffff",
+        bottom: normalizedProductImagePadding,
+        left: normalizedProductImagePadding,
+        right: normalizedProductImagePadding,
+        top: normalizedProductImagePadding,
+      })
       .webp({ effort: 4, quality: 82 })
       .toBuffer();
   } catch (error) {

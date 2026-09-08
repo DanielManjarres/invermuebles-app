@@ -9,6 +9,7 @@ import {
   PackagePlus,
   Pencil,
   Plus,
+  RefreshCw,
   Search,
   Star,
   Trash2,
@@ -57,6 +58,8 @@ export function AdminProductsManager({
   const [isDeleting, setIsDeleting] = useState(false);
   const [featuredProductId, setFeaturedProductId] = useState<string | null>(null);
   const [featuredError, setFeaturedError] = useState("");
+  const [imageNormalizationMessage, setImageNormalizationMessage] = useState("");
+  const [isNormalizingImages, setIsNormalizingImages] = useState(false);
   const productDeleteDialogRef = useRef<HTMLDivElement>(null);
 
   useModalAccessibility({
@@ -143,6 +146,44 @@ export function AdminProductsManager({
     router.refresh();
   }
 
+  async function normalizeExistingImages() {
+    if (
+      !window.confirm(
+        "¿Deseas recortar y normalizar las imágenes existentes de todos los productos?",
+      )
+    ) {
+      return;
+    }
+
+    setImageNormalizationMessage("");
+    setIsNormalizingImages(true);
+    const response = await fetch("/api/product-images/normalize-existing", {
+      method: "POST",
+    }).catch(() => null);
+    const result = response
+      ? ((await response.json().catch(() => ({}))) as {
+          failed?: number;
+          message?: string;
+          normalized?: number;
+        })
+      : {};
+    setIsNormalizingImages(false);
+
+    if (!response?.ok) {
+      setImageNormalizationMessage(
+        result.message ?? "No se pudieron normalizar las imágenes.",
+      );
+      return;
+    }
+
+    setImageNormalizationMessage(
+      result.failed
+        ? `Se normalizaron ${result.normalized ?? 0} imágenes y ${result.failed} no pudieron procesarse.`
+        : `Se normalizaron ${result.normalized ?? 0} imágenes correctamente.`,
+    );
+    router.refresh();
+  }
+
   return (
     <>
       <TaxonomyManager categories={categories} />
@@ -178,6 +219,15 @@ export function AdminProductsManager({
             </p>
           </div>
           <div className="sectionHeaderActions">
+            <button
+              className="secondaryButton"
+              disabled={isNormalizingImages || products.length === 0}
+              type="button"
+              onClick={() => void normalizeExistingImages()}
+            >
+              <RefreshCw size={18} />
+              {isNormalizingImages ? "Normalizando..." : "Normalizar imágenes"}
+            </button>
             <ExcelDownloadButton
               disabled={products.length === 0}
               onDownload={() => downloadProductsReport(products)}
@@ -192,6 +242,10 @@ export function AdminProductsManager({
             </button>
           </div>
         </div>
+
+        {imageNormalizationMessage ? (
+          <p className="formMessage">{imageNormalizationMessage}</p>
+        ) : null}
 
         <div className="inventoryToolbar productsToolbar">
           <label className="searchBox">

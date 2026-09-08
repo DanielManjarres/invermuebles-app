@@ -10,6 +10,7 @@ import {
   maxProductImageSize,
   minimumProductImageLongSide,
   minimumProductImageShortSide,
+  normalizedProductImagePadding,
   normalizedProductImageSize,
   normalizeProductImage,
   validateRemoteProductImageUrl,
@@ -73,6 +74,45 @@ test("normalizes product images to a square webp canvas", async () => {
   assert.equal(metadata.format, "webp");
   assert.equal(metadata.width, normalizedProductImageSize);
   assert.equal(metadata.height, normalizedProductImageSize);
+});
+
+test("removes white source margins before applying the standard padding", async () => {
+  const productWidth = 400;
+  const productHeight = 200;
+  const source = await sharp({
+    create: {
+      background: "#ffffff",
+      channels: 3,
+      height: minimumProductImageShortSide,
+      width: minimumProductImageLongSide,
+    },
+  })
+    .composite([
+      {
+        input: {
+          create: {
+            background: "#07552a",
+            channels: 3,
+            height: productHeight,
+            width: productWidth,
+          },
+        },
+        left: 200,
+        top: 200,
+      },
+    ])
+    .png()
+    .toBuffer();
+
+  const normalized = await normalizeProductImage(source);
+  const visibleContent = await sharp(normalized)
+    .trim({ background: "#ffffff", threshold: 20 })
+    .toBuffer({ resolveWithObject: true });
+  const expectedContentSize =
+    normalizedProductImageSize - normalizedProductImagePadding * 2;
+
+  assert.equal(visibleContent.info.width, expectedContentSize);
+  assert.equal(visibleContent.info.height, expectedContentSize / 2);
 });
 
 test("normalizes images according to their EXIF orientation", async () => {
