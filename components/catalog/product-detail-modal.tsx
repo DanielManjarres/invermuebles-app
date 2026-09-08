@@ -121,54 +121,58 @@ export function ProductDetailModal({
         </div>
         <div className="productDetailInfo">
           <div className="productDetailScroll">
-            <span className="tag">{product.catalogCategory || product.category}</span>
-            <h2 id={titleId}>{product.name}</h2>
-            {usesVariantSelection ? (
-              selectedVariant ? (
-                <span className="reference">{selectedVariant.reference}</span>
-              ) : null
-            ) : (
-              <span className="reference">{product.reference}</span>
-            )}
-            <p id={descriptionId}>{plainDetails}</p>
-            {usesVariantSelection ? (
-              <label className="productVariantSelector">
-                Presentación
-                <SelectMenu
-                  disabled={variantOptions.length === 0}
-                  onChange={onVariantChange}
-                  options={variantOptions}
-                  placeholder="Selecciona una presentación"
-                  value={selectedVariant?.id ?? ""}
-                />
-                {selectedVariant?.attributes.length ? (
-                  <span className="productVariantAttributes">
-                    {selectedVariant.attributes
-                      .map(
-                        (attribute) =>
-                          `${attribute.name}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`,
-                      )
-                      .join(" · ")}
-                  </span>
-                ) : null}
-              </label>
-            ) : null}
-            <dl className="productDetailList">
-              <div>
-                <dt>Clase</dt>
-                <dd>{product.productClass}</dd>
-              </div>
-              <div>
-                <dt>Estado</dt>
-                <dd>
-                  {usesVariantSelection && !selectedVariant
-                    ? "Selecciona una presentación"
-                    : isAvailable
-                      ? "Disponible"
-                      : "Agotado"}
-                </dd>
-              </div>
-            </dl>
+            <div className="productDetailSummary">
+              <span className="tag">{product.catalogCategory || product.category}</span>
+              <h2 id={titleId}>{product.name}</h2>
+              {usesVariantSelection ? (
+                selectedVariant ? (
+                  <span className="reference">{selectedVariant.reference}</span>
+                ) : null
+              ) : (
+                <span className="reference">{product.reference}</span>
+              )}
+              <p id={descriptionId}>{plainDetails}</p>
+            </div>
+            <div className="productDetailPurchase">
+              {usesVariantSelection ? (
+                <label className="productVariantSelector">
+                  Presentación
+                  <SelectMenu
+                    disabled={variantOptions.length === 0}
+                    onChange={onVariantChange}
+                    options={variantOptions}
+                    placeholder="Selecciona una presentación"
+                    value={selectedVariant?.id ?? ""}
+                  />
+                  {selectedVariant?.attributes.length ? (
+                    <span className="productVariantAttributes">
+                      {selectedVariant.attributes
+                        .map(
+                          (attribute) =>
+                            `${attribute.name}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`,
+                        )
+                        .join(" · ")}
+                    </span>
+                  ) : null}
+                </label>
+              ) : null}
+              <dl className="productDetailList">
+                <div>
+                  <dt>Clase</dt>
+                  <dd>{product.productClass}</dd>
+                </div>
+                <div>
+                  <dt>Estado</dt>
+                  <dd>
+                    {usesVariantSelection && !selectedVariant
+                      ? "Selecciona una presentación"
+                      : isAvailable
+                        ? "Disponible"
+                        : "Agotado"}
+                  </dd>
+                </div>
+              </dl>
+            </div>
           </div>
           {showAction ? (
             <div className="productDetailActions">
