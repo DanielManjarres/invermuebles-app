@@ -334,9 +334,6 @@ export function AdminProductsManager({
                           )}
                           {product.visible ? "Publicado" : "Oculto"}
                         </span>
-                        <span className="catalogProductTaxonomy">
-                          {product.categoryName} / {product.productTypeName}
-                        </span>
                         {product.featured ? (
                           <span className="available">
                             <Star size={13} />
@@ -346,6 +343,9 @@ export function AdminProductsManager({
                         {!product.productTypeId ? (
                           <span className="unavailable">Pendiente de migración</span>
                         ) : null}
+                        <span className="catalogProductTaxonomy">
+                          {product.categoryName} / {product.productTypeName}
+                        </span>
                       </div>
                       <h3>{product.name}</h3>
                       <p>

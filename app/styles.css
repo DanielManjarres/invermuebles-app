@@ -1492,7 +1492,7 @@ th {
 .catalogProductSummary {
   display: grid;
   gap: 8px;
-  grid-template-columns: minmax(82px, 0.6fr) minmax(94px, 0.65fr) minmax(205px, 1.45fr);
+  grid-template-columns: minmax(74px, 0.55fr) minmax(84px, 0.65fr) minmax(0, 1.5fr);
   min-width: 0;
 }
 
@@ -1502,6 +1502,7 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 3px;
+  min-width: 0;
   padding: 8px 9px;
 }
 
@@ -1522,7 +1523,8 @@ th {
 
 .catalogProductSummary div:last-child strong {
   font-size: 0.86rem;
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .catalogProductActions {
