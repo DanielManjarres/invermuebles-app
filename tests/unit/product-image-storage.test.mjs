@@ -161,6 +161,28 @@ test("rejects product images below the minimum dimensions", async () => {
   );
 });
 
+test("normalizes legacy product images below the current minimum dimensions", async () => {
+  const source = await sharp({
+    create: {
+      background: "#ffffff",
+      channels: 3,
+      height: 300,
+      width: 400,
+    },
+  })
+    .png()
+    .toBuffer();
+
+  const normalized = await normalizeProductImage(source, {
+    enforceMinimumDimensions: false,
+  });
+  const metadata = await sharp(normalized).metadata();
+
+  assert.equal(metadata.width, normalizedProductImageSize);
+  assert.equal(metadata.height, normalizedProductImageSize);
+  assert.equal(metadata.format, "webp");
+});
+
 test("rejects files whose contents are not valid images", async () => {
   await assert.rejects(
     normalizeProductImage(Buffer.from("not-an-image")),

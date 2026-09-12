@@ -7,10 +7,16 @@ import {
   downloadProductImage,
   getProductImageUploadDir,
   normalizeProductImage,
+  ProductImageValidationError,
 } from "@/lib/product-image-storage";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+
+type ImageNormalizationFailure = {
+  productName: string;
+  reason: string;
+};
 
 function getStoredImageFileName(imageUrl: string) {
   const prefix = "/api/product-images/";
@@ -24,13 +30,35 @@ function getStoredImageFileName(imageUrl: string) {
   }
 }
 
-async function readProductImage(imageUrl: string) {
+async function readProductImage(imageUrl: string, uploadDir: string) {
   const storedFileName = getStoredImageFileName(imageUrl);
   if (storedFileName) {
-    return readFile(path.join(getProductImageUploadDir(), storedFileName));
+    return readFile(
+      /* turbopackIgnore: true */ path.join(
+        /* turbopackIgnore: true */ uploadDir,
+        storedFileName,
+      ),
+    );
   }
 
   return downloadProductImage(imageUrl);
+}
+
+function getFailureReason(error: unknown) {
+  if (error instanceof ProductImageValidationError) {
+    return error.message;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "ENOENT"
+  ) {
+    return "No se encontró el archivo original de la imagen.";
+  }
+
+  return "No fue posible leer o procesar la imagen.";
 }
 
 export async function POST() {
@@ -50,7 +78,7 @@ export async function POST() {
   await mkdir(uploadDir, { recursive: true });
 
   let normalized = 0;
-  const failedProducts: string[] = [];
+  const failures: ImageNormalizationFailure[] = [];
 
   for (const product of products) {
     const selectedImage = product.images[0];
@@ -58,8 +86,10 @@ export async function POST() {
     if (!sourceUrl) continue;
 
     try {
-      const source = await readProductImage(sourceUrl);
-      const normalizedImage = await normalizeProductImage(source);
+      const source = await readProductImage(sourceUrl, uploadDir);
+      const normalizedImage = await normalizeProductImage(source, {
+        enforceMinimumDimensions: false,
+      });
       const fileName = `${Date.now()}-${randomUUID()}.webp`;
       const imageUrl = `/api/product-images/${fileName}`;
 
@@ -88,14 +118,18 @@ export async function POST() {
             ]),
       ]);
       normalized += 1;
-    } catch {
-      failedProducts.push(product.name);
+    } catch (error) {
+      failures.push({
+        productName: product.name,
+        reason: getFailureReason(error),
+      });
     }
   }
 
   return NextResponse.json({
-    failed: failedProducts.length,
-    failedProducts,
+    failed: failures.length,
+    failedProducts: failures.map(({ productName }) => productName),
+    failures,
     normalized,
   });
 }

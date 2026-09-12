@@ -59,6 +59,8 @@ export function AdminProductsManager({
   const [featuredProductId, setFeaturedProductId] = useState<string | null>(null);
   const [featuredError, setFeaturedError] = useState("");
   const [imageNormalizationMessage, setImageNormalizationMessage] = useState("");
+  const [imageNormalizationHasFailures, setImageNormalizationHasFailures] =
+    useState(false);
   const [isNormalizingImages, setIsNormalizingImages] = useState(false);
   const productDeleteDialogRef = useRef<HTMLDivElement>(null);
 
@@ -156,6 +158,7 @@ export function AdminProductsManager({
     }
 
     setImageNormalizationMessage("");
+    setImageNormalizationHasFailures(false);
     setIsNormalizingImages(true);
     const response = await fetch("/api/product-images/normalize-existing", {
       method: "POST",
@@ -163,6 +166,7 @@ export function AdminProductsManager({
     const result = response
       ? ((await response.json().catch(() => ({}))) as {
           failed?: number;
+          failures?: { productName: string; reason: string }[];
           message?: string;
           normalized?: number;
         })
@@ -170,15 +174,21 @@ export function AdminProductsManager({
     setIsNormalizingImages(false);
 
     if (!response?.ok) {
+      setImageNormalizationHasFailures(true);
       setImageNormalizationMessage(
         result.message ?? "No se pudieron normalizar las imágenes.",
       );
       return;
     }
 
+    const failureDetails = result.failures
+      ?.map(({ productName, reason }) => `${productName}: ${reason}`)
+      .join(" ");
+    setImageNormalizationHasFailures(Boolean(result.failed));
+
     setImageNormalizationMessage(
       result.failed
-        ? `Se normalizaron ${result.normalized ?? 0} imágenes y ${result.failed} no pudieron procesarse.`
+        ? `Se normalizaron ${result.normalized ?? 0} imágenes y ${result.failed} no pudieron procesarse.${failureDetails ? ` ${failureDetails}` : ""}`
         : `Se normalizaron ${result.normalized ?? 0} imágenes correctamente.`,
     );
     router.refresh();
@@ -244,7 +254,11 @@ export function AdminProductsManager({
         </div>
 
         {imageNormalizationMessage ? (
-          <p className="formMessage">{imageNormalizationMessage}</p>
+          <p
+            className={`formMessage imageNormalizationStatus${imageNormalizationHasFailures ? " error" : ""}`}
+          >
+            {imageNormalizationMessage}
+          </p>
         ) : null}
 
         <div className="inventoryToolbar productsToolbar">
@@ -320,7 +334,9 @@ export function AdminProductsManager({
                           )}
                           {product.visible ? "Publicado" : "Oculto"}
                         </span>
-                        <span>{product.categoryName} / {product.productTypeName}</span>
+                        <span className="catalogProductTaxonomy">
+                          {product.categoryName} / {product.productTypeName}
+                        </span>
                         {product.featured ? (
                           <span className="available">
                             <Star size={13} />

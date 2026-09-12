@@ -25,7 +25,12 @@ export class ProductImageValidationError extends Error {
   }
 }
 
-export async function normalizeProductImage(input: Buffer) {
+export async function normalizeProductImage(
+  input: Buffer,
+  options: { enforceMinimumDimensions?: boolean } = {},
+) {
+  const { enforceMinimumDimensions = true } = options;
+
   try {
     const metadata = await sharp(input, {
       failOn: "error",
@@ -51,8 +56,9 @@ export async function normalizeProductImage(input: Buffer) {
     }
 
     if (
-      Math.max(width, height) < minimumProductImageLongSide ||
-      Math.min(width, height) < minimumProductImageShortSide
+      enforceMinimumDimensions &&
+      (Math.max(width, height) < minimumProductImageLongSide ||
+        Math.min(width, height) < minimumProductImageShortSide)
     ) {
       throw new ProductImageValidationError(
         "La imagen debe medir al menos 800 × 600 píxeles.",
