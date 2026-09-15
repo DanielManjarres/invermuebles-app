@@ -10,7 +10,7 @@ import type { AdminSaleCartResult } from "@/components/admin-sales/use-admin-sal
 type ProductCardProps = {
   actionLabel?: string;
   detailActionLabel?: string;
-  onAdminSaleAdd?: (product: Product, variantId?: string) => AdminSaleCartResult;
+  onAdminSaleAdd?: (product: Product) => AdminSaleCartResult;
   product: Product;
   showAdminSaleAction?: boolean;
   showCartAction?: boolean;
@@ -36,20 +36,7 @@ export function ProductCard({
   const { addItem } = useCart();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [cartFeedback, setCartFeedback] = useState("");
-  const selectableVariants = (product.variants ?? []).filter(
-    (variant) => variant.active,
-  );
-  const [selectedVariantId, setSelectedVariantId] = useState("");
-  const selectedVariant = selectableVariants.find(
-    (variant) => variant.id === selectedVariantId,
-  );
-  const usesVariantSelection = selectableVariants.length > 0;
-  const isAvailable = usesVariantSelection
-    ? selectableVariants.some((variant) => variant.stock > 0)
-    : product.stock > 0;
-  const isSelectedVariantAvailable = usesVariantSelection
-    ? Boolean(selectedVariant && selectedVariant.stock > 0)
-    : product.stock > 0;
+  const isAvailable = product.stock > 0;
   const productSummary = createSummary(product.details);
   const isAddedFeedback =
     cartFeedback === "Producto agregado al carrito" ||
@@ -66,23 +53,12 @@ export function ProductCard({
   }, [cartFeedback]);
 
   useEffect(() => {
-    setSelectedVariantId("");
     setCartFeedback("");
   }, [product.id]);
 
   function handleAddToCart() {
-    if (usesVariantSelection && !selectedVariant) {
-      setIsDetailOpen(true);
-      return;
-    }
-
     if (showAdminSaleAction && onAdminSaleAdd) {
-      const result = onAdminSaleAdd(product, selectedVariant?.id);
-      if (result.status === "requires-variant") {
-        setCartFeedback("Selecciona una presentación");
-        setIsDetailOpen(true);
-        return;
-      }
+      const result = onAdminSaleAdd(product);
       setCartFeedback(
         result.status === "added"
           ? "Producto agregado a venta local"
@@ -92,17 +68,15 @@ export function ProductCard({
     }
 
     const result = addItem({
-      availableStock: selectedVariant?.stock ?? product.stock,
+      availableStock: product.stock,
       category: product.catalogCategory || product.category,
       details: product.details,
-      id: selectedVariant?.id ?? product.id,
+      id: product.id,
       image: product.image,
       name: product.name,
       productId: product.id,
       quantity: 1,
-      reference: selectedVariant?.reference ?? product.reference,
-      variantId: selectedVariant?.id,
-      variantName: selectedVariant?.name,
+      reference: product.reference,
     });
 
     setCartFeedback(
@@ -133,9 +107,7 @@ export function ProductCard({
           <div>
             <span className="tag">{product.catalogCategory || product.category}</span>
             <h2>{product.name}</h2>
-            {!usesVariantSelection ? (
-              <span className="reference">{product.reference}</span>
-            ) : null}
+            <span className="reference">{product.reference}</span>
             <p>{productSummary}</p>
           </div>
           <div className="productFooter">
@@ -149,11 +121,7 @@ export function ProductCard({
                 disabled={!isAvailable}
                 onClick={(event) => {
                   event.stopPropagation();
-                  if (usesVariantSelection) {
-                    setIsDetailOpen(true);
-                  } else {
-                    handleAddToCart();
-                  }
+                  handleAddToCart();
                 }}
               >
                 {cartFeedback ? <Check size={17} /> : <ShoppingCart size={17} />}
@@ -161,11 +129,7 @@ export function ProductCard({
                   ? isAddedFeedback
                     ? "Agregado"
                     : "Actualizado"
-                  : usesVariantSelection
-                    ? showAdminSaleAction
-                      ? "Elegir presentación"
-                      : "Ver producto"
-                    : actionLabel}
+                  : actionLabel}
               </button>
             ) : (
               <span className="detailsHint">Ver detalle</span>
@@ -183,16 +147,10 @@ export function ProductCard({
         <ProductDetailModal
           cartFeedback={cartFeedback}
           detailActionLabel={detailActionLabel}
-          isAvailable={isSelectedVariantAvailable}
+          isAvailable={isAvailable}
           onAdd={handleAddToCart}
           onClose={() => setIsDetailOpen(false)}
-          onVariantChange={(variantId) => {
-            setSelectedVariantId(variantId);
-            setCartFeedback("");
-          }}
           product={product}
-          selectableVariants={selectableVariants}
-          selectedVariant={selectedVariant}
           showAction={showCartAction || showAdminSaleAction}
         />
       ) : null}

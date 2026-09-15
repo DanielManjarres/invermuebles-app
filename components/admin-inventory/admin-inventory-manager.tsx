@@ -44,28 +44,9 @@ function createInventoryItems(products: Product[]): InventoryItem[] {
     const category = product.catalogCategory || product.category;
     const productType = product.catalogProductType || product.productClass;
 
-    if (product.variants && product.variants.length > 0) {
-      return product.variants.map((variant) => ({
-        active: variant.active,
-        category,
-        isLegacy: false,
-        key: `${product.id}-${variant.id}`,
-        location: variant.location,
-        minimumStock: variant.minimumStock,
-        productId: product.id,
-        productName: product.name,
-        productType,
-        reference: variant.reference,
-        stock: variant.stock,
-        variantId: variant.id,
-        variantName: variant.name,
-      }));
-    }
-
     return [{
       active: true,
       category,
-      isLegacy: false,
       key: product.id,
       location: product.location ?? "",
       minimumStock: product.minimumStock ?? 0,
@@ -74,7 +55,6 @@ function createInventoryItems(products: Product[]): InventoryItem[] {
       productType,
       reference: product.reference,
       stock: product.stock,
-      variantName: "Producto",
     }];
   });
 }
@@ -134,7 +114,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         normalizedQuery.length === 0 ||
         [
           item.productName,
-          item.variantName,
           item.reference,
           item.category,
           item.productType,
@@ -267,7 +246,6 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         },
         body: JSON.stringify({
           productId: stockItem.productId,
-          variantId: stockItem.variantId,
           type: stockMovementForm.type,
           quantity,
           reason: stockMovementForm.reason,
@@ -297,25 +275,12 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
     const nextInventory = inventory.map((product) => {
       if (product.id !== stockItem.productId) return product;
 
-      if (!stockItem.variantId) {
-        return { ...product, stock: result.nextStock ?? nextStock };
-      }
-
-      const variants = (product.variants ?? []).map((variant) =>
-        variant.id === stockItem.variantId
-          ? { ...variant, stock: result.nextStock ?? nextStock }
-          : variant
-      );
-      return {
-        ...product,
-        stock: variants.reduce((total, variant) => total + variant.stock, 0),
-        variants,
-      };
+      return { ...product, stock: result.nextStock ?? nextStock };
     });
 
     setInventory(nextInventory);
     setNotice(
-      `${movementLabels[stockMovementForm.type]} registrada para ${stockItem.productName} · ${stockItem.variantName}. Stock actual: ${result.nextStock}.`
+      `${movementLabels[stockMovementForm.type]} registrada para ${stockItem.productName}. Stock actual: ${result.nextStock}.`
     );
     setStockItem(null);
   }
@@ -333,7 +298,7 @@ export function AdminInventoryManager({ products }: AdminInventoryManagerProps) 
         <div className="sectionHeader inventoryHeader">
           <div>
             <p className="eyebrow">Control interno</p>
-            <h2>Inventario por variante</h2>
+            <h2>Inventario por producto</h2>
           </div>
           <ExcelDownloadButton
             disabled={inventory.length === 0}

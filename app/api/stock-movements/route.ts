@@ -13,7 +13,6 @@ type StockMovementRequest = {
   quantity?: number;
   reason?: string;
   type?: "entry" | "exit" | "adjustment";
-  variantId?: string;
 };
 
 function toDatabaseMovementType(type: StockMovementRequest["type"]) {
@@ -43,7 +42,7 @@ export async function POST(request: Request) {
   const quantity = Number(body.quantity);
   const reason = body.reason?.trim() ?? "";
 
-  if ((!body.productId && !body.variantId) || !movementType || !reason) {
+  if (!body.productId || !movementType || !reason) {
     return NextResponse.json(
       { message: "Completa los datos del movimiento." },
       { status: 400 }
@@ -77,35 +76,12 @@ export async function POST(request: Request) {
     const saveMovement = () =>
       prisma.$transaction(
         async (tx) => {
-          const variant = body.variantId
-            ? await tx.productVariant.findUnique({
-                where: { id: body.variantId },
-                include: { product: true },
-              })
-            : null;
-          const product =
-            variant?.product ??
-            (body.productId
-              ? await tx.product.findUnique({ where: { id: body.productId } })
-              : null);
+          const product = await tx.product.findUnique({
+            where: { id: body.productId },
+          });
+          if (!product) throw new Error("PRODUCT_NOT_FOUND");
 
-          if (!product || (body.variantId && !variant)) {
-            throw new Error(
-              body.variantId ? "VARIANT_NOT_FOUND" : "PRODUCT_NOT_FOUND"
-            );
-          }
-          if (body.productId && variant && body.productId !== variant.productId) {
-            throw new Error("VARIANT_PRODUCT_MISMATCH");
-          }
-
-          if (!variant) {
-            const variantCount = await tx.productVariant.count({
-              where: { productId: product.id },
-            });
-            if (variantCount > 0) throw new Error("VARIANT_REQUIRED");
-          }
-
-          const previousStock = variant?.stock ?? product.stock;
+          const previousStock = product.stock;
           const nextStock = calculateNextStock(
             previousStock,
             body.type ?? "adjustment",
@@ -116,28 +92,11 @@ export async function POST(request: Request) {
             throw new Error("NEGATIVE_STOCK");
           }
 
-          if (variant) {
-            const update = await tx.productVariant.updateMany({
-              where: { id: variant.id, stock: previousStock },
-              data: { stock: nextStock },
-            });
-            if (update.count !== 1) throw new Error("STOCK_CHANGED");
-
-            const aggregate = await tx.productVariant.aggregate({
-              where: { productId: product.id },
-              _sum: { stock: true },
-            });
-            await tx.product.update({
-              where: { id: product.id },
-              data: { stock: aggregate._sum.stock ?? 0 },
-            });
-          } else {
-            const update = await tx.product.updateMany({
-              where: { id: product.id, stock: previousStock },
-              data: { stock: nextStock },
-            });
-            if (update.count !== 1) throw new Error("STOCK_CHANGED");
-          }
+          const update = await tx.product.updateMany({
+            where: { id: product.id, stock: previousStock },
+            data: { stock: nextStock },
+          });
+          if (update.count !== 1) throw new Error("STOCK_CHANGED");
 
           const movement = await tx.stockMovement.create({
             data: {
@@ -149,7 +108,6 @@ export async function POST(request: Request) {
               note: body.note?.trim() || null,
               type: movementType,
               userId: admin.id,
-              variantId: variant?.id,
             },
           });
 
@@ -158,7 +116,6 @@ export async function POST(request: Request) {
             nextStock,
             previousStock,
             productId: product.id,
-            variantId: variant?.id ?? null,
           };
         },
         { isolationLevel: "Serializable" }
@@ -186,30 +143,6 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { message: "El producto no existe." },
         { status: 404 }
-      );
-    }
-
-    if (error instanceof Error && error.message === "VARIANT_NOT_FOUND") {
-      return NextResponse.json(
-        { message: "La variante no existe." },
-        { status: 404 }
-      );
-    }
-
-    if (
-      error instanceof Error &&
-      error.message === "VARIANT_PRODUCT_MISMATCH"
-    ) {
-      return NextResponse.json(
-        { message: "La variante no pertenece al producto indicado." },
-        { status: 400 }
-      );
-    }
-
-    if (error instanceof Error && error.message === "VARIANT_REQUIRED") {
-      return NextResponse.json(
-        { message: "Selecciona la variante que recibirá el movimiento." },
-        { status: 400 }
       );
     }
 

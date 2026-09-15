@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Product, ProductInventoryVariant } from "@/lib/products";
+import type { Product } from "@/lib/products";
 
 export type AdminSaleCartItem = {
   productId: string;
-  variantId?: string;
   quantity: number;
 };
 
 export type AdminSaleCartResult = {
   quantity: number;
-  status: "added" | "requires-variant" | "updated";
+  status: "added" | "updated";
 };
 
 const adminSaleCartKey = "invermuebles-admin-sale-cart";
@@ -32,7 +31,6 @@ function readAdminSaleCart(): AdminSaleCartItem[] {
       .filter((item) => item.productId || item.id)
       .map((item) => ({
         productId: item.productId || item.id || "",
-        variantId: item.variantId,
         quantity: item.quantity && item.quantity > 0 ? item.quantity : 1,
       }));
   } catch {
@@ -77,29 +75,14 @@ export function useAdminSaleCart(products: Product[] = []) {
     saveAdminSaleCart(nextItems);
   }
 
-  function addProduct(product: Product, requestedVariantId?: string): AdminSaleCartResult {
-    const productVariants = product.variants ?? [];
-    const availableVariants = productVariants.filter(
-      (variant) => variant.active && variant.stock > 0,
-    );
-    const variant = requestedVariantId
-      ? availableVariants.find((item) => item.id === requestedVariantId)
-      : undefined;
-    if (productVariants.length > 0 && !variant) {
-      return { quantity: 0, status: "requires-variant" };
-    }
-    const variantId = variant?.id;
-    const lineId = variantId ?? product.id;
-    const availableStock = variant?.stock ?? product.stock;
+  function addProduct(product: Product): AdminSaleCartResult {
     const currentItems = readAdminSaleCart();
-    const existingItem = currentItems.find(
-      (item) => (item.variantId ?? item.productId) === lineId,
-    );
+    const existingItem = currentItems.find((item) => item.productId === product.id);
 
     if (existingItem) {
-      const nextQuantity = Math.min(existingItem.quantity + 1, availableStock);
+      const nextQuantity = Math.min(existingItem.quantity + 1, product.stock);
       const nextItems = currentItems.map((item) =>
-        (item.variantId ?? item.productId) === lineId
+        item.productId === product.id
           ? { ...item, quantity: nextQuantity }
           : item
       );
@@ -111,7 +94,7 @@ export function useAdminSaleCart(products: Product[] = []) {
       };
     }
 
-    saveCart([...currentItems, { productId: product.id, variantId, quantity: 1 }]);
+    saveCart([...currentItems, { productId: product.id, quantity: 1 }]);
     return {
       quantity: 1,
       status: "added",
@@ -124,27 +107,21 @@ export function useAdminSaleCart(products: Product[] = []) {
 
   function removeProduct(lineId: string) {
     saveCart(
-      readAdminSaleCart().filter(
-        (item) => (item.variantId ?? item.productId) !== lineId,
-      ),
+      readAdminSaleCart().filter((item) => item.productId !== lineId),
     );
   }
 
   const detailedItems = items
     .map((item) => {
       const product = products.find((currentProduct) => currentProduct.id === item.productId);
-      const variant = item.variantId
-        ? product?.variants?.find((currentVariant) => currentVariant.id === item.variantId)
-        : undefined;
-      const availableStock = variant?.stock ?? product?.stock ?? 0;
-      if (!product || (item.variantId && !variant) || availableStock < 1) {
+      const availableStock = product?.stock ?? 0;
+      if (!product || availableStock < 1) {
         return null;
       }
 
       return {
-        lineId: item.variantId ?? product.id,
+        lineId: product.id,
         product,
-        variant,
         quantity: Math.min(item.quantity, availableStock),
       };
     })
@@ -152,7 +129,6 @@ export function useAdminSaleCart(products: Product[] = []) {
       lineId: string;
       product: Product;
       quantity: number;
-      variant: ProductInventoryVariant | undefined;
     } => item !== null);
 
   const totalQuantity = detailedItems.reduce(

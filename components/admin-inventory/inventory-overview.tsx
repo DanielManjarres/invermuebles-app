@@ -77,7 +77,7 @@ export function InventoryToolbar({
         <Search size={18} />
         <input
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Buscar por producto, variante, referencia o ubicación"
+          placeholder="Buscar por producto, referencia o ubicación"
           type="search"
           value={query}
         />

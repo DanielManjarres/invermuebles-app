@@ -105,7 +105,7 @@ export function AdminPaymentReceiptModal({ account, balanceAfter, onClose, payme
             <ul>
               {account.items.map((item) => (
                 <li key={item.id}>
-                  <span>{item.productName}{item.variantName ? ` · ${item.variantName}` : ""}</span>
+                  <span>{item.productName}</span>
                   <strong>x {item.quantity}</strong>
                 </li>
               ))}

@@ -7,9 +7,6 @@ export type StockMovement = {
   productReference: string;
   productCategory: string;
   productClass: string;
-  variantId?: string;
-  variantName?: string;
-  variantReference?: string;
   type: MovementType;
   quantity: number;
   previousStock: number;

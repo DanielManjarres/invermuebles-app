@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { AdminCustomer } from "@/lib/customers";
 import type { AdminOrder } from "@/lib/orders";
-import type { Product, ProductInventoryVariant } from "@/lib/products";
+import type { Product } from "@/lib/products";
 import {
   AdminLocalSaleForm,
   type SaleCartItem,
@@ -31,7 +31,6 @@ type AdminSalesManagerProps = {
 type SaleChoice = {
   lineId: string;
   product: Product;
-  variant: ProductInventoryVariant | undefined;
 };
 
 function formatMoney(value: number) {
@@ -57,9 +56,7 @@ function getSaleSearchText(sale: AdminSale) {
     sale.notes,
     ...sale.items.flatMap((item) => [
       item.productName,
-      item.variantName,
       item.productReference,
-      ...item.variantAttributes.map((attribute) => attribute.value),
       item.productCategory,
       item.productClass,
     ]),
@@ -122,17 +119,9 @@ export function AdminSalesManager({
 
   const saleChoices = useMemo<SaleChoice[]>(
     () =>
-      products.flatMap<SaleChoice>((product) => {
-        if (product.variants?.length) {
-          return product.variants
-            .filter((variant) => variant.active && variant.stock > 0)
-            .map((variant) => ({ lineId: variant.id, product, variant }));
-        }
-
-        return product.stock > 0
-          ? [{ lineId: product.id, product, variant: undefined }]
-          : [];
-      }),
+      products.flatMap<SaleChoice>((product) =>
+        product.stock > 0 ? [{ lineId: product.id, product }] : [],
+      ),
     [products]
   );
 
@@ -160,21 +149,20 @@ export function AdminSalesManager({
 
     return saleChoices
       .filter((choice) => !selectedIds.has(choice.lineId))
-      .filter(({ product, variant }) =>
+      .filter(({ product }) =>
         [
           product.name,
-          variant?.name,
-          variant?.reference ?? product.reference,
+          product.reference,
           product.category,
           product.productClass,
-          ...(variant?.attributes.map((attribute) => attribute.value) ?? []),
+          ...(product.attributes?.map((attribute) => attribute.value) ?? []),
         ]
           .join(" ")
           .toLowerCase()
           .includes(search)
       )
-      .map(({ lineId, product, variant }) => ({
-        label: `${product.name}${variant ? ` - ${variant.name}` : ""} - ${variant?.reference ?? product.reference} (${variant?.stock ?? product.stock})`,
+      .map(({ lineId, product }) => ({
+        label: `${product.name} - ${product.reference} (${product.stock})`,
         value: lineId,
       }));
   }, [cartItems, productQuery, saleChoices]);
@@ -229,16 +217,12 @@ export function AdminSalesManager({
         setCartItems(
           preparedOrder.items.flatMap((item) => {
             const product = products.find((currentProduct) => currentProduct.id === item.productId);
-            const variant = item.variantId
-              ? product?.variants?.find((currentVariant) => currentVariant.id === item.variantId)
-              : undefined;
             return product
               ? [{
-                  lineId: variant?.id ?? product.id,
+                  lineId: product.id,
                   product,
-                  variant,
                   quantity: item.quantity,
-                  unitPrice: variant?.salePrice ?? product.salePrice,
+                  unitPrice: product.salePrice,
                 }]
               : [];
           })
@@ -253,9 +237,8 @@ export function AdminSalesManager({
         adminSaleCart.detailedItems.map((item) => ({
           lineId: item.lineId,
           product: item.product,
-          variant: item.variant,
           quantity: item.quantity,
-          unitPrice: item.variant?.salePrice ?? item.product.salePrice,
+          unitPrice: item.product.salePrice,
         }))
       );
     }
@@ -336,9 +319,8 @@ export function AdminSalesManager({
       {
         lineId: choice.lineId,
         product: choice.product,
-        variant: choice.variant,
         quantity: 1,
-        unitPrice: choice.variant?.salePrice ?? choice.product.salePrice,
+        unitPrice: choice.product.salePrice,
       },
     ]);
     setSelectedProductId("");
@@ -353,7 +335,7 @@ export function AdminSalesManager({
               ...item,
               quantity: Math.min(
                 Math.max(1, nextQuantity),
-                item.variant?.stock ?? item.product.stock,
+                item.product.stock,
               ),
             }
           : item
@@ -471,7 +453,6 @@ export function AdminSalesManager({
           initialPayment: amountPaid,
           items: cartItems.map((item) => ({
             productId: item.product.id,
-            variantId: item.variant?.id,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
           })),

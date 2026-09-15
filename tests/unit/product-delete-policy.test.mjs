@@ -2,37 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { canDeleteProduct } from "../../lib/product-delete-policy.ts";
 
-test("allows deleting products without orders and only initial inventory movements", () => {
-  const result = canDeleteProduct({
-    orderItemsCount: 0,
-    stockMovements: [
-      {
-        note: "Carga inicial de productos",
-        reason: "Inventario inicial",
-        type: "ADJUSTMENT",
-      },
-    ],
-  });
-
-  assert.equal(result.allowed, true);
-});
-
-test("allows the initial entry created with a product variant", () => {
-  const result = canDeleteProduct({
-    orderItemsCount: 0,
-    saleItemsCount: 0,
-    stockMovements: [
-      {
-        note: "Variante creada junto con el producto",
-        reason: "Inventario inicial",
-        type: "ENTRY",
-      },
-    ],
-  });
-
-  assert.equal(result.allowed, true);
-});
-
 test("allows the initial entry created with a direct product", () => {
   const result = canDeleteProduct({
     orderItemsCount: 0,

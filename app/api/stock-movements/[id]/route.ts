@@ -23,10 +23,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
       product: { select: { id: true, name: true, stock: true } },
       reason: true,
       type: true,
-      variant: {
-        select: { id: true, name: true, productId: true, stock: true },
-      },
-      variantId: true,
     },
   });
 
@@ -48,9 +44,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   const latestMovement = await prisma.stockMovement.findFirst({
-    where: movement.variantId
-      ? { variantId: movement.variantId }
-      : { productId: movement.product.id, variantId: null },
+    where: { productId: movement.product.id },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     select: { id: true },
   });
@@ -65,7 +59,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   }
 
-  const currentStock = movement.variant?.stock ?? movement.product.stock;
+  const currentStock = movement.product.stock;
   if (currentStock !== movement.nextStock) {
     return NextResponse.json(
       {
@@ -107,28 +101,11 @@ export async function DELETE(_request: Request, context: RouteContext) {
   let correction;
   try {
     correction = await prisma.$transaction(async (tx) => {
-      if (movement.variant) {
-        const update = await tx.productVariant.updateMany({
-          where: { id: movement.variant.id, stock: currentStock },
-          data: { stock: movement.previousStock },
-        });
-        if (update.count !== 1) throw new Error("STOCK_CHANGED");
-
-        const aggregate = await tx.productVariant.aggregate({
-          where: { productId: movement.product.id },
-          _sum: { stock: true },
-        });
-        await tx.product.update({
-          where: { id: movement.product.id },
-          data: { stock: aggregate._sum.stock ?? 0 },
-        });
-      } else {
-        const update = await tx.product.updateMany({
-          where: { id: movement.product.id, stock: currentStock },
-          data: { stock: movement.previousStock },
-        });
-        if (update.count !== 1) throw new Error("STOCK_CHANGED");
-      }
+      const update = await tx.product.updateMany({
+        where: { id: movement.product.id, stock: currentStock },
+        data: { stock: movement.previousStock },
+      });
+      if (update.count !== 1) throw new Error("STOCK_CHANGED");
 
       return tx.stockMovement.create({
         data: {
@@ -140,7 +117,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
           note: `Se corrigio el movimiento ${movement.id} y se conservo el registro original.`,
           type: correctionType,
           userId: admin.id,
-          variantId: movement.variantId,
         },
         select: { id: true },
       });
@@ -158,7 +134,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
   return NextResponse.json({
     id: correction.id,
     productId: movement.product.id,
-    variantId: movement.variantId,
     stock: movement.previousStock,
     message: "Movimiento corregido y registrado en el historial.",
   });

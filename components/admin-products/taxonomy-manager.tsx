@@ -194,7 +194,7 @@ export function TaxonomyManager({ categories }: TaxonomyManagerProps) {
         <div>
           <p className="eyebrow">Configuración de productos</p>
           <h2>Categorías, tipos y atributos</h2>
-          <p>Define la estructura que usarán los productos y sus variantes.</p>
+          <p>Define la estructura y las características que usarán los productos.</p>
         </div>
         <button
           className="secondaryButton"

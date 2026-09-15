@@ -111,7 +111,7 @@ export function AdminOrderCard({
         <div className="orderItems">
           {order.items.map((item) => (
             <div key={item.id}>
-              <strong>{item.productName}{item.variantName ? ` · ${item.variantName}` : ""}</strong>
+              <strong>{item.productName}</strong>
               <span>
                 {item.productReference} · {item.productCategory} /{" "}
                 {item.productClass}

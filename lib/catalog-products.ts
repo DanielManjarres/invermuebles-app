@@ -37,7 +37,7 @@ export type CatalogCategory = {
   productTypes: CatalogProductType[];
 };
 
-export type CatalogVariantAttributeValue = {
+export type CatalogAttributeValue = {
   attributeId: string;
   attributeName: string;
   id: string;
@@ -46,23 +46,8 @@ export type CatalogVariantAttributeValue = {
   value: string;
 };
 
-export type CatalogProductVariant = {
-  active: boolean;
-  attributeValues: CatalogVariantAttributeValue[];
-  baseCost: number;
-  cost: number;
-  id: string;
-  location: string;
-  minimumStock: number;
-  name: string;
-  reference: string;
-  salePrice: number;
-  stock: number;
-  taxRate: number;
-};
-
 export type CatalogProductRecord = {
-  attributeValues: CatalogVariantAttributeValue[];
+  attributeValues: CatalogAttributeValue[];
   baseCost: number;
   brand: string;
   categoryId: string;
@@ -82,6 +67,5 @@ export type CatalogProductRecord = {
   salePrice: number;
   stock: number;
   taxRate: number;
-  variants: CatalogProductVariant[];
   visible: boolean;
 };

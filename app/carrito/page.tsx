@@ -46,7 +46,7 @@ export default function CartPage() {
       }\n\n${items
       .map(
         (item, index) =>
-          `${index + 1}. ${item.name}${item.variantName ? ` · ${item.variantName}` : ""}\nReferencia: ${item.reference}${
+          `${index + 1}. ${item.name}\nReferencia: ${item.reference}${
             item.category ? `\nTipo: ${item.category}` : ""
           }\nCantidad solicitada: ${item.quantity}`
       )
@@ -73,7 +73,6 @@ export default function CartPage() {
           items: items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
-            variantId: item.variantId,
           })),
         }),
         headers: { "Content-Type": "application/json" },
@@ -147,9 +146,6 @@ export default function CartPage() {
                   <div className="cartItemInfo">
                     {item.category ? <span className="tag">{item.category}</span> : null}
                     <h2>{item.name}</h2>
-                    {item.variantName ? (
-                      <strong className="cartVariantName">{item.variantName}</strong>
-                    ) : null}
                     <span className="reference">{item.reference}</span>
                     {item.details ? <p>{summarizeDetails(item.details)}</p> : null}
                   </div>

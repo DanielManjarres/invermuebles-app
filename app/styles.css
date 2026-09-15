@@ -1364,15 +1364,6 @@ th {
   min-width: 860px;
 }
 
-.productVariantSelector {
-  color: var(--text);
-  display: grid;
-  font-size: 0.82rem;
-  font-weight: 800;
-  gap: 6px;
-  margin: 12px 0;
-}
-
 .adminSaleCartActions {
   align-items: center;
   display: flex;
@@ -1383,8 +1374,7 @@ th {
   min-height: 42px;
 }
 
-.productVariantAttributes,
-.cartVariantName {
+.productAttributes {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 700;
@@ -1670,101 +1660,6 @@ th {
   font-weight: 700;
 }
 
-.catalogVariantManager {
-  border-top: 1px solid var(--line);
-  display: grid;
-  gap: 12px;
-  margin-top: 18px;
-  padding-top: 16px;
-}
-
-.catalogVariantHeader,
-.catalogVariantHeaderActions,
-.catalogVariantCardHeader {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-}
-
-.catalogVariantHeader h3 {
-  font-size: 1.25rem;
-  margin: 2px 0;
-}
-
-.catalogVariantHeader p {
-  color: var(--muted);
-  margin: 0;
-}
-
-.catalogVariantGrid {
-  display: grid;
-  gap: 8px;
-}
-
-.catalogVariantCard {
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--text);
-  display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(260px, 2fr) minmax(120px, 0.7fr) minmax(70px, 0.35fr) auto auto;
-  padding: 10px 12px;
-  text-align: left;
-  width: 100%;
-}
-
-.catalogVariantCard:hover {
-  border-color: var(--primary);
-  box-shadow: 0 8px 22px rgba(7, 85, 42, 0.08);
-}
-
-.catalogVariantIdentity,
-.catalogVariantMetric {
-  display: grid;
-  gap: 3px;
-}
-
-.catalogVariantIdentity small,
-.catalogVariantMetric small {
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.catalogVariantBadges {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: flex-end;
-}
-
-.catalogVariantBadges .available,
-.catalogVariantBadges .unavailable {
-  font-size: 0.72rem;
-}
-
-.catalogVariantEdit {
-  align-items: center;
-  color: var(--primary);
-  display: inline-flex;
-  font-size: 0.84rem;
-  font-weight: 800;
-  gap: 5px;
-  justify-content: flex-end;
-}
-
-.variantModalActions {
-  justify-content: flex-end;
-}
-
-.variantModalActions .dangerButton:first-child {
-  margin-right: auto;
-}
-
 .catalogTaxonomySection {
   padding-bottom: 12px;
 }
@@ -1985,19 +1880,6 @@ th {
     grid-column: 1 / -1;
   }
 
-  .catalogVariantCard {
-    grid-template-columns: minmax(100px, 1fr) minmax(70px, 0.55fr) auto auto;
-  }
-
-  .catalogVariantIdentity {
-    grid-column: 1 / -1;
-  }
-
-  .catalogVariantBadges,
-  .catalogVariantEdit {
-    justify-content: flex-start;
-  }
-
   .catalogAttributeForm {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2028,15 +1910,6 @@ th {
     grid-template-columns: 1fr;
   }
 
-  .catalogVariantCard {
-    gap: 10px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .catalogVariantIdentity {
-    grid-column: 1 / -1;
-  }
-
   .catalogProductIdentity {
     align-items: flex-start;
   }
@@ -2048,11 +1921,6 @@ th {
   .catalogProductFeaturedAction,
   .catalogProductDeleteAction {
     grid-column: auto;
-  }
-
-  .catalogVariantHeader {
-    align-items: flex-start;
-    flex-direction: column;
   }
 
   .catalogTaxonomyToggle,
@@ -2425,14 +2293,6 @@ th {
   min-height: 32px;
   padding: 0 7px;
   white-space: nowrap;
-}
-
-.inventoryLegacyNote {
-  color: var(--muted);
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  margin-top: 3px;
 }
 
 .priceStack {

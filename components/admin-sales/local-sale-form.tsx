@@ -6,7 +6,7 @@ import { Minus, PackageSearch, Plus, ReceiptText, Search, Trash2 } from "lucide-
 import { IntegerInput } from "@/components/ui/integer-input";
 import { MoneyInput } from "@/components/ui/money-input";
 import { SelectMenu } from "@/components/ui/select-menu";
-import type { Product, ProductInventoryVariant } from "@/lib/products";
+import type { Product } from "@/lib/products";
 import {
   paymentMethodLabels,
   saleTypeLabels,
@@ -17,7 +17,6 @@ import {
 export type SaleCartItem = {
   lineId: string;
   product: Product;
-  variant?: ProductInventoryVariant;
   quantity: number;
   unitPrice: number;
 };
@@ -174,20 +173,20 @@ export function AdminLocalSaleForm(props: Props) {
           <div className="emptyState compactEmptyState"><h2>Sin productos</h2><p>Agrega productos desde el catálogo admin para iniciar la venta.</p></div>
         ) : cartItems.map((item) => (
           <article className="saleCartItem" key={item.lineId}>
-            <div className="saleCartProductInfo"><strong>{item.product.name}{item.variant ? ` · ${item.variant.name}` : ""}</strong><span>{item.variant?.reference ?? item.product.reference} · Base {formatMoney(item.variant?.salePrice ?? item.product.salePrice)}</span></div>
+            <div className="saleCartProductInfo"><strong>{item.product.name}</strong><span>{item.product.reference} · Base {formatMoney(item.product.salePrice)}</span></div>
             <div className="saleQuantityBlock"><span>Cantidad</span><div className="quantityControl" aria-label="Cambiar cantidad">
               <button className="quantityButton" type="button" disabled={item.quantity === 1} onClick={() => onUpdateQuantity(item.lineId, item.quantity - 1)}><Minus size={16} /></button>
               <IntegerInput
                 allowEmpty={false}
                 ariaLabel="Cantidad"
-                max={item.variant?.stock ?? item.product.stock}
+                max={item.product.stock}
                 min={1}
                 value={item.quantity}
                 onValueChange={(quantity) => {
                   if (quantity !== "") onUpdateQuantity(item.lineId, quantity);
                 }}
               />
-              <button className="quantityButton" type="button" disabled={item.quantity >= (item.variant?.stock ?? item.product.stock)} onClick={() => onUpdateQuantity(item.lineId, item.quantity + 1)}><Plus size={16} /></button>
+              <button className="quantityButton" type="button" disabled={item.quantity >= item.product.stock} onClick={() => onUpdateQuantity(item.lineId, item.quantity + 1)}><Plus size={16} /></button>
             </div></div>
             <label className="salePriceField">Precio vendido<MoneyInput value={item.unitPrice} onValueChange={(value) => onUnitPriceChange(item.lineId, value)} /></label>
             <div className="saleLineTotal"><span>Subtotal</span><strong>{formatMoney(item.unitPrice * item.quantity)}</strong></div>

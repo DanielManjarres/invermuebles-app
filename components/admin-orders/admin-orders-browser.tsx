@@ -40,7 +40,6 @@ function getOrderSearchText(order: AdminOrder) {
     order.customerDocument,
     ...order.items.flatMap((item) => [
       item.productName,
-      item.variantName,
       item.productReference,
       item.productCategory,
       item.productClass,

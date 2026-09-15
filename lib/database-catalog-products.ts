@@ -67,15 +67,6 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
       },
       productClass: true,
       productType: true,
-      variants: {
-        include: {
-          attributeValues: {
-            include: { attribute: true },
-            orderBy: { attribute: { position: "asc" } },
-          },
-        },
-        orderBy: { createdAt: "asc" },
-      },
     },
     orderBy: { name: "asc" },
   });
@@ -110,27 +101,6 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
     salePrice: Number(product.salePrice),
     stock: product.stock,
     taxRate: Number(product.taxRate),
-    variants: product.variants.map((variant) => ({
-      active: variant.active,
-      attributeValues: variant.attributeValues.map((attributeValue) => ({
-          attributeId: attributeValue.attributeId,
-          attributeName: attributeValue.attribute.name,
-          id: attributeValue.id,
-          optionId: attributeValue.optionId ?? "",
-          unit: attributeValue.attribute.unit ?? "",
-          value: attributeValue.value,
-      })),
-      baseCost: Number(variant.baseCost),
-      cost: Number(variant.cost),
-      id: variant.id,
-      location: variant.location ?? "",
-      minimumStock: variant.minimumStock,
-      name: variant.name,
-      reference: variant.reference,
-      salePrice: Number(variant.salePrice),
-      stock: variant.stock,
-      taxRate: Number(variant.taxRate),
-    })),
     visible: product.visible,
   }));
 }

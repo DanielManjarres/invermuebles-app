@@ -61,7 +61,7 @@ export function StockMovementModal({
             <p className="eyebrow">Movimiento de inventario</p>
             <h2>{item.productName}</h2>
             <p>
-              {item.variantName} · {item.reference}
+              {item.reference}
             </p>
           </div>
           <button

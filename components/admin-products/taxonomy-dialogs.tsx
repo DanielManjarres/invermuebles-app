@@ -137,7 +137,7 @@ export function TaxonomyDialogs({
             <div className="recordDeleteWarning" id="delete-taxonomy-warning">
               <p>
                 Solo se eliminará si no está siendo utilizada por productos,
-                variantes u otros elementos de la estructura.
+                productos u otros elementos de la estructura.
               </p>
             </div>
             <div className="deleteSummary">

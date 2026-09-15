@@ -9,14 +9,14 @@ import { prisma } from "@/lib/prisma";
 import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
 import {
   INITIAL_STOCK_REASON,
-  normalizeVariantAttributes,
-  normalizeVariantReference,
-  validateVariantInput,
-  type VariantAttributeInput,
-} from "@/lib/product-variant-policy";
+  normalizeProductAttributes,
+  normalizeProductReference,
+  validateProductInventoryInput,
+  type ProductAttributeInput,
+} from "@/lib/product-attribute-policy";
 
 type CatalogProductRequest = {
-  attributeValues?: VariantAttributeInput[];
+  attributeValues?: ProductAttributeInput[];
   baseCost?: number;
   brand?: string;
   catalogProductTypeId?: string;
@@ -66,21 +66,6 @@ export async function GET() {
         include: { attribute: true, option: true },
         orderBy: { attribute: { position: "asc" } },
       },
-      variants: {
-        include: {
-          attributeValues: {
-            include: {
-              attribute: {
-                select: { dataType: true, key: true, name: true, unit: true },
-              },
-              option: { select: { id: true, value: true } },
-            },
-            orderBy: { attribute: { position: "asc" } },
-          },
-          images: { orderBy: { position: "asc" } },
-        },
-        orderBy: { createdAt: "asc" },
-      },
     },
     orderBy: { name: "asc" },
   });
@@ -127,7 +112,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const normalizedAttributes = normalizeVariantAttributes(
+  const normalizedAttributes = normalizeProductAttributes(
     catalogProductType.attributes,
     body.attributeValues ?? [],
   );
@@ -138,11 +123,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const reference = normalizeVariantReference(body.reference);
+  const reference = normalizeProductReference(body.reference);
   const baseCost = Number(body.baseCost);
   const taxRate = DEFAULT_TAX_RATE;
   const cost = addTax(baseCost, taxRate).total;
-  const inventoryError = validateVariantInput({
+  const inventoryError = validateProductInventoryInput({
     minimumStock: body.minimumStock,
     name: productInput.name,
     salePrice: body.salePrice,
@@ -152,7 +137,7 @@ export async function POST(request: Request) {
   });
   if (inventoryError) {
     return NextResponse.json(
-      { message: inventoryError.replace(/variante/gi, "producto") },
+      { message: inventoryError },
       { status: 400 },
     );
   }
@@ -239,7 +224,7 @@ export async function POST(request: Request) {
 
       return transaction.product.findUnique({
         where: { id: createdProduct.id },
-        include: { attributeValues: true, images: true, variants: true },
+        include: { attributeValues: true, images: true },
       });
     });
 

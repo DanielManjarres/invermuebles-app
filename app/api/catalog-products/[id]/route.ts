@@ -8,18 +8,18 @@ import {
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
 import {
-  normalizeVariantAttributes,
-  normalizeVariantReference,
-  validateVariantInput,
-  type VariantAttributeInput,
-} from "@/lib/product-variant-policy";
+  normalizeProductAttributes,
+  normalizeProductReference,
+  validateProductInventoryInput,
+  type ProductAttributeInput,
+} from "@/lib/product-attribute-policy";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 type CatalogProductUpdateRequest = {
-  attributeValues?: VariantAttributeInput[];
+  attributeValues?: ProductAttributeInput[];
   baseCost?: number;
   brand?: string;
   details?: string;
@@ -41,21 +41,6 @@ const productInclude = {
   attributeValues: {
     include: { attribute: true, option: true },
     orderBy: { attribute: { position: "asc" as const } },
-  },
-  variants: {
-    include: {
-      attributeValues: {
-        include: {
-          attribute: {
-            select: { dataType: true, key: true, name: true, unit: true },
-          },
-          option: { select: { id: true, value: true } },
-        },
-        orderBy: { attribute: { position: "asc" as const } },
-      },
-      images: { orderBy: { position: "asc" as const } },
-    },
-    orderBy: { createdAt: "asc" as const },
   },
 };
 
@@ -128,7 +113,7 @@ export async function PUT(request: Request, context: RouteContext) {
     );
   }
 
-  const normalizedAttributes = normalizeVariantAttributes(
+  const normalizedAttributes = normalizeProductAttributes(
     currentProduct.catalogProductType.attributes,
     body.attributeValues ??
       currentProduct.attributeValues.map((attributeValue) => ({
@@ -144,13 +129,13 @@ export async function PUT(request: Request, context: RouteContext) {
     );
   }
 
-  const reference = normalizeVariantReference(body.reference ?? currentProduct.reference);
+  const reference = normalizeProductReference(body.reference ?? currentProduct.reference);
   const baseCost = Number(body.baseCost ?? currentProduct.baseCost);
   const salePrice = Number(body.salePrice ?? currentProduct.salePrice);
   const minimumStock = Number(body.minimumStock ?? currentProduct.minimumStock);
   const taxRate = DEFAULT_TAX_RATE;
   const cost = addTax(baseCost, taxRate).total;
-  const inventoryError = validateVariantInput({
+  const inventoryError = validateProductInventoryInput({
     cost,
     minimumStock,
     name: productInput.name,
@@ -160,7 +145,7 @@ export async function PUT(request: Request, context: RouteContext) {
   });
   if (inventoryError) {
     return NextResponse.json(
-      { message: inventoryError.replace(/variante/gi, "producto") },
+      { message: inventoryError },
       { status: 400 },
     );
   }

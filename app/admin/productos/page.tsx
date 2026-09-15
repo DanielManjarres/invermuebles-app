@@ -24,7 +24,7 @@ export default async function AdminProductsPage() {
             <p className="eyebrow">Panel administrativo</p>
             <h1>Gestión de productos</h1>
             <p>
-              Define categorías, tipos, productos y variantes antes de gestionar
+              Define categorías, tipos, productos y características antes de gestionar
               sus existencias desde Inventario.
             </p>
           </div>

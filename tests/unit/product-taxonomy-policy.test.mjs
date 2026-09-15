@@ -73,7 +73,7 @@ test("validates attribute data types, units and positions", () => {
   );
 });
 
-test("protects attributes and options already used by variants", () => {
+test("protects attributes and options already used by products", () => {
   assert.equal(
     canChangeAttributeDataType({ options: 0, values: 0 }).allowed,
     true,

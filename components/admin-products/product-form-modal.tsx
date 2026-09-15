@@ -6,7 +6,7 @@ import type {
   CatalogCategory,
   CatalogProductRecord,
 } from "@/lib/catalog-products";
-import { VariantPricingFields } from "@/components/admin-products/variant-pricing-fields";
+import { ProductPricingFields } from "@/components/admin-products/product-pricing-fields";
 import { IntegerInput } from "@/components/ui/integer-input";
 import { SelectMenu } from "@/components/ui/select-menu";
 import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
@@ -416,7 +416,7 @@ export function ProductFormModal({
               <div className="formHint">
                 La referencia identifica este producto de forma única.
               </div>
-              <VariantPricingFields
+              <ProductPricingFields
                 baseCost={form.baseCost}
                 salePrice={form.salePrice}
                 onChange={(pricing) => updateForm(pricing)}

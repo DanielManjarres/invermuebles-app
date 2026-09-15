@@ -10,17 +10,17 @@ import {
   suggestSalePrice,
 } from "@/lib/tax-calculator";
 
-type VariantPricingFieldsProps = {
+type ProductPricingFieldsProps = {
   baseCost: number;
   onChange: (values: { baseCost: number; salePrice: number }) => void;
   salePrice: number;
 };
 
-export function VariantPricingFields({
+export function ProductPricingFields({
   baseCost,
   onChange,
   salePrice,
-}: VariantPricingFieldsProps) {
+}: ProductPricingFieldsProps) {
   const purchase = addTax(baseCost, DEFAULT_TAX_RATE);
   const sale = splitTaxIncluded(salePrice, DEFAULT_TAX_RATE);
   const margin = calculateMarginPercent(baseCost, salePrice);
@@ -31,18 +31,13 @@ export function VariantPricingFields({
         label="Costo antes de IVA"
         value={baseCost}
         onChange={(nextBaseCost) =>
-          onChange({
-            baseCost: nextBaseCost,
-            salePrice: suggestSalePrice(nextBaseCost),
-          })
+          onChange({ baseCost: nextBaseCost, salePrice: suggestSalePrice(nextBaseCost) })
         }
       />
       <ProductMoneyField
         label="Precio final de venta"
         value={salePrice}
-        onChange={(nextSalePrice) =>
-          onChange({ baseCost, salePrice: nextSalePrice })
-        }
+        onChange={(nextSalePrice) => onChange({ baseCost, salePrice: nextSalePrice })}
       />
       <div className="pricingSummary">
         <span>IVA compra ({DEFAULT_TAX_RATE}%): <strong>$ {purchase.taxAmount.toLocaleString("es-CO")}</strong></span>

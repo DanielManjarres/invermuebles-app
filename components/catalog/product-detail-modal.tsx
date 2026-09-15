@@ -2,9 +2,8 @@
 
 import { Check, ShoppingCart, X, ZoomIn } from "lucide-react";
 import { useId, useRef, useState } from "react";
-import { SelectMenu } from "@/components/ui/select-menu";
 import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
-import type { Product, ProductInventoryVariant } from "@/lib/products";
+import type { Product } from "@/lib/products";
 
 type ProductDetailModalProps = {
   cartFeedback: string;
@@ -12,10 +11,7 @@ type ProductDetailModalProps = {
   isAvailable: boolean;
   onAdd: () => void;
   onClose: () => void;
-  onVariantChange: (variantId: string) => void;
   product: Product;
-  selectableVariants: ProductInventoryVariant[];
-  selectedVariant?: ProductInventoryVariant;
   showAction: boolean;
 };
 
@@ -61,22 +57,12 @@ export function ProductDetailModal({
   isAvailable,
   onAdd,
   onClose,
-  onVariantChange,
   product,
-  selectableVariants,
-  selectedVariant,
   showAction,
 }: ProductDetailModalProps) {
-  const usesVariantSelection = selectableVariants.length > 0;
   const isAddedFeedback =
     cartFeedback === "Producto agregado al carrito" ||
     cartFeedback === "Producto agregado a venta local";
-  const variantOptions = selectableVariants
-    .filter((variant) => variant.stock > 0)
-    .map((variant) => ({
-      label: `${variant.name} · ${variant.stock} disponible(s)`,
-      value: variant.id,
-    }));
   const plainDetails = product.details.replaceAll("**", "");
   const dialogRef = useRef<HTMLElement>(null);
   const titleId = useId();
@@ -124,16 +110,10 @@ export function ProductDetailModal({
             <div className="productDetailSummary">
               <span className="tag">{product.catalogCategory || product.category}</span>
               <h2 id={titleId}>{product.name}</h2>
-              {usesVariantSelection ? (
-                selectedVariant ? (
-                  <span className="reference">{selectedVariant.reference}</span>
-                ) : null
-              ) : (
-                <span className="reference">{product.reference}</span>
-              )}
+              <span className="reference">{product.reference}</span>
               <p id={descriptionId}>{plainDetails}</p>
-              {!usesVariantSelection && product.attributes?.length ? (
-                <span className="productVariantAttributes">
+              {product.attributes?.length ? (
+                <span className="productAttributes">
                   {product.attributes
                     .map(
                       (attribute) =>
@@ -144,28 +124,6 @@ export function ProductDetailModal({
               ) : null}
             </div>
             <div className="productDetailPurchase">
-              {usesVariantSelection ? (
-                <label className="productVariantSelector">
-                  Presentación
-                  <SelectMenu
-                    disabled={variantOptions.length === 0}
-                    onChange={onVariantChange}
-                    options={variantOptions}
-                    placeholder="Selecciona una presentación"
-                    value={selectedVariant?.id ?? ""}
-                  />
-                  {selectedVariant?.attributes.length ? (
-                    <span className="productVariantAttributes">
-                      {selectedVariant.attributes
-                        .map(
-                          (attribute) =>
-                            `${attribute.name}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`,
-                        )
-                        .join(" · ")}
-                    </span>
-                  ) : null}
-                </label>
-              ) : null}
               <dl className="productDetailList">
                 <div>
                   <dt>Clase</dt>
@@ -174,11 +132,7 @@ export function ProductDetailModal({
                 <div>
                   <dt>Estado</dt>
                   <dd>
-                    {usesVariantSelection && !selectedVariant
-                      ? "Selecciona una presentación"
-                      : isAvailable
-                        ? "Disponible"
-                        : "Agotado"}
+                    {isAvailable ? "Disponible" : "Agotado"}
                   </dd>
                 </div>
               </dl>

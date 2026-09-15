@@ -30,11 +30,6 @@ export function filterCatalogProducts(
       product.category,
       product.productClass,
       ...(product.attributes ?? []).map((attribute) => attribute.value),
-      ...((product.variants ?? []).flatMap((variant) => [
-        variant.name,
-        variant.reference,
-        ...variant.attributes.map((attribute) => attribute.value),
-      ])),
     ].some((value) =>
       value?.toLocaleLowerCase("es").includes(normalizedQuery),
     );

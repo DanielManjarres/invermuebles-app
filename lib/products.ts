@@ -23,26 +23,6 @@ export type Product = {
   minimumStock?: number;
   catalogCategory?: string;
   catalogProductType?: string;
-  variants?: ProductInventoryVariant[];
-};
-
-export type ProductInventoryVariant = {
-  active: boolean;
-  attributes: Array<{
-    name: string;
-    unit: string;
-    value: string;
-  }>;
-  baseCost: number;
-  cost: number;
-  id: string;
-  location: string;
-  minimumStock: number;
-  name: string;
-  reference: string;
-  salePrice: number;
-  stock: number;
-  taxRate: number;
 };
 
 export const products: Product[] = [

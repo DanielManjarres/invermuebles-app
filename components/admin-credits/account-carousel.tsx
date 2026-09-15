@@ -24,7 +24,7 @@ function formatMoney(value: number) {
 function getProductSummary(account: PortfolioAccount) {
   const firstItem = account.items[0];
   if (!firstItem) return "Sin productos registrados";
-  const firstItemName = `${firstItem.productName}${firstItem.variantName ? ` · ${firstItem.variantName}` : ""}`;
+  const firstItemName = firstItem.productName;
   if (account.items.length === 1) return firstItemName;
   return `${firstItemName} y ${account.items.length - 1} producto(s) más`;
 }

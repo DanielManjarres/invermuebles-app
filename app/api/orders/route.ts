@@ -9,7 +9,6 @@ import {
 type OrderItemRequest = {
   productId?: string;
   quantity?: number;
-  variantId?: string;
 };
 
 type OrderRequest = {
@@ -49,46 +48,21 @@ export async function POST(request: Request) {
       productType: { select: { name: true } },
       reference: true,
       stock: true,
-      variants: {
-        select: { id: true },
-        where: { active: true },
-        take: 1,
-      },
-    },
-  });
-  const variants = await prisma.productVariant.findMany({
-    where: {
-      active: true,
-      id: {
-        in: items.map((item) => item.variantId).filter(Boolean),
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      productId: true,
-      reference: true,
-      stock: true,
     },
   });
 
   const productById = new Map(products.map((product) => [product.id, product]));
-  const variantById = new Map(variants.map((variant) => [variant.id, variant]));
   const itemError = items
     .map((item) => {
       const product = productById.get(item.productId);
-      const variant = item.variantId ? variantById.get(item.variantId) : null;
       return getCatalogOrderItemError(
         item,
         product
           ? {
-              hasActiveVariants: product.variants.length > 0,
-              id: product.id,
               name: product.name,
               stock: product.stock,
             }
           : undefined,
-        variant ?? undefined,
       );
     })
     .find(Boolean);
@@ -107,20 +81,15 @@ export async function POST(request: Request) {
       items: {
         create: items.map((item) => {
           const product = productById.get(item.productId)!;
-          const variant = item.variantId
-            ? variantById.get(item.variantId)
-            : null;
           return {
             productCategory:
               product.catalogProductType?.category.name ?? product.productType.name,
             productId: item.productId,
             productName: product.name,
-            productReference: variant?.reference ?? product.reference,
+            productReference: product.reference,
             productTypeName:
               product.catalogProductType?.name ?? product.productClass.name,
             quantity: item.quantity,
-            variantId: variant?.id ?? null,
-            variantName: variant?.name ?? null,
           };
         }),
       },

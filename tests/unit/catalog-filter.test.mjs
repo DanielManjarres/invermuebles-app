@@ -21,20 +21,7 @@ const products = [
     stock: 2,
     visible: true,
     cost: 0,
-    variants: [
-      {
-        active: true,
-        attributes: [{ name: "Resolución", unit: "", value: "4K UHD" }],
-        cost: 0,
-        id: "tv-55",
-        location: "",
-        minimumStock: 0,
-        name: "55 pulgadas · QLED",
-        reference: "QN55",
-        salePrice: 0,
-        stock: 2,
-      },
-    ],
+    attributes: [{ name: "Resolución", unit: "", value: "4K UHD" }],
   },
   {
     attributes: [{ name: "Color", unit: "", value: "Arena" }],
@@ -58,9 +45,9 @@ test("filters catalog products by configured category", () => {
   assert.deepEqual(result.map((product) => product.id), ["tv"]);
 });
 
-test("searches product, variant reference and attribute values", () => {
+test("searches product reference and characteristic values", () => {
   assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "samsung").length, 1);
-  assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "qn55").length, 1);
+  assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "tv-001").length, 1);
   assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "4k uhd").length, 1);
   assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "arena").length, 1);
 });

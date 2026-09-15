@@ -3,7 +3,6 @@ import { RotateCcw } from "lucide-react";
 export type InventoryItem = {
   active: boolean;
   category: string;
-  isLegacy: boolean;
   key: string;
   location: string;
   minimumStock: number;
@@ -12,8 +11,6 @@ export type InventoryItem = {
   productType: string;
   reference: string;
   stock: number;
-  variantId?: string;
-  variantName: string;
 };
 
 type InventoryGroup = {
@@ -90,7 +87,6 @@ export function InventoryGroups({
                 <thead>
                   <tr>
                     <th>Producto</th>
-                    <th>Variante</th>
                     <th>Tipo</th>
                     <th>Referencia</th>
                     <th>Ubicación</th>
@@ -108,14 +104,6 @@ export function InventoryGroups({
                       <tr key={item.key}>
                         <td>
                           <strong>{item.productName}</strong>
-                        </td>
-                        <td>
-                          {item.variantName}
-                          {item.isLegacy ? (
-                            <small className="inventoryLegacyNote">
-                              Sin migrar
-                            </small>
-                          ) : null}
                         </td>
                         <td>{item.productType}</td>
                         <td>{item.reference}</td>

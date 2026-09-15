@@ -1,14 +1,7 @@
 import type { StockMovementType } from "@prisma/client";
 
 const initialInventoryNotes = [
-  "Carga inicial de productos",
-  "Producto creado desde gestion de productos",
   "Producto creado desde gestión de productos",
-];
-
-const variantInitialInventoryNotes = [
-  "Variante creada desde gestión de productos",
-  "Variante creada junto con el producto",
 ];
 
 type ProductDeleteMovement = {
@@ -47,10 +40,8 @@ export function canDeleteProduct({
   const hasOnlyInitialMovements = stockMovements.every(
     (movement) =>
       movement.reason === "Inventario inicial" &&
-      (((movement.type === "ADJUSTMENT" || movement.type === "ENTRY") &&
-        initialInventoryNotes.includes(movement.note ?? "")) ||
-        (movement.type === "ENTRY" &&
-          variantInitialInventoryNotes.includes(movement.note ?? ""))),
+      (movement.type === "ADJUSTMENT" || movement.type === "ENTRY") &&
+      initialInventoryNotes.includes(movement.note ?? ""),
   );
 
   if (!hasOnlyInitialMovements) {

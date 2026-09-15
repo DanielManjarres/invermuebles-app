@@ -12,8 +12,6 @@ export type CartItem = {
   productId: string;
   quantity: number;
   reference: string;
-  variantId?: string;
-  variantName?: string;
 };
 
 export type AddCartResult = {

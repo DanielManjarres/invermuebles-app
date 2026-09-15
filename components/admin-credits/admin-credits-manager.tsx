@@ -120,9 +120,7 @@ export function AdminCreditsManager({
             .flatMap((credit) =>
               credit.items.flatMap((item) => [
                 item.productName,
-                item.variantName,
                 item.productReference,
-                ...item.variantAttributes.map((attribute) => attribute.value),
               ]),
             )
             .join(" "),
@@ -133,9 +131,7 @@ export function AdminCreditsManager({
             .flatMap((account) =>
               account.items.flatMap((item) => [
                 item.productName,
-                item.variantName,
                 item.productReference,
-                ...item.variantAttributes.map((attribute) => attribute.value),
               ]),
             )
             .join(" "),

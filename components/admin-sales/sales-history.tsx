@@ -111,7 +111,7 @@ export function AdminSalesHistory({
               <div className="saleHistoryItems">
                 {sale.items.map((item) => (
                   <span key={item.id}>
-                    {item.productName}{item.variantName ? ` · ${item.variantName}` : ""} x {item.quantity}
+                    {item.productName} x {item.quantity}
                   </span>
                 ))}
               </div>

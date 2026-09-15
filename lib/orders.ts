@@ -8,8 +8,6 @@ export type AdminOrderItem = {
   productCategory: string;
   productClass: string;
   quantity: number;
-  variantId: string;
-  variantName: string;
 };
 
 export type AdminOrder = {
