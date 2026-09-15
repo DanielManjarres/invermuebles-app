@@ -231,13 +231,15 @@ export function AdminMovementsBrowser({
 
   return (
     <section className="tableSection movementSection">
-      <div className="moduleReportActions">
-        <ExcelDownloadButton
-          disabled={movements.length === 0}
-          onDownload={() => downloadMovementsReport(movements)}
-        />
-      </div>
-      <MovementOverview stats={movementStats} />
+      <MovementOverview
+        actions={
+          <ExcelDownloadButton
+            disabled={movements.length === 0}
+            onDownload={() => downloadMovementsReport(movements)}
+          />
+        }
+        stats={movementStats}
+      />
 
       <MovementFilters
         activeDate={activeDate}

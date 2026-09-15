@@ -24,7 +24,7 @@ export default async function AdminCreditsPage({ searchParams }: Props) {
       <SiteHeader active="cartera" variant="admin" />
 
       <section className="pageHeader customersPageHeader">
-        <div className="container pageHeaderRow">
+        <div className="pageHeaderRow">
           <div>
             <p className="eyebrow">Panel administrativo</p>
             <h1>Cartera</h1>
@@ -34,7 +34,7 @@ export default async function AdminCreditsPage({ searchParams }: Props) {
         </div>
       </section>
 
-      <div className="creditsPageContent">
+      <div className="tableSection creditsPageContent">
         <AdminCreditsManager
           initialCredits={credits}
           initialCustomers={customers}

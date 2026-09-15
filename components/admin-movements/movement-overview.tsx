@@ -1,4 +1,7 @@
+import type { ReactNode } from "react";
+
 type MovementOverviewProps = {
+  actions?: ReactNode;
   stats: {
     adjustment: number;
     entry: number;
@@ -7,7 +10,7 @@ type MovementOverviewProps = {
   };
 };
 
-export function MovementOverview({ stats }: MovementOverviewProps) {
+export function MovementOverview({ actions, stats }: MovementOverviewProps) {
   return (
     <>
       <div className="sectionHeader movementSectionHeader">
@@ -18,6 +21,7 @@ export function MovementOverview({ stats }: MovementOverviewProps) {
             Revisa las entradas, salidas y ajustes realizados sobre el stock.
           </p>
         </div>
+        {actions}
       </div>
 
       <div className="movementSummaryGrid" aria-label="Resumen de movimientos">

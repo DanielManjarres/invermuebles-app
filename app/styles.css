@@ -2851,11 +2851,15 @@ th {
 }
 
 .movementSection {
-  padding-top: 42px;
+  padding-top: 20px;
 }
 
 .movementSectionHeader {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
+
+.movementSectionHeader h2 {
+  font-size: clamp(1.65rem, 2.2vw, 2rem);
 }
 
 .movementSummaryGrid {
@@ -3189,21 +3193,20 @@ th {
 }
 
 .ordersSection {
-  padding-top: 38px;
+  padding-top: 20px;
 }
 
 .ordersIntro {
-  align-items: flex-start;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .ordersIntro h2 {
-  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-size: clamp(1.65rem, 2.2vw, 2rem);
   max-width: 760px;
 }
 
 .ordersIntro .sectionLead {
-  max-width: 620px;
+  max-width: 840px;
 }
 
 .ordersSection .movementToolbar {
@@ -5407,11 +5410,7 @@ th {
   }
 }
 .creditsPageContent {
-  box-sizing: border-box;
-  margin: 0 auto;
-  max-width: 1180px;
-  padding: 24px 20px 52px;
-  width: 100%;
+  padding-bottom: 52px;
 }
 
 .creditsPageHeading {
@@ -5428,18 +5427,6 @@ th {
 .creditsSectionHeader .moduleReportActions {
   flex: 0 0 auto;
   margin-bottom: 0;
-}
-
-.creditsPage .topbar {
-  position: static;
-}
-
-.creditsPage .pageHeaderRow {
-  align-items: center;
-}
-
-.creditsPage .pageHeader p:not(.eyebrow) {
-  font-size: 16px;
 }
 
 .creditsPageHeading h2 {
@@ -6392,7 +6379,6 @@ th {
 }
 
 @media (max-width: 820px) {
-  .creditsPageContent { padding: 28px 16px 48px; }
   .creditsPageHeading h2 { font-size: 30px; }
   .creditsSectionHeader { align-items: stretch; flex-direction: column; }
   .creditsSectionHeader .moduleReportActions { justify-content: flex-start; }
