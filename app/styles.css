@@ -1424,15 +1424,15 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(420px, 1.25fr) minmax(330px, 0.9fr) minmax(250px, 270px);
-  padding: 14px;
+  gap: 10px;
+  grid-template-columns: minmax(390px, 1.3fr) minmax(300px, 0.85fr) minmax(220px, 240px);
+  padding: 10px 12px;
 }
 
 .catalogProductIdentity {
   align-items: flex-start;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -1444,24 +1444,24 @@ th {
   border-radius: 8px;
   display: flex;
   box-sizing: border-box;
-  flex: 0 0 86px;
-  height: 86px;
+  flex: 0 0 72px;
+  height: 72px;
   justify-content: center;
   object-fit: contain;
   padding: 4px;
-  width: 86px;
+  width: 72px;
 }
 
 .catalogProductIdentity h3 {
-  font-size: 1rem;
+  font-size: 0.94rem;
   line-height: 1.2;
-  margin: 5px 0 3px;
+  margin: 3px 0 2px;
   text-wrap: balance;
 }
 
 .catalogProductIdentity p {
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   margin: 0;
 }
 
@@ -1470,9 +1470,9 @@ th {
   color: var(--muted);
   display: flex;
   flex-wrap: wrap;
-  font-size: 0.74rem;
+  font-size: 0.69rem;
   font-weight: 800;
-  gap: 7px;
+  gap: 5px;
 }
 
 .catalogProductBadges .available,
@@ -1484,8 +1484,8 @@ th {
 
 .catalogProductSummary {
   display: grid;
-  gap: 8px;
-  grid-template-columns: minmax(74px, 0.55fr) minmax(84px, 0.65fr) minmax(0, 1.5fr);
+  gap: 6px;
+  grid-template-columns: minmax(70px, 0.55fr) minmax(72px, 0.6fr) minmax(0, 1.45fr);
   min-width: 0;
 }
 
@@ -1495,9 +1495,9 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 3px;
-  min-height: 52px;
+  min-height: 46px;
   min-width: 0;
-  padding: 8px 9px;
+  padding: 6px 8px;
 }
 
 .catalogProductTaxonomy {
@@ -1507,16 +1507,16 @@ th {
 
 .catalogProductSummary span {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 800;
 }
 
 .catalogProductSummary strong {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .catalogProductSummary div:last-child strong {
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -1528,11 +1528,11 @@ th {
 }
 
 .catalogProductActions button {
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   gap: 5px;
   justify-content: center;
   line-height: 1.1;
-  min-height: 36px;
+  min-height: 32px;
   padding-left: 8px;
   padding-right: 8px;
   text-align: center;
@@ -1541,6 +1541,8 @@ th {
 
 .catalogProductActions button svg {
   flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
 }
 
 .catalogProductFeaturedAction {
