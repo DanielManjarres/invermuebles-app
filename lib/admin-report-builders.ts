@@ -34,88 +34,62 @@ function excelDate(value: string) {
 }
 
 export function downloadProductsReport(products: CatalogProductRecord[]) {
-  const productRows = products.map((product) => ({
-    name: product.name,
-    brand: product.brand || "Sin registrar",
-    model: product.model || "Sin registrar",
-    category: product.categoryName,
-    productType: product.productTypeName,
-    variants: product.variants.length,
-    totalStock: product.variants.reduce((total, variant) => total + variant.stock, 0),
-    visible: yesNo(product.visible),
-    featured: yesNo(product.featured),
-    details: product.details,
-  }));
-  const variantRows = products.flatMap((product) =>
-    product.variants.map((variant) => {
-      const saleBase = variant.salePrice / (1 + variant.taxRate / 100);
-      const margin = saleBase > 0
-        ? ((saleBase - variant.baseCost) / saleBase) * 100
-        : 0;
-      return {
-        product: product.name,
-        category: product.categoryName,
-        productType: product.productTypeName,
-        variant: variant.name,
-        reference: variant.reference,
-        attributes: variant.attributeValues
-          .map((attribute) => `${attribute.attributeName}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`)
-          .join(" · "),
-        baseCost: variant.baseCost,
-        purchaseTax: variant.cost - variant.baseCost,
-        costWithTax: variant.cost,
-        saleBase,
-        saleTax: variant.salePrice - saleBase,
-        salePrice: variant.salePrice,
-        margin,
-        stock: variant.stock,
-        minimumStock: variant.minimumStock,
-        location: variant.location || "Sin registrar",
-        active: yesNo(variant.active),
-      };
-    }),
-  );
-  const sheets: ExcelSheet[] = [
-    {
-      name: "Productos",
-      columns: [
-        { header: "Producto", key: "name", width: 34 },
-        { header: "Marca", key: "brand", width: 18 },
-        { header: "Modelo", key: "model", width: 20 },
-        { header: "Categoría", key: "category", width: 20 },
-        { header: "Tipo", key: "productType", width: 20 },
-        { header: "Variantes", key: "variants", width: 12 },
-        { header: "Stock total", key: "totalStock", width: 14 },
-        { header: "En catálogo", key: "visible", width: 14 },
-        { header: "En inicio", key: "featured", width: 12 },
-        { header: "Descripción", key: "details", width: 50 },
-      ],
-      rows: productRows,
-    },
-    {
-      name: "Variantes",
-      columns: [
-        { header: "Producto", key: "product", width: 34 },
-        { header: "Categoría", key: "category", width: 20 },
-        { header: "Tipo", key: "productType", width: 18 },
-        { header: "Variante", key: "variant", width: 30 },
-        { header: "Referencia", key: "reference", width: 20 },
-        { header: "Atributos", key: "attributes", width: 45 },
-        { header: "Costo antes de IVA", key: "baseCost", width: 20, numberFormat: moneyFormat },
-        { header: "IVA compra", key: "purchaseTax", width: 16, numberFormat: moneyFormat },
-        { header: "Costo con IVA", key: "costWithTax", width: 18, numberFormat: moneyFormat },
-        { header: "Venta antes de IVA", key: "saleBase", width: 20, numberFormat: moneyFormat },
-        { header: "IVA venta", key: "saleTax", width: 16, numberFormat: moneyFormat },
-        { header: "Precio final", key: "salePrice", width: 18, numberFormat: moneyFormat },
-        { header: "Margen %", key: "margin", width: 14, numberFormat: "0.00%" },
-        { header: "Stock", key: "stock", width: 10 },
-        { header: "Stock mínimo", key: "minimumStock", width: 14 },
-        { header: "Ubicación", key: "location", width: 20 },
-        { header: "Activa", key: "active", width: 10 },
-      ],
-      rows: variantRows.map((row) => ({ ...row, margin: row.margin / 100 })),
-    },
-  ];
+  const rows = products.map((product) => {
+    const costWithTax = product.baseCost * (1 + product.taxRate / 100);
+    const saleBase = product.salePrice / (1 + product.taxRate / 100);
+    const margin = saleBase > 0 ? (saleBase - product.baseCost) / saleBase : 0;
+
+    return {
+      attributes: product.attributeValues
+        .map((attribute) => `${attribute.attributeName}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`)
+        .join(" · "),
+      baseCost: product.baseCost,
+      brand: product.brand || "Sin registrar",
+      category: product.categoryName,
+      costWithTax,
+      details: product.details,
+      featured: yesNo(product.featured),
+      location: product.location || "Sin registrar",
+      margin,
+      minimumStock: product.minimumStock,
+      model: product.model || "Sin registrar",
+      name: product.name,
+      productType: product.productTypeName,
+      purchaseTax: costWithTax - product.baseCost,
+      reference: product.reference,
+      saleBase,
+      salePrice: product.salePrice,
+      saleTax: product.salePrice - saleBase,
+      stock: product.stock,
+      visible: yesNo(product.visible),
+    };
+  });
+  const sheets: ExcelSheet[] = [{
+    name: "Productos",
+    columns: [
+      { header: "Producto", key: "name", width: 34 },
+      { header: "Referencia", key: "reference", width: 20 },
+      { header: "Marca", key: "brand", width: 18 },
+      { header: "Modelo", key: "model", width: 20 },
+      { header: "Categoría", key: "category", width: 20 },
+      { header: "Tipo", key: "productType", width: 20 },
+      { header: "Características", key: "attributes", width: 45 },
+      { header: "Costo antes de IVA", key: "baseCost", width: 20, numberFormat: moneyFormat },
+      { header: "IVA compra", key: "purchaseTax", width: 16, numberFormat: moneyFormat },
+      { header: "Costo con IVA", key: "costWithTax", width: 18, numberFormat: moneyFormat },
+      { header: "Venta antes de IVA", key: "saleBase", width: 20, numberFormat: moneyFormat },
+      { header: "IVA venta", key: "saleTax", width: 16, numberFormat: moneyFormat },
+      { header: "Precio final", key: "salePrice", width: 18, numberFormat: moneyFormat },
+      { header: "Margen %", key: "margin", width: 14, numberFormat: "0.00%" },
+      { header: "Stock", key: "stock", width: 10 },
+      { header: "Stock mínimo", key: "minimumStock", width: 14 },
+      { header: "Ubicación", key: "location", width: 20 },
+      { header: "En catálogo", key: "visible", width: 14 },
+      { header: "En inicio", key: "featured", width: 12 },
+      { header: "Descripción", key: "details", width: 50 },
+    ],
+    rows,
+  }];
   return downloadExcelReport({
     fileName: `informe-productos-${reportDateSuffix()}`,
     sheets,
@@ -123,32 +97,25 @@ export function downloadProductsReport(products: CatalogProductRecord[]) {
 }
 
 export function downloadInventoryReport(products: Product[]) {
-  const rows = products.flatMap((product) => {
-    const variants = product.variants ?? [];
-    return variants.map((variant) => {
-      const category = product.catalogCategory || product.category;
-      const productType = product.catalogProductType || product.productClass;
-      const status = !variant.active
-        ? "Inactiva"
-        : variant.stock === 0
-          ? "Agotada"
-          : variant.stock <= variant.minimumStock
-            ? "Stock bajo"
-            : "Disponible";
-      return {
-        product: product.name,
-        variant: variant.name,
-        reference: variant.reference,
-        category,
-        productType,
-        location: variant.location || "Sin registrar",
-        stock: variant.stock,
-        minimumStock: variant.minimumStock,
-        difference: variant.stock - variant.minimumStock,
-        status,
-        active: yesNo(variant.active),
-      };
-    });
+  const rows = products.map((product) => {
+    const minimumStock = product.minimumStock ?? 0;
+    const status = product.stock === 0
+      ? "Agotado"
+      : product.stock <= minimumStock
+        ? "Stock bajo"
+        : "Disponible";
+
+    return {
+      category: product.catalogCategory || product.category,
+      difference: product.stock - minimumStock,
+      location: product.location || "Sin registrar",
+      minimumStock,
+      product: product.name,
+      productType: product.catalogProductType || product.productClass,
+      reference: product.reference,
+      status,
+      stock: product.stock,
+    };
   });
   return downloadExcelReport({
     fileName: `informe-inventario-${reportDateSuffix()}`,
@@ -156,7 +123,6 @@ export function downloadInventoryReport(products: Product[]) {
       name: "Inventario",
       columns: [
         { header: "Producto", key: "product", width: 34 },
-        { header: "Variante", key: "variant", width: 30 },
         { header: "Referencia", key: "reference", width: 20 },
         { header: "Categoría", key: "category", width: 20 },
         { header: "Tipo", key: "productType", width: 18 },
@@ -165,7 +131,6 @@ export function downloadInventoryReport(products: Product[]) {
         { header: "Stock mínimo", key: "minimumStock", width: 14 },
         { header: "Diferencia", key: "difference", width: 12 },
         { header: "Estado", key: "status", width: 14 },
-        { header: "Activa", key: "active", width: 10 },
       ],
       rows,
     }],

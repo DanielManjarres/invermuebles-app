@@ -62,6 +62,8 @@ export type CatalogProductVariant = {
 };
 
 export type CatalogProductRecord = {
+  attributeValues: CatalogVariantAttributeValue[];
+  baseCost: number;
   brand: string;
   categoryId: string;
   categoryName: string;
@@ -70,10 +72,16 @@ export type CatalogProductRecord = {
   featuredOrder: number | null;
   id: string;
   imageUrl: string;
+  location: string;
+  minimumStock: number;
   model: string;
   name: string;
   productTypeId: string;
   productTypeName: string;
+  reference: string;
+  salePrice: number;
+  stock: number;
+  taxRate: number;
   variants: CatalogProductVariant[];
   visible: boolean;
 };

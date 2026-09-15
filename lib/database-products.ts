@@ -41,6 +41,10 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
       catalogProductType: {
         include: { category: true },
       },
+      attributeValues: {
+        include: { attribute: true },
+        orderBy: { attribute: { position: "asc" } },
+      },
       productClass: true,
       productType: true,
       variants: {
@@ -59,6 +63,12 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
   });
 
   return products.map((product) => ({
+    attributes: product.attributeValues.map((value) => ({
+      name: value.attribute.name,
+      unit: value.attribute.unit ?? "",
+      value: value.value,
+    })),
+    baseCost: Number(product.baseCost),
     id: product.id,
     name: product.name,
     reference: product.reference,
@@ -72,8 +82,11 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     featured: product.featured,
     featuredOrder: product.featuredOrder ?? undefined,
     image: product.imageUrl ?? fallbackImage,
+    location: product.location ?? "",
+    minimumStock: product.minimumStock,
     catalogCategory: product.catalogProductType?.category.name,
     catalogProductType: product.catalogProductType?.name,
+    taxRate: Number(product.taxRate),
     variants: product.variants.map((variant) => ({
       active: variant.active,
       attributes: variant.attributeValues.map((value) => ({

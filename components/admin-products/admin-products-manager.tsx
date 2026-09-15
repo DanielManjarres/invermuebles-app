@@ -3,12 +3,10 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Boxes,
   Eye,
   EyeOff,
   PackagePlus,
   Pencil,
-  Plus,
   RefreshCw,
   Search,
   Star,
@@ -19,10 +17,8 @@ import { ExcelDownloadButton } from "@/components/admin-reports/excel-download-b
 import type {
   CatalogCategory,
   CatalogProductRecord,
-  CatalogProductVariant,
 } from "@/lib/catalog-products";
 import { ProductFormModal } from "@/components/admin-products/product-form-modal";
-import { VariantFormModal } from "@/components/admin-products/variant-form-modal";
 import { TaxonomyManager } from "@/components/admin-products/taxonomy-manager";
 import { useModalAccessibility } from "@/components/ui/use-modal-accessibility";
 import { MAX_FEATURED_PRODUCTS } from "@/lib/featured-product-policy";
@@ -47,11 +43,6 @@ export function AdminProductsManager({
   const [editingProduct, setEditingProduct] =
     useState<CatalogProductRecord | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [managingProduct, setManagingProduct] =
-    useState<CatalogProductRecord | null>(null);
-  const [editingVariant, setEditingVariant] =
-    useState<CatalogProductVariant | null>(null);
-  const [isCreatingVariant, setIsCreatingVariant] = useState(false);
   const [productToDelete, setProductToDelete] =
     useState<CatalogProductRecord | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -72,14 +63,11 @@ export function AdminProductsManager({
   });
 
   const stats = useMemo(() => {
-    const variants = products.flatMap((product) => product.variants);
     return {
-      lowStock: variants.filter(
-        (variant) =>
-          variant.stock > 0 && variant.stock <= variant.minimumStock,
+      lowStock: products.filter(
+        (product) => product.stock > 0 && product.stock <= product.minimumStock,
       ).length,
-      outOfStock: variants.filter((variant) => variant.stock === 0).length,
-      variants: variants.length,
+      outOfStock: products.filter((product) => product.stock === 0).length,
       visible: products.filter((product) => product.visible).length,
       featured: products.filter((product) => product.featured).length,
     };
@@ -98,18 +86,11 @@ export function AdminProductsManager({
         product.model,
         product.categoryName,
         product.productTypeName,
-        ...product.variants.flatMap((variant) => [variant.name, variant.reference]),
+        product.reference,
+        ...product.attributeValues.map((attributeValue) => attributeValue.value),
       ].some((value) => value.toLocaleLowerCase("es").includes(normalizedQuery));
     });
   }, [categoryId, products, query]);
-  const managingProductType = useMemo(() => {
-    if (!managingProduct) return null;
-    return categories
-      .find((category) => category.id === managingProduct.categoryId)
-      ?.productTypes.find(
-        (productType) => productType.id === managingProduct.productTypeId,
-      );
-  }, [categories, managingProduct]);
 
   async function deleteProduct() {
     if (!productToDelete) return;
@@ -203,8 +184,10 @@ export function AdminProductsManager({
           <strong>{products.length}</strong>
         </div>
         <div className="stat">
-          <span>Variantes</span>
-          <strong>{stats.variants}</strong>
+          <span>Stock total</span>
+          <strong>
+            {products.reduce((total, product) => total + product.stock, 0)}
+          </strong>
         </div>
         <div className="stat">
           <span>Visibles en catálogo</span>
@@ -224,8 +207,8 @@ export function AdminProductsManager({
             <p className="eyebrow">Catálogo interno</p>
             <h2>Productos registrados</h2>
             <p>
-              Administra productos y consulta sus variantes comerciales. Destacados en
-              inicio: {stats.featured} de {MAX_FEATURED_PRODUCTS}.
+              Administra cada referencia y sus características. Destacados en inicio:{" "}
+              {stats.featured} de {MAX_FEATURED_PRODUCTS}.
             </p>
           </div>
           <div className="sectionHeaderActions">
@@ -299,21 +282,6 @@ export function AdminProductsManager({
         {filteredProducts.length ? (
           <div className="catalogProductList">
             {filteredProducts.map((product) => {
-              const totalStock = product.variants.reduce(
-                (total, variant) => total + variant.stock,
-                0,
-              );
-              const prices = product.variants
-                .filter((variant) => variant.active && variant.salePrice > 0)
-                .map((variant) => variant.salePrice);
-              const minimumPrice = prices.length ? Math.min(...prices) : null;
-              const maximumPrice = prices.length ? Math.max(...prices) : null;
-              const priceSummary =
-                minimumPrice === null || maximumPrice === null
-                  ? "Sin precio"
-                  : minimumPrice === maximumPrice
-                    ? formatCurrency(minimumPrice)
-                    : `${formatCurrency(minimumPrice)} – ${formatCurrency(maximumPrice)}`;
               return (
                 <article className="catalogProductRow" key={product.id}>
                   <div className="catalogProductIdentity">
@@ -357,16 +325,16 @@ export function AdminProductsManager({
 
                   <div className="catalogProductSummary">
                     <div>
-                      <span>Variantes</span>
-                      <strong>{product.variants.length}</strong>
+                      <span>Referencia</span>
+                      <strong>{product.reference}</strong>
                     </div>
                     <div>
-                      <span>Stock total</span>
-                      <strong>{totalStock}</strong>
+                      <span>Stock</span>
+                      <strong>{product.stock}</strong>
                     </div>
                     <div>
-                      <span>Precios</span>
-                      <strong>{priceSummary}</strong>
+                      <span>Precio</span>
+                      <strong>{formatCurrency(product.salePrice)}</strong>
                     </div>
                   </div>
 
@@ -388,17 +356,6 @@ export function AdminProductsManager({
                         : product.featured
                           ? "Quitar de inicio"
                           : "Destacar"}
-                    </button>
-                    <button
-                      className="secondaryButton"
-                      type="button"
-                      onClick={() => {
-                        setEditingVariant(null);
-                        setManagingProduct(product);
-                      }}
-                    >
-                      <Boxes size={16} />
-                      Variantes
                     </button>
                     <button
                       className="secondaryButton"
@@ -432,73 +389,6 @@ export function AdminProductsManager({
           </div>
         )}
 
-        {managingProduct ? (
-          <section className="catalogVariantManager">
-            <div className="catalogVariantHeader">
-              <div>
-                <p className="eyebrow">Variantes de {managingProduct.name}</p>
-                <h3>Presentaciones del producto</h3>
-                <p>
-                  Los cambios de stock se realizan desde Inventario para conservar el
-                  historial.
-                </p>
-              </div>
-              <div className="catalogVariantHeaderActions">
-                <button
-                  className="primaryButton"
-                  disabled={!managingProductType}
-                  type="button"
-                  onClick={() => setIsCreatingVariant(true)}
-                >
-                  <Plus size={16} />
-                  Nueva variante
-                </button>
-                <button
-                  className="modalClose"
-                  aria-label="Cerrar variantes"
-                  type="button"
-                  onClick={() => setManagingProduct(null)}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-
-            <div className="catalogVariantGrid">
-              {managingProduct.variants.map((variant) => (
-                <button
-                  aria-label={`Editar variante ${variant.name}`}
-                  className="catalogVariantCard"
-                  key={variant.id}
-                  type="button"
-                  onClick={() => setEditingVariant(variant)}
-                >
-                  <span className="catalogVariantIdentity">
-                    <strong>{variant.name}</strong>
-                    <small>{variant.reference}</small>
-                  </span>
-                  <span className="catalogVariantMetric">
-                    <small>Precio</small>
-                    <strong>{formatCurrency(variant.salePrice)}</strong>
-                  </span>
-                  <span className="catalogVariantMetric">
-                    <small>Stock</small>
-                    <strong>{variant.stock}</strong>
-                  </span>
-                  <span className="catalogVariantBadges">
-                    <span className={variant.active ? "available" : "unavailable"}>
-                      {variant.active ? "Activa" : "Inactiva"}
-                    </span>
-                  </span>
-                  <span className="catalogVariantEdit">
-                    <Pencil size={16} />
-                    Editar variante
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
-        ) : null}
       </section>
 
       {isCreating ? (
@@ -511,22 +401,6 @@ export function AdminProductsManager({
           onClose={() => setEditingProduct(null)}
         />
       ) : null}
-      {managingProduct && managingProductType && isCreatingVariant ? (
-        <VariantFormModal
-          product={managingProduct}
-          productType={managingProductType}
-          onClose={() => setIsCreatingVariant(false)}
-        />
-      ) : null}
-      {managingProduct && managingProductType && editingVariant ? (
-        <VariantFormModal
-          product={managingProduct}
-          productType={managingProductType}
-          variant={editingVariant}
-          onClose={() => setEditingVariant(null)}
-        />
-      ) : null}
-
       {productToDelete ? (
         <div className="adminModalBackdrop" role="presentation">
           <div
@@ -569,8 +443,7 @@ export function AdminProductsManager({
               <strong>{productToDelete.name}</strong>
               <span>
                 {productToDelete.categoryName} / {productToDelete.productTypeName} ·{" "}
-                {productToDelete.variants.length}{" "}
-                {productToDelete.variants.length === 1 ? "variante" : "variantes"}
+                Referencia {productToDelete.reference}
               </span>
             </div>
             {deleteError ? (

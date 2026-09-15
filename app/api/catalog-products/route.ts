@@ -8,8 +8,6 @@ import {
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
 import {
-  CATALOG_PRODUCT_INITIAL_NOTE,
-  buildVariantName,
   INITIAL_STOCK_REASON,
   normalizeVariantAttributes,
   normalizeVariantReference,
@@ -18,25 +16,23 @@ import {
 } from "@/lib/product-variant-policy";
 
 type CatalogProductRequest = {
+  attributeValues?: VariantAttributeInput[];
+  baseCost?: number;
   brand?: string;
   catalogProductTypeId?: string;
-  initialVariant?: {
-    attributeValues?: VariantAttributeInput[];
-    baseCost?: number;
-    cost?: number;
-    location?: string;
-    minimumStock?: number;
-    name?: string;
-    reference?: string;
-    salePrice?: number;
-    stock?: number;
-  };
   details?: string;
+  location?: string;
+  minimumStock?: number;
   model?: string;
   name?: string;
   primaryImageUrl?: string;
+  reference?: string;
+  salePrice?: number;
+  stock?: number;
   visible?: boolean;
 };
+
+const PRODUCT_INITIAL_NOTE = "Producto creado desde gestión de productos";
 
 function cleanText(value?: string) {
   return value?.trim().replace(/\s+/g, " ") ?? "";
@@ -66,6 +62,10 @@ export async function GET() {
         include: { category: { select: { id: true, name: true } } },
       },
       images: { orderBy: [{ isPrimary: "desc" }, { position: "asc" }] },
+      attributeValues: {
+        include: { attribute: true, option: true },
+        orderBy: { attribute: { position: "asc" } },
+      },
       variants: {
         include: {
           attributeValues: {
@@ -104,13 +104,6 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  if (!body.initialVariant) {
-    return NextResponse.json(
-      { message: "Registra la primera presentación del producto." },
-      { status: 400 },
-    );
-  }
-
   const catalogProductType = await prisma.catalogProductType.findUnique({
     where: { id: body.catalogProductTypeId },
     include: {
@@ -136,7 +129,7 @@ export async function POST(request: Request) {
 
   const normalizedAttributes = normalizeVariantAttributes(
     catalogProductType.attributes,
-    body.initialVariant.attributeValues ?? [],
+    body.attributeValues ?? [],
   );
   if (normalizedAttributes.error) {
     return NextResponse.json(
@@ -145,25 +138,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const reference = normalizeVariantReference(body.initialVariant.reference);
-  const baseCost = Number(body.initialVariant.baseCost);
+  const reference = normalizeVariantReference(body.reference);
+  const baseCost = Number(body.baseCost);
   const taxRate = DEFAULT_TAX_RATE;
   const cost = addTax(baseCost, taxRate).total;
-  const variantName = buildVariantName(
-    catalogProductType.attributes,
-    normalizedAttributes.values,
-    reference,
-  );
-  const variantError = validateVariantInput({
-    ...body.initialVariant,
+  const inventoryError = validateVariantInput({
+    minimumStock: body.minimumStock,
+    name: productInput.name,
+    salePrice: body.salePrice,
+    stock: body.stock,
     cost,
-    name: variantName,
     reference,
   });
-  if (variantError) {
-    return NextResponse.json({ message: variantError }, { status: 400 });
+  if (inventoryError) {
+    return NextResponse.json(
+      { message: inventoryError.replace(/variante/gi, "producto") },
+      { status: 400 },
+    );
   }
-  const stock = Number(body.initialVariant.stock);
+  const stock = Number(body.stock);
   const adminUserId = stock > 0 ? await getAdminUserId() : null;
 
   try {
@@ -195,34 +188,28 @@ export async function POST(request: Request) {
           cost: String(cost),
           details: productInput.details,
           imageUrl: productInput.primaryImageUrl || null,
+          location: cleanText(body.location) || null,
+          minimumStock: Number(body.minimumStock),
           model: productInput.model || null,
           name: productInput.name,
           productClassId: legacyClass.id,
           productTypeId: legacyType.id,
           reference,
-          salePrice: String(Number(body.initialVariant?.salePrice)),
+          salePrice: String(Number(body.salePrice)),
           stock,
           taxRate: String(taxRate),
           visible: body.visible ?? false,
         },
       });
 
-      const variant = await transaction.productVariant.create({
-        data: {
-          active: true,
-          attributeValues: { create: normalizedAttributes.values },
-          baseCost: String(baseCost),
-          cost: String(cost),
-          location: cleanText(body.initialVariant?.location) || null,
-          minimumStock: Number(body.initialVariant?.minimumStock),
-          name: variantName,
-          productId: createdProduct.id,
-          reference,
-          salePrice: String(Number(body.initialVariant?.salePrice)),
-          stock,
-          taxRate: String(taxRate),
-        },
-      });
+      if (normalizedAttributes.values.length) {
+        await transaction.productAttributeValue.createMany({
+          data: normalizedAttributes.values.map((value) => ({
+            ...value,
+            productId: createdProduct.id,
+          })),
+        });
+      }
 
       if (productInput.primaryImageUrl) {
         await transaction.productImage.create({
@@ -239,21 +226,20 @@ export async function POST(request: Request) {
         await transaction.stockMovement.create({
           data: {
             nextStock: stock,
-            note: CATALOG_PRODUCT_INITIAL_NOTE,
+            note: PRODUCT_INITIAL_NOTE,
             previousStock: 0,
             productId: createdProduct.id,
             quantity: stock,
             reason: INITIAL_STOCK_REASON,
             type: StockMovementType.ENTRY,
             userId: adminUserId,
-            variantId: variant.id,
           },
         });
       }
 
       return transaction.product.findUnique({
         where: { id: createdProduct.id },
-        include: { images: true, variants: true },
+        include: { attributeValues: true, images: true, variants: true },
       });
     });
 
@@ -264,7 +250,7 @@ export async function POST(request: Request) {
       error.code === "P2002"
     ) {
       return NextResponse.json(
-        { message: "La referencia de la variante ya está registrada." },
+        { message: "La referencia del producto ya está registrada." },
         { status: 409 },
       );
     }

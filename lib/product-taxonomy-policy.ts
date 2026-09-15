@@ -121,7 +121,7 @@ export function canDeleteAttribute(dependencies: AttributeDependencies) {
     allowed,
     reason: allowed
       ? ""
-      : "No puedes eliminar un atributo que ya está usado por variantes.",
+      : "No puedes eliminar un atributo que ya está usado por productos.",
   };
 }
 
@@ -133,6 +133,6 @@ export function canDeleteAttributeOption(
     allowed,
     reason: allowed
       ? ""
-      : "No puedes eliminar una opción que ya está seleccionada en variantes.",
+      : "No puedes eliminar una opción que ya está seleccionada en productos.",
   };
 }

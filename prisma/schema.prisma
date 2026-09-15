@@ -79,6 +79,8 @@ model Product {
   taxRate              Decimal             @default(19) @db.Decimal(5, 2)
   salePrice            Decimal             @db.Decimal(12, 2)
   stock                Int                 @default(0)
+  minimumStock         Int                 @default(0)
+  location             String?
   visible              Boolean             @default(false)
   featured             Boolean             @default(false)
   featuredOrder        Int?
@@ -94,11 +96,12 @@ model Product {
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
 
-  stockMovements StockMovement[]
-  orderItems     OrderItem[]
-  saleItems      SaleItem[]
-  variants       ProductVariant[]
-  images         ProductImage[]
+  stockMovements  StockMovement[]
+  orderItems      OrderItem[]
+  saleItems       SaleItem[]
+  variants        ProductVariant[]
+  images          ProductImage[]
+  attributeValues ProductAttributeValue[]
 
   @@index([featured, featuredOrder])
 }
@@ -143,8 +146,9 @@ model AttributeDefinition {
   createdAt     DateTime                 @default(now())
   updatedAt     DateTime                 @updatedAt
 
-  options AttributeOption[]
-  values  VariantAttributeValue[]
+  options       AttributeOption[]
+  values        ProductAttributeValue[]
+  variantValues VariantAttributeValue[]
 
   @@unique([productTypeId, key])
 }
@@ -159,9 +163,25 @@ model AttributeOption {
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
-  selectedValues VariantAttributeValue[]
+  selectedValues        ProductAttributeValue[]
+  selectedVariantValues VariantAttributeValue[]
 
   @@unique([attributeId, value])
+}
+
+model ProductAttributeValue {
+  id          String              @id @default(cuid())
+  product     Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+  attribute   AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Restrict)
+  attributeId String
+  option      AttributeOption?    @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  optionId    String?
+  value       String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([productId, attributeId])
 }
 
 model VariantAttributeValue {

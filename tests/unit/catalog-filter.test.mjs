@@ -37,6 +37,7 @@ const products = [
     ],
   },
   {
+    attributes: [{ name: "Color", unit: "", value: "Arena" }],
     category: "Muebles",
     cost: 0,
     details: "Sala familiar",
@@ -61,6 +62,7 @@ test("searches product, variant reference and attribute values", () => {
   assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "samsung").length, 1);
   assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "qn55").length, 1);
   assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "4k uhd").length, 1);
+  assert.equal(filterCatalogProducts(products, ALL_CATALOG_CATEGORIES, "arena").length, 1);
 });
 
 test("combines category and search filters", () => {

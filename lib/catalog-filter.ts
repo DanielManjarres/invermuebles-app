@@ -29,6 +29,7 @@ export function filterCatalogProducts(
       product.catalogProductType,
       product.category,
       product.productClass,
+      ...(product.attributes ?? []).map((attribute) => attribute.value),
       ...((product.variants ?? []).flatMap((variant) => [
         variant.name,
         variant.reference,

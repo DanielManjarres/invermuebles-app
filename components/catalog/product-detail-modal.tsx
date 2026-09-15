@@ -132,6 +132,16 @@ export function ProductDetailModal({
                 <span className="reference">{product.reference}</span>
               )}
               <p id={descriptionId}>{plainDetails}</p>
+              {!usesVariantSelection && product.attributes?.length ? (
+                <span className="productVariantAttributes">
+                  {product.attributes
+                    .map(
+                      (attribute) =>
+                        `${attribute.name}: ${attribute.value}${attribute.unit ? ` ${attribute.unit}` : ""}`,
+                    )
+                    .join(" · ")}
+                </span>
+              ) : null}
             </div>
             <div className="productDetailPurchase">
               {usesVariantSelection ? (

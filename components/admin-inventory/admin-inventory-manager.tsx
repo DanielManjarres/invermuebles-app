@@ -65,16 +65,16 @@ function createInventoryItems(products: Product[]): InventoryItem[] {
     return [{
       active: true,
       category,
-      isLegacy: true,
+      isLegacy: false,
       key: product.id,
-      location: "",
-      minimumStock: 0,
+      location: product.location ?? "",
+      minimumStock: product.minimumStock ?? 0,
       productId: product.id,
       productName: product.name,
       productType,
       reference: product.reference,
       stock: product.stock,
-      variantName: "Referencia principal",
+      variantName: "Producto",
     }];
   });
 }

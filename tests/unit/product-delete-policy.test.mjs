@@ -33,6 +33,22 @@ test("allows the initial entry created with a product variant", () => {
   assert.equal(result.allowed, true);
 });
 
+test("allows the initial entry created with a direct product", () => {
+  const result = canDeleteProduct({
+    orderItemsCount: 0,
+    saleItemsCount: 0,
+    stockMovements: [
+      {
+        note: "Producto creado desde gestión de productos",
+        reason: "Inventario inicial",
+        type: "ENTRY",
+      },
+    ],
+  });
+
+  assert.equal(result.allowed, true);
+});
+
 test("blocks deleting products with registered orders", () => {
   const result = canDeleteProduct({
     orderItemsCount: 1,

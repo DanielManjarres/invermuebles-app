@@ -1,4 +1,10 @@
 export type Product = {
+  attributes?: Array<{
+    name: string;
+    unit: string;
+    value: string;
+  }>;
+  baseCost?: number;
   id: string;
   name: string;
   reference: string;
@@ -8,10 +14,13 @@ export type Product = {
   cost: number;
   salePrice: number;
   stock: number;
+  taxRate?: number;
   visible: boolean;
   featured: boolean;
   featuredOrder?: number;
   image: string;
+  location?: string;
+  minimumStock?: number;
   catalogCategory?: string;
   catalogProductType?: string;
   variants?: ProductInventoryVariant[];

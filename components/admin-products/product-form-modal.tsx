@@ -37,19 +37,24 @@ type ProductFormState = {
 
 function createForm(product?: CatalogProductRecord): ProductFormState {
   return {
-    attributeValues: {},
+    attributeValues: Object.fromEntries(
+      (product?.attributeValues ?? []).map((value) => [
+        value.attributeId,
+        value.optionId || value.value,
+      ]),
+    ),
     brand: product?.brand ?? "",
     categoryId: product?.categoryId ?? "",
-    baseCost: 0,
+    baseCost: product?.baseCost ?? 0,
     details: product?.details ?? "",
     imageUrl: product?.imageUrl ?? "",
-    location: "",
-    minimumStock: "",
+    location: product?.location ?? "",
+    minimumStock: product?.minimumStock ?? "",
     model: product?.model ?? "",
     name: product?.name ?? "",
     productTypeId: product?.productTypeId ?? "",
-    reference: "",
-    salePrice: 0,
+    reference: product?.reference ?? "",
+    salePrice: product?.salePrice ?? 0,
     stock: "",
     visible: product?.visible ?? false,
   };
@@ -135,19 +140,17 @@ export function ProductFormModal({
       return;
     }
     if (
-      !isEditing &&
       (form.baseCost <= 0 || form.salePrice <= 0)
     ) {
       setError("El costo y el precio de venta deben ser mayores que cero.");
       return;
     }
     if (
-      !isEditing &&
-      (form.stock === "" ||
-        form.minimumStock === "" ||
-        !Number.isInteger(form.stock) ||
+      (form.minimumStock === "" ||
+        (!isEditing && form.stock === "") ||
+        (!isEditing && !Number.isInteger(form.stock)) ||
         !Number.isInteger(form.minimumStock) ||
-        form.stock < 0 ||
+        (!isEditing && Number(form.stock) < 0) ||
         form.minimumStock < 0)
     ) {
       setError("El stock inicial y el stock mínimo deben ser números enteros no negativos.");
@@ -159,7 +162,7 @@ export function ProductFormModal({
         attribute.required &&
         !form.attributeValues[attribute.id]?.trim(),
     );
-    if (!isEditing && missingAttribute) {
+    if (missingAttribute) {
       setError(`Completa el atributo obligatorio: ${missingAttribute.name}.`);
       return;
     }
@@ -198,47 +201,34 @@ export function ProductFormModal({
       {
         method: isEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          isEditing
-            ? {
-                brand: form.brand,
-                details: form.details,
-                model: form.model,
-                name: form.name,
-                primaryImageUrl,
-                visible: form.visible,
-              }
-            : {
-                brand: form.brand,
-                catalogProductTypeId: form.productTypeId,
-                initialVariant: {
-                  attributeValues: (selectedType?.attributes ?? [])
-                    .filter((attribute) => form.attributeValues[attribute.id])
-                    .map((attribute) =>
-                      attribute.dataType === "OPTION"
-                        ? {
-                            attributeId: attribute.id,
-                            optionId: form.attributeValues[attribute.id],
-                          }
-                        : {
-                            attributeId: attribute.id,
-                            value: form.attributeValues[attribute.id],
-                          },
-                    ),
-                  baseCost: form.baseCost,
-                  location: form.location,
-                  minimumStock: Number(form.minimumStock),
-                  reference: form.reference,
-                  salePrice: form.salePrice,
-                  stock: Number(form.stock),
-                },
-                details: form.details,
-                model: form.model,
-                name: form.name,
-                primaryImageUrl,
-                visible: form.visible,
-              },
-        ),
+        body: JSON.stringify({
+          attributeValues: (selectedType?.attributes ?? [])
+            .filter((attribute) => form.attributeValues[attribute.id])
+            .map((attribute) =>
+              attribute.dataType === "OPTION"
+                ? {
+                    attributeId: attribute.id,
+                    optionId: form.attributeValues[attribute.id],
+                  }
+                : {
+                    attributeId: attribute.id,
+                    value: form.attributeValues[attribute.id],
+                  },
+            ),
+          baseCost: form.baseCost,
+          brand: form.brand,
+          catalogProductTypeId: form.productTypeId,
+          details: form.details,
+          location: form.location,
+          minimumStock: Number(form.minimumStock),
+          model: form.model,
+          name: form.name,
+          primaryImageUrl,
+          reference: form.reference,
+          salePrice: form.salePrice,
+          ...(!isEditing ? { stock: Number(form.stock) } : {}),
+          visible: form.visible,
+        }),
       },
     ).catch(() => null);
     setIsSaving(false);
@@ -408,11 +398,11 @@ export function ProductFormModal({
             </div>
           ) : null}
 
-          {!isEditing ? (
+          {selectedType ? (
             <>
               <div className="adminFormWide catalogFormSectionTitle">
-                <strong>Primera presentación</strong>
-                <span>Define la primera presentación y su inventario inicial.</span>
+                <strong>Información comercial e inventario</strong>
+                <span>Define la referencia, el precio y las existencias del producto.</span>
               </div>
               <label>
                 Referencia *
@@ -424,22 +414,29 @@ export function ProductFormModal({
                 />
               </label>
               <div className="formHint">
-                El nombre se genera automáticamente con los atributos de la variante.
+                La referencia identifica este producto de forma única.
               </div>
               <VariantPricingFields
                 baseCost={form.baseCost}
                 salePrice={form.salePrice}
                 onChange={(pricing) => updateForm(pricing)}
               />
-              <label>
-                Stock inicial *
-                <IntegerInput
-                  min={0}
-                  onValueChange={(stock) => updateForm({ stock })}
-                  required
-                  value={form.stock}
-                />
-              </label>
+              {!isEditing ? (
+                <label>
+                  Stock inicial *
+                  <IntegerInput
+                    min={0}
+                    onValueChange={(stock) => updateForm({ stock })}
+                    required
+                    value={form.stock}
+                  />
+                </label>
+              ) : (
+                <div className="formHint">
+                  Stock actual: <strong>{product?.stock}</strong>. Los cambios se realizan
+                  desde Inventario.
+                </div>
+              )}
               <label>
                 Stock mínimo *
                 <IntegerInput

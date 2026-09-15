@@ -1550,7 +1550,7 @@ th {
 }
 
 .catalogProductFeaturedAction {
-  grid-column: auto;
+  grid-column: 1 / -1;
 }
 
 .catalogProductDeleteAction {
