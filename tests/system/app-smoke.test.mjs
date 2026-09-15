@@ -91,7 +91,7 @@ test("redirects unauthenticated administrators to login", async () => {
 });
 
 test("rejects unauthenticated writes to protected APIs", async () => {
-  for (const endpoint of ["/api/customers", "/api/products", "/api/sales"]) {
+  for (const endpoint of ["/api/customers", "/api/catalog-products", "/api/sales"]) {
     const response = await fetch(`${baseUrl}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
