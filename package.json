@@ -20,11 +20,9 @@
     "test:coverage": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=95 --test tests/unit/*.test.mjs tests/integration/*.test.mjs",
     "test:security": "npm audit --omit=dev"
   },
-  "prisma": {
-    "seed": "node prisma/seed.mjs"
-  },
   "dependencies": {
     "@prisma/client": "^6.13.0",
+    "dotenv": "^16.6.1",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.468.0",
     "next": "^16.3.1",
