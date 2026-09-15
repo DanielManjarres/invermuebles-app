@@ -1,4 +1,4 @@
-import { ArrowRight, MessageCircle, ShoppingCart } from "lucide-react";
+import { ArrowRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { FeaturedProducts } from "@/components/catalog/featured-products";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -33,10 +33,6 @@ export default async function HomePage() {
             <Link className="primaryButton" href="/catalogo">
               Ver catálogo
               <ArrowRight size={18} />
-            </Link>
-            <Link className="secondaryButton" href="/carrito">
-              <ShoppingCart size={18} />
-              Carrito
             </Link>
             <a
               className="ghostButton"

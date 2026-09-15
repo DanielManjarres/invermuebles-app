@@ -26,7 +26,9 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
   );
 
   return (
-    <div className="productGrid">
+    <div
+      className={`productGrid featuredProductGrid featuredCount-${Math.min(featured.length, 4)}`}
+    >
       {featured.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

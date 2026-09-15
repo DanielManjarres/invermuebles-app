@@ -116,7 +116,7 @@ export default function CartPage() {
         <p>Selecciona productos y continúa la venta con el almacén.</p>
       </section>
 
-      <section className="cartLayout">
+      <section className={`cartLayout${items.length === 0 ? " cartLayoutEmpty" : ""}`}>
         {items.length === 0 ? (
           <div className="emptyState">
             <h2>
