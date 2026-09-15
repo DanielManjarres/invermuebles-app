@@ -1424,9 +1424,9 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(330px, 1.12fr) minmax(360px, 0.92fr) minmax(280px, 300px);
-  padding: 14px;
+  gap: 18px;
+  grid-template-columns: minmax(390px, 1.2fr) minmax(350px, 0.9fr) minmax(260px, 280px);
+  padding: 16px;
 }
 
 .catalogProductIdentity {
@@ -1443,17 +1443,19 @@ th {
   border: 1px solid var(--line);
   border-radius: 8px;
   display: flex;
-  flex: 0 0 78px;
-  height: 78px;
+  box-sizing: border-box;
+  flex: 0 0 94px;
+  height: 94px;
   justify-content: center;
-  object-fit: cover;
-  width: 78px;
+  object-fit: contain;
+  padding: 5px;
+  width: 94px;
 }
 
 .catalogProductIdentity h3 {
-  font-size: 1.04rem;
+  font-size: 1.08rem;
   line-height: 1.2;
-  margin: 6px 0 3px;
+  margin: 7px 0 4px;
 }
 
 .catalogProductIdentity p {
@@ -1492,6 +1494,7 @@ th {
   border-radius: 8px;
   display: grid;
   gap: 3px;
+  min-height: 56px;
   min-width: 0;
   padding: 8px 9px;
 }
@@ -1528,7 +1531,7 @@ th {
   gap: 5px;
   justify-content: center;
   line-height: 1.1;
-  min-height: 36px;
+  min-height: 40px;
   padding-left: 8px;
   padding-right: 8px;
   text-align: center;
