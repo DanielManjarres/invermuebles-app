@@ -21,10 +21,6 @@ type ProductImageZoomProps = {
   onClose: () => void;
 };
 
-function formatPrice(value: number) {
-  return `$ ${value.toLocaleString("es-CO", { maximumFractionDigits: 0 })}`;
-}
-
 function ProductImageZoom({ image, name, onClose }: ProductImageZoomProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -115,9 +111,6 @@ export function ProductDetailModal({
               <span className="tag">{product.catalogCategory || product.category}</span>
               <h2 id={titleId}>{product.name}</h2>
               <span className="reference">{product.reference}</span>
-              <strong className="productDetailPrice">
-                {formatPrice(product.salePrice)}
-              </strong>
               <p id={descriptionId}>{plainDetails}</p>
               {product.attributes?.length ? (
                 <span className="productAttributes">
