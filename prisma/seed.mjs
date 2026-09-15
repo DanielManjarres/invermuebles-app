@@ -202,23 +202,24 @@ async function main() {
   });
 
   for (const product of initialProducts) {
-    const productType = await prisma.productType.upsert({
+    const category = await prisma.category.upsert({
       where: { name: product.category },
-      update: {},
-      create: { name: product.category },
+      update: { active: true },
+      create: { active: true, name: product.category },
     });
 
-    const productClass = await prisma.productClass.upsert({
+    const catalogProductType = await prisma.catalogProductType.upsert({
       where: {
-        name_productTypeId: {
+        name_categoryId: {
+          categoryId: category.id,
           name: product.productClass,
-          productTypeId: productType.id,
         },
       },
-      update: {},
+      update: { active: true },
       create: {
+        active: true,
+        categoryId: category.id,
         name: product.productClass,
-        productTypeId: productType.id,
       },
     });
 
@@ -235,8 +236,7 @@ async function main() {
         salePrice: String(product.salePrice),
         visible: product.visible,
         imageUrl: product.image,
-        productTypeId: productType.id,
-        productClassId: productClass.id,
+        catalogProductTypeId: catalogProductType.id,
       },
       create: {
         id: product.id,
@@ -248,8 +248,7 @@ async function main() {
         stock: product.stock,
         visible: product.visible,
         imageUrl: product.image,
-        productTypeId: productType.id,
-        productClassId: productClass.id,
+        catalogProductTypeId: catalogProductType.id,
       },
     });
 
@@ -269,16 +268,16 @@ async function main() {
     }
   }
 
-  const [typeCount, classCount, productCount, movementCount] = await Promise.all([
-    prisma.productType.count(),
-    prisma.productClass.count(),
+  const [categoryCount, typeCount, productCount, movementCount] = await Promise.all([
+    prisma.category.count(),
+    prisma.catalogProductType.count(),
     prisma.product.count(),
     prisma.stockMovement.count(),
   ]);
 
   console.log("Seed completado");
+  console.log(`Categorías: ${categoryCount}`);
   console.log(`Tipos: ${typeCount}`);
-  console.log(`Clases: ${classCount}`);
   console.log(`Productos: ${productCount}`);
   console.log(`Movimientos: ${movementCount}`);
 }

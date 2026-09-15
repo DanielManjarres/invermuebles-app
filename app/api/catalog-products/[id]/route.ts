@@ -106,13 +106,6 @@ export async function PUT(request: Request, context: RouteContext) {
     return NextResponse.json({ message: validationError }, { status: 400 });
   }
 
-  if (!currentProduct.catalogProductType) {
-    return NextResponse.json(
-      { message: "El producto no tiene un tipo configurado." },
-      { status: 409 },
-    );
-  }
-
   const normalizedAttributes = normalizeProductAttributes(
     currentProduct.catalogProductType.attributes,
     body.attributeValues ??

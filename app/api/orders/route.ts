@@ -44,8 +44,6 @@ export async function POST(request: Request) {
       },
       id: true,
       name: true,
-      productClass: { select: { name: true } },
-      productType: { select: { name: true } },
       reference: true,
       stock: true,
     },
@@ -82,13 +80,11 @@ export async function POST(request: Request) {
         create: items.map((item) => {
           const product = productById.get(item.productId)!;
           return {
-            productCategory:
-              product.catalogProductType?.category.name ?? product.productType.name,
+            productCategory: product.catalogProductType.category.name,
             productId: item.productId,
             productName: product.name,
             productReference: product.reference,
-            productTypeName:
-              product.catalogProductType?.name ?? product.productClass.name,
+            productTypeName: product.catalogProductType.name,
             quantity: item.quantity,
           };
         }),

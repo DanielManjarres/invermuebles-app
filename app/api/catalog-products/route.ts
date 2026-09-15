@@ -146,25 +146,6 @@ export async function POST(request: Request) {
 
   try {
     const product = await prisma.$transaction(async (transaction) => {
-      const legacyType = await transaction.productType.upsert({
-        where: { name: catalogProductType.category.name },
-        update: {},
-        create: { name: catalogProductType.category.name },
-      });
-      const legacyClass = await transaction.productClass.upsert({
-        where: {
-          name_productTypeId: {
-            name: catalogProductType.name,
-            productTypeId: legacyType.id,
-          },
-        },
-        update: {},
-        create: {
-          name: catalogProductType.name,
-          productTypeId: legacyType.id,
-        },
-      });
-
       const createdProduct = await transaction.product.create({
         data: {
           brand: productInput.brand || null,
@@ -177,8 +158,6 @@ export async function POST(request: Request) {
           minimumStock: Number(body.minimumStock),
           model: productInput.model || null,
           name: productInput.name,
-          productClassId: legacyClass.id,
-          productTypeId: legacyType.id,
           reference,
           salePrice: String(Number(body.salePrice)),
           stock,

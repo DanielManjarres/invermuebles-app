@@ -65,8 +65,6 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
         include: { attribute: true },
         orderBy: { attribute: { position: "asc" } },
       },
-      productClass: true,
-      productType: true,
     },
     orderBy: { name: "asc" },
   });
@@ -82,9 +80,8 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
     })),
     baseCost: Number(product.baseCost),
     brand: product.brand ?? "",
-    categoryId: product.catalogProductType?.category.id ?? "",
-    categoryName:
-      product.catalogProductType?.category.name ?? product.productType.name,
+    categoryId: product.catalogProductType.category.id,
+    categoryName: product.catalogProductType.category.name,
     details: product.details,
     featured: product.featured,
     featuredOrder: product.featuredOrder,
@@ -94,9 +91,8 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
     minimumStock: product.minimumStock,
     model: product.model ?? "",
     name: product.name,
-    productTypeId: product.catalogProductType?.id ?? "",
-    productTypeName:
-      product.catalogProductType?.name ?? product.productClass.name,
+    productTypeId: product.catalogProductType.id,
+    productTypeName: product.catalogProductType.name,
     reference: product.reference,
     salePrice: Number(product.salePrice),
     stock: product.stock,

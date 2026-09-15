@@ -308,9 +308,6 @@ export function AdminProductsManager({
                             En inicio
                           </span>
                         ) : null}
-                        {!product.productTypeId ? (
-                          <span className="unavailable">Pendiente de migración</span>
-                        ) : null}
                         <span className="catalogProductTaxonomy">
                           {product.categoryName} / {product.productTypeName}
                         </span>

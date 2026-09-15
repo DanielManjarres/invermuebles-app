@@ -251,8 +251,6 @@ export async function POST(request: Request) {
         where: { id: { in: items.map((item) => item.productId) } },
         include: {
           catalogProductType: { include: { category: true } },
-          productClass: true,
-          productType: true,
         },
       });
 
@@ -272,10 +270,8 @@ export async function POST(request: Request) {
           baseCost: product.baseCost,
           cost: product.cost,
           lineTotal,
-          productCategory:
-            product.catalogProductType?.category.name ?? product.productType.name,
-          productClass:
-            product.catalogProductType?.name ?? product.productClass.name,
+          productCategory: product.catalogProductType.category.name,
+          productClass: product.catalogProductType.name,
           productId: product.id,
           productName: product.name,
           productReference: product.reference,

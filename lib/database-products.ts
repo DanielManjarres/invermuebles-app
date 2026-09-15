@@ -13,11 +13,6 @@ type ProductFilters = {
   visibleOnly?: boolean;
 };
 
-export type DatabaseProductType = {
-  name: string;
-  classes: string[];
-};
-
 function mapMovementType(type: StockMovementType): MovementType {
   if (type === "ENTRY") {
     return "entry";
@@ -45,12 +40,10 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
         include: { attribute: true },
         orderBy: { attribute: { position: "asc" } },
       },
-      productClass: true,
-      productType: true,
     },
     orderBy: filters.featuredOnly
       ? [{ featuredOrder: "asc" }, { name: "asc" }]
-      : [{ productType: { name: "asc" } }, { name: "asc" }],
+      : [{ catalogProductType: { name: "asc" } }, { name: "asc" }],
   });
 
   return products.map((product) => ({
@@ -63,8 +56,8 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     id: product.id,
     name: product.name,
     reference: product.reference,
-    category: product.productType.name,
-    productClass: product.productClass.name,
+    category: product.catalogProductType.category.name,
+    productClass: product.catalogProductType.name,
     details: product.details,
     cost: Number(product.cost),
     salePrice: Number(product.salePrice),
@@ -75,8 +68,8 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
     image: product.imageUrl ?? fallbackImage,
     location: product.location ?? "",
     minimumStock: product.minimumStock,
-    catalogCategory: product.catalogProductType?.category.name,
-    catalogProductType: product.catalogProductType?.name,
+    catalogCategory: product.catalogProductType.category.name,
+    catalogProductType: product.catalogProductType.name,
     taxRate: Number(product.taxRate),
   }));
 }
@@ -87,8 +80,7 @@ export async function getStockMovements(): Promise<StockMovement[]> {
     include: {
       product: {
         include: {
-          productClass: true,
-          productType: true,
+          catalogProductType: { include: { category: true } },
         },
       },
       user: true,
@@ -101,8 +93,8 @@ export async function getStockMovements(): Promise<StockMovement[]> {
     productId: movement.productId,
     productName: movement.product.name,
     productReference: movement.product.reference,
-    productCategory: movement.product.productType.name,
-    productClass: movement.product.productClass.name,
+    productCategory: movement.product.catalogProductType.category.name,
+    productClass: movement.product.catalogProductType.name,
     type: mapMovementType(movement.type),
     quantity: movement.quantity,
     previousStock: movement.previousStock,
@@ -118,22 +110,6 @@ export async function getStockMovements(): Promise<StockMovement[]> {
   }));
 }
 
-export async function getProductTypes(): Promise<DatabaseProductType[]> {
-  const productTypes = await prisma.productType.findMany({
-    include: {
-      classes: {
-        orderBy: { name: "asc" },
-      },
-    },
-    orderBy: { name: "asc" },
-  });
-
-  return productTypes.map((productType) => ({
-    name: productType.name,
-    classes: productType.classes.map((productClass) => productClass.name),
-  }));
-}
-
 export async function getOrders(): Promise<AdminOrder[]> {
   const orders = await prisma.order.findMany({
     include: {
@@ -142,8 +118,7 @@ export async function getOrders(): Promise<AdminOrder[]> {
         include: {
           product: {
             include: {
-              productClass: true,
-              productType: true,
+              catalogProductType: { include: { category: true } },
             },
           },
         },
@@ -164,8 +139,9 @@ export async function getOrders(): Promise<AdminOrder[]> {
       productId: item.productId,
       productName: item.productName ?? item.product.name,
       productReference: item.productReference ?? item.product.reference,
-      productCategory: item.productCategory ?? item.product.productType.name,
-      productClass: item.productTypeName ?? item.product.productClass.name,
+      productCategory:
+        item.productCategory ?? item.product.catalogProductType.category.name,
+      productClass: item.productTypeName ?? item.product.catalogProductType.name,
       quantity: item.quantity,
     }));
 
