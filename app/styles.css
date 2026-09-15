@@ -461,6 +461,15 @@ p {
   margin-bottom: 8px;
 }
 
+.productPrice {
+  color: var(--primary-dark);
+  display: block;
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 8px 0;
+}
+
 .productInfo p {
   color: var(--muted);
   display: -webkit-box;
@@ -514,11 +523,12 @@ p {
 }
 
 .catalogSection .productCard {
-  grid-template-rows: 156px minmax(200px, 1fr);
+  grid-template-rows: auto minmax(200px, 1fr);
 }
 
 .catalogSection .productImage {
-  height: 156px;
+  aspect-ratio: 1;
+  height: auto;
 }
 
 .catalogSection .productImage img {
@@ -729,6 +739,13 @@ p {
   font-size: clamp(1.45rem, 2.7vw, 1.95rem);
   line-height: 1.08;
   margin: 0;
+}
+
+.productDetailPrice {
+  color: var(--primary-dark);
+  font-size: 1.45rem;
+  font-weight: 900;
+  line-height: 1.15;
 }
 
 .productDetailInfo p {
@@ -5118,7 +5135,7 @@ th {
   }
 
   .catalogSection .productCard {
-    grid-template-rows: 112px minmax(220px, 1fr);
+    grid-template-rows: auto minmax(220px, 1fr);
   }
 
   .productImage {
@@ -5126,7 +5143,7 @@ th {
   }
 
   .catalogSection .productImage {
-    height: 112px;
+    height: auto;
   }
 
   .productInfo {
@@ -5152,6 +5169,11 @@ th {
   .catalogSection .reference {
     font-size: 0.72rem;
     margin-bottom: 4px;
+  }
+
+  .catalogSection .productPrice {
+    font-size: 0.96rem;
+    margin: 6px 0;
   }
 
   .productCard .productInfo p {

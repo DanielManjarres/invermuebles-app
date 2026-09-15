@@ -25,6 +25,10 @@ function createSummary(details: string) {
   return summary.length > 90 ? `${summary.slice(0, 87).trim()}...` : summary;
 }
 
+function formatPrice(value: number) {
+  return `$ ${value.toLocaleString("es-CO", { maximumFractionDigits: 0 })}`;
+}
+
 export function ProductCard({
   actionLabel = "Agregar",
   detailActionLabel = "Agregar al carrito",
@@ -108,6 +112,7 @@ export function ProductCard({
             <span className="tag">{product.catalogCategory || product.category}</span>
             <h2>{product.name}</h2>
             <span className="reference">{product.reference}</span>
+            <strong className="productPrice">{formatPrice(product.salePrice)}</strong>
             <p>{productSummary}</p>
           </div>
           <div className="productFooter">
