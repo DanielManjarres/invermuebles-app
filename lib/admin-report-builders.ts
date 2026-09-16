@@ -35,7 +35,7 @@ function excelDate(value: string) {
 
 export function downloadProductsReport(products: CatalogProductRecord[]) {
   const rows = products.map((product) => {
-    const costWithTax = product.baseCost * (1 + product.taxRate / 100);
+    const costWithTax = product.cost;
     const saleBase = product.salePrice / (1 + product.taxRate / 100);
     const margin = saleBase > 0 ? (saleBase - product.baseCost) / saleBase : 0;
 
@@ -76,7 +76,7 @@ export function downloadProductsReport(products: CatalogProductRecord[]) {
       { header: "Características", key: "attributes", width: 45 },
       { header: "Costo antes de IVA", key: "baseCost", width: 20, numberFormat: moneyFormat },
       { header: "IVA compra", key: "purchaseTax", width: 16, numberFormat: moneyFormat },
-      { header: "Costo con IVA", key: "costWithTax", width: 18, numberFormat: moneyFormat },
+      { header: "Costo de compra (IVA incluido)", key: "costWithTax", width: 28, numberFormat: moneyFormat },
       { header: "Venta antes de IVA", key: "saleBase", width: 20, numberFormat: moneyFormat },
       { header: "IVA venta", key: "saleTax", width: 16, numberFormat: moneyFormat },
       { header: "Precio final", key: "salePrice", width: 18, numberFormat: moneyFormat },

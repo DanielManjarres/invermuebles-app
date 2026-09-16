@@ -79,6 +79,7 @@ export async function getCatalogProducts(): Promise<CatalogProductRecord[]> {
       value: attributeValue.value,
     })),
     baseCost: Number(product.baseCost),
+    cost: Number(product.cost),
     brand: product.brand ?? "",
     categoryId: product.catalogProductType.category.id,
     categoryName: product.catalogProductType.category.name,

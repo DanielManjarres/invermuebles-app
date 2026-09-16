@@ -6,7 +6,7 @@ import {
   validateCatalogProductInput,
 } from "@/lib/catalog-product-policy";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
+import { DEFAULT_TAX_RATE, splitTaxIncluded } from "@/lib/tax-calculator";
 import {
   normalizeProductAttributes,
   normalizeProductReference,
@@ -20,7 +20,7 @@ type RouteContext = {
 
 type CatalogProductUpdateRequest = {
   attributeValues?: ProductAttributeInput[];
-  baseCost?: number;
+  cost?: number;
   brand?: string;
   details?: string;
   location?: string;
@@ -123,11 +123,11 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 
   const reference = normalizeProductReference(body.reference ?? currentProduct.reference);
-  const baseCost = Number(body.baseCost ?? currentProduct.baseCost);
+  const cost = Number(body.cost ?? currentProduct.cost);
   const salePrice = Number(body.salePrice ?? currentProduct.salePrice);
   const minimumStock = Number(body.minimumStock ?? currentProduct.minimumStock);
   const taxRate = DEFAULT_TAX_RATE;
-  const cost = addTax(baseCost, taxRate).total;
+  const baseCost = splitTaxIncluded(cost, taxRate).baseAmount;
   const inventoryError = validateProductInventoryInput({
     cost,
     minimumStock,

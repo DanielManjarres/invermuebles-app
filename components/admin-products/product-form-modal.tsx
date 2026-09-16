@@ -21,7 +21,7 @@ type ProductFormState = {
   attributeValues: Record<string, string>;
   brand: string;
   categoryId: string;
-  baseCost: number;
+  cost: number;
   details: string;
   imageUrl: string;
   location: string;
@@ -45,7 +45,7 @@ function createForm(product?: CatalogProductRecord): ProductFormState {
     ),
     brand: product?.brand ?? "",
     categoryId: product?.categoryId ?? "",
-    baseCost: product?.baseCost ?? 0,
+    cost: product?.cost ?? 0,
     details: product?.details ?? "",
     imageUrl: product?.imageUrl ?? "",
     location: product?.location ?? "",
@@ -140,7 +140,7 @@ export function ProductFormModal({
       return;
     }
     if (
-      (form.baseCost <= 0 || form.salePrice <= 0)
+      (form.cost <= 0 || form.salePrice <= 0)
     ) {
       setError("El costo y el precio de venta deben ser mayores que cero.");
       return;
@@ -215,7 +215,7 @@ export function ProductFormModal({
                     value: form.attributeValues[attribute.id],
                   },
             ),
-          baseCost: form.baseCost,
+          cost: form.cost,
           brand: form.brand,
           catalogProductTypeId: form.productTypeId,
           details: form.details,
@@ -417,7 +417,7 @@ export function ProductFormModal({
                 La referencia identifica este producto de forma única.
               </div>
               <ProductPricingFields
-                baseCost={form.baseCost}
+                cost={form.cost}
                 salePrice={form.salePrice}
                 onChange={(pricing) => updateForm(pricing)}
               />

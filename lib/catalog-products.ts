@@ -49,6 +49,7 @@ export type CatalogAttributeValue = {
 export type CatalogProductRecord = {
   attributeValues: CatalogAttributeValue[];
   baseCost: number;
+  cost: number;
   brand: string;
   categoryId: string;
   categoryName: string;

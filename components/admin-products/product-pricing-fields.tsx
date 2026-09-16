@@ -4,44 +4,48 @@ import { ProductMoneyField } from "@/components/admin-products/form-controls";
 import {
   DEFAULT_MARGIN_PERCENT,
   DEFAULT_TAX_RATE,
-  addTax,
   calculateMarginPercent,
   splitTaxIncluded,
   suggestSalePrice,
 } from "@/lib/tax-calculator";
 
 type ProductPricingFieldsProps = {
-  baseCost: number;
-  onChange: (values: { baseCost: number; salePrice: number }) => void;
+  cost: number;
+  onChange: (values: { cost: number; salePrice: number }) => void;
   salePrice: number;
 };
 
 export function ProductPricingFields({
-  baseCost,
+  cost,
   onChange,
   salePrice,
 }: ProductPricingFieldsProps) {
-  const purchase = addTax(baseCost, DEFAULT_TAX_RATE);
+  const purchase = splitTaxIncluded(cost, DEFAULT_TAX_RATE);
   const sale = splitTaxIncluded(salePrice, DEFAULT_TAX_RATE);
-  const margin = calculateMarginPercent(baseCost, salePrice);
+  const margin = calculateMarginPercent(purchase.baseAmount, salePrice);
 
   return (
     <>
       <ProductMoneyField
-        label="Costo antes de IVA"
-        value={baseCost}
-        onChange={(nextBaseCost) =>
-          onChange({ baseCost: nextBaseCost, salePrice: suggestSalePrice(nextBaseCost) })
+        label="Costo de compra (IVA incluido)"
+        value={cost}
+        onChange={(nextCost) =>
+          onChange({
+            cost: nextCost,
+            salePrice: suggestSalePrice(
+              splitTaxIncluded(nextCost, DEFAULT_TAX_RATE).baseAmount,
+            ),
+          })
         }
       />
       <ProductMoneyField
         label="Precio final de venta"
         value={salePrice}
-        onChange={(nextSalePrice) => onChange({ baseCost, salePrice: nextSalePrice })}
+        onChange={(nextSalePrice) => onChange({ cost, salePrice: nextSalePrice })}
       />
       <div className="pricingSummary">
+        <span>Base de compra: <strong>$ {purchase.baseAmount.toLocaleString("es-CO")}</strong></span>
         <span>IVA compra ({DEFAULT_TAX_RATE}%): <strong>$ {purchase.taxAmount.toLocaleString("es-CO")}</strong></span>
-        <span>Costo con IVA: <strong>$ {purchase.total.toLocaleString("es-CO")}</strong></span>
         <span>Base de venta: <strong>$ {sale.baseAmount.toLocaleString("es-CO")}</strong></span>
         <span>IVA venta ({DEFAULT_TAX_RATE}%): <strong>$ {sale.taxAmount.toLocaleString("es-CO")}</strong></span>
         <span>Margen real: <strong>{margin.toLocaleString("es-CO", { maximumFractionDigits: 2 })}%</strong></span>

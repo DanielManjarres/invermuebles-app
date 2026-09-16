@@ -6,7 +6,7 @@ import {
   validateCatalogProductInput,
 } from "@/lib/catalog-product-policy";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_TAX_RATE, addTax } from "@/lib/tax-calculator";
+import { DEFAULT_TAX_RATE, splitTaxIncluded } from "@/lib/tax-calculator";
 import {
   INITIAL_STOCK_REASON,
   normalizeProductAttributes,
@@ -17,7 +17,7 @@ import {
 
 type CatalogProductRequest = {
   attributeValues?: ProductAttributeInput[];
-  baseCost?: number;
+  cost?: number;
   brand?: string;
   catalogProductTypeId?: string;
   details?: string;
@@ -124,9 +124,9 @@ export async function POST(request: Request) {
   }
 
   const reference = normalizeProductReference(body.reference);
-  const baseCost = Number(body.baseCost);
+  const cost = Number(body.cost);
   const taxRate = DEFAULT_TAX_RATE;
-  const cost = addTax(baseCost, taxRate).total;
+  const baseCost = splitTaxIncluded(cost, taxRate).baseAmount;
   const inventoryError = validateProductInventoryInput({
     minimumStock: body.minimumStock,
     name: productInput.name,
