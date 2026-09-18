@@ -77,6 +77,7 @@ export function ProductFormModal({
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const dialogRef = useRef<HTMLFormElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === form.categoryId),
     [categories, form.categoryId],
@@ -363,28 +364,36 @@ export function ProductFormModal({
               onChange={(event) => updateForm({ details: event.target.value })}
             />
           </label>
-          <label className="adminFormWide">
-            Imagen principal
+          <div className="adminFormWide adminFormField">
+            <label htmlFor="product-image-url">Imagen principal</label>
             <input
+              id="product-image-url"
               placeholder="URL externa o ruta de una imagen subida"
               value={form.imageUrl}
               onChange={(event) => updateForm({ imageUrl: event.target.value })}
             />
-            <span className="uploadImageControl">
+            <button
+              className="uploadImageControl"
+              disabled={isUploading}
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+            >
               <Upload size={16} />
               {isUploading ? "Subiendo imagen..." : "Subir imagen"}
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                disabled={isUploading}
-                type="file"
-                onChange={handleImageUpload}
-              />
-            </span>
+            </button>
+            <input
+              ref={imageInputRef}
+              accept="image/png,image/jpeg,image/webp"
+              className="uploadImageInput"
+              disabled={isUploading}
+              type="file"
+              onChange={handleImageUpload}
+            />
             <small>
               Las imágenes subidas o agregadas por URL se ajustan automáticamente a
               1200 × 1200 px al guardar.
             </small>
-          </label>
+          </div>
           {form.imageUrl ? (
             <div className="adminFormPreview adminFormWide">
               <div className="adminFormImagePreview">

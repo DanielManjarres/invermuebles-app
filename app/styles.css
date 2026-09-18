@@ -2517,7 +2517,8 @@ th {
 }
 
 .adminFormGrid label,
-.adminFormSingle {
+.adminFormSingle,
+.adminFormField {
   color: var(--text);
   display: grid;
   font-size: 0.86rem;
@@ -2582,12 +2583,12 @@ th {
   border-color: rgba(7, 85, 42, 0.32);
 }
 
-.uploadImageControl:has(input:disabled) {
+.uploadImageControl:disabled {
   cursor: wait;
   opacity: 0.72;
 }
 
-.uploadImageControl input {
+.uploadImageInput {
   display: none;
 }
 
