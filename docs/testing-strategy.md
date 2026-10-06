@@ -83,12 +83,12 @@ universitario.
 
 ## Riesgos conocidos
 
-La actualización compatible dejó Next.js en 15.5.23 y corrigió avisos de
-`nanoid`, `js-yaml` y `brace-expansion`. `npm audit` todavía reporta tres avisos
-altos heredados de `postcss` y `sharp`. La corrección propuesta exige migrar a
-Next.js 16.3.1, por lo que debe realizarse en una rama independiente y nunca con
-`npm audit fix --force` sin revisar la guía de migración y ejecutar toda la
-suite.
+La actualización compatible del 5 de octubre de 2026 dejó Next.js en 16.3.8 y
+Sharp en 0.35.5, eliminando la alerta crítica de Next.js para servidores
+Windows. `npm audit --omit=dev` conserva tres avisos altos de `deepmerge-ts`
+arrastrados por la herramienta Prisma. npm propone una regresión forzada a
+Prisma 6.12.0; no debe ejecutarse `npm audit fix --force` sin revisar primero la
+compatibilidad y volver a ejecutar toda la suite.
 
 ## Criterio de terminado
 
